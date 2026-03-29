@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings as SettingsIcon, Loader2, Save } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell } from "lucide-react";
 
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
@@ -24,13 +25,25 @@ const ACTIVITY_LEVELS = [
   { value: "1.9", label: "Estremamente attivo (atleta)" },
 ];
 
-const GOAL_RATES = [
-  { value: "-0.75", label: "Dimagrimento aggressivo (-0.75 kg/sett)" },
-  { value: "-0.5", label: "Dimagrimento moderato (-0.5 kg/sett)" },
-  { value: "-0.25", label: "Dimagrimento leggero (-0.25 kg/sett)" },
-  { value: "0", label: "Mantenimento" },
-  { value: "0.25", label: "Surplus leggero (+0.25 kg/sett)" },
-  { value: "0.5", label: "Surplus moderato (+0.5 kg/sett)" },
+const GOAL_TYPES = [
+  { value: "sustainable_loss", label: "Dimagrimento sostenibile (-0.5% BW/sett)" },
+  { value: "aggressive_minicut", label: "Mini-cut aggressivo (-1% BW/sett)" },
+  { value: "maintenance", label: "Mantenimento" },
+  { value: "weight_gain", label: "Aumento massa (+0.3% BW/sett)" },
+];
+
+const DIET_TYPES = [
+  { value: "balanced", label: "Bilanciata (50/50 carb/grassi)" },
+  { value: "low_fat", label: "Low Fat (grassi minimi 0.6g/kg)" },
+  { value: "low_carb", label: "Low Carb (carb fissi 1g/kg)" },
+  { value: "keto", label: "Keto (max 30g carb)" },
+];
+
+const PROTEIN_PREFS = [
+  { value: "low", label: "1.6 g/kg", desc: "Basso" },
+  { value: "moderate", label: "2.0 g/kg", desc: "Moderato" },
+  { value: "high", label: "2.2 g/kg", desc: "Alto" },
+  { value: "very_high", label: "2.6 g/kg", desc: "Molto alto" },
 ];
 
 export default function Settings() {
@@ -40,8 +53,12 @@ export default function Settings() {
   const [sex, setSex] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
-  const [activityLevel, setActivityLevel] = useState("");
-  const [goalRate, setGoalRate] = useState("");
+  const [activityLevel, setActivityLevel] = useState("1.2");
+  const [goalType, setGoalType] = useState("sustainable_loss");
+  const [dietType, setDietType] = useState("balanced");
+  const [proteinPref, setProteinPref] = useState("moderate");
+  const [calorieDistribution, setCalorieDistribution] = useState("stable");
+  const [trainingDays, setTrainingDays] = useState("4");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -51,7 +68,11 @@ export default function Settings() {
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
-      setGoalRate(profile.goal_rate?.toString() ?? "0");
+      setGoalType((profile as any).goal_type ?? "sustainable_loss");
+      setDietType((profile as any).diet_type ?? "balanced");
+      setProteinPref((profile as any).protein_pref ?? "moderate");
+      setCalorieDistribution((profile as any).calorie_distribution ?? "stable");
+      setTrainingDays(((profile as any).training_days_per_week ?? 4).toString());
     }
   }, [profile]);
 
@@ -68,8 +89,12 @@ export default function Settings() {
           birth_date: birthDate || null,
           height_cm: heightCm ? parseFloat(heightCm) : null,
           activity_level: parseFloat(activityLevel),
-          goal_rate: parseFloat(goalRate),
-        })
+          goal_type: goalType,
+          diet_type: dietType,
+          protein_pref: proteinPref,
+          calorie_distribution: calorieDistribution,
+          training_days_per_week: parseInt(trainingDays),
+        } as any)
         .eq("id", user.id)
         .select()
         .single();
@@ -99,6 +124,7 @@ export default function Settings() {
         </p>
       </div>
 
+      {/* Profile Card */}
       <Card className="glass-card border-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display">Profilo</CardTitle>
@@ -151,17 +177,7 @@ export default function Settings() {
               className="border-border"
             />
           </div>
-        </CardContent>
-      </Card>
 
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display">Parametri di Calcolo</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Modifica questi valori per ricalcolare istantaneamente i tuoi target
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Livello di Attività</Label>
             <Select value={activityLevel} onValueChange={setActivityLevel}>
@@ -177,22 +193,134 @@ export default function Settings() {
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Obiettivo Settimanale</Label>
-            <Select value={goalRate} onValueChange={setGoalRate}>
+      {/* Nutrition & Goals Card */}
+      <Card className="glass-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-display flex items-center gap-2">
+            <Dumbbell className="h-5 w-5 text-primary" />
+            Nutrizione & Obiettivi
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Questi parametri determinano i tuoi target calorici e macro giornalieri
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Goal Type */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Obiettivo
+            </Label>
+            <RadioGroup value={goalType} onValueChange={setGoalType} className="grid grid-cols-1 gap-2">
+              {GOAL_TYPES.map((gt) => (
+                <label
+                  key={gt.value}
+                  className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    goalType === gt.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <RadioGroupItem value={gt.value} />
+                  <span className="text-sm text-foreground">{gt.label}</span>
+                </label>
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* Diet Type */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Tipo di Dieta
+            </Label>
+            <Select value={dietType} onValueChange={setDietType}>
               <SelectTrigger className="border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {GOAL_RATES.map((gr) => (
-                  <SelectItem key={gr.value} value={gr.value}>
-                    {gr.label}
+                {DIET_TYPES.map((dt) => (
+                  <SelectItem key={dt.value} value={dt.value}>
+                    {dt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Protein Preference */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Proteine Target
+            </Label>
+            <RadioGroup value={proteinPref} onValueChange={setProteinPref} className="grid grid-cols-2 gap-2">
+              {PROTEIN_PREFS.map((pp) => (
+                <label
+                  key={pp.value}
+                  className={`flex flex-col items-center rounded-lg border p-3 cursor-pointer transition-colors ${
+                    proteinPref === pp.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <RadioGroupItem value={pp.value} className="sr-only" />
+                  <span className="text-sm font-semibold text-foreground">{pp.label}</span>
+                  <span className="text-xs text-muted-foreground">{pp.desc}</span>
+                </label>
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* Calorie Distribution */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Distribuzione Calorica
+            </Label>
+            <RadioGroup value={calorieDistribution} onValueChange={setCalorieDistribution} className="grid grid-cols-2 gap-2">
+              <label
+                className={`flex flex-col rounded-lg border p-3 cursor-pointer transition-colors ${
+                  calorieDistribution === "stable"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/40"
+                }`}
+              >
+                <RadioGroupItem value="stable" className="sr-only" />
+                <span className="text-sm font-semibold text-foreground">Stabile</span>
+                <span className="text-xs text-muted-foreground">Stesse kcal ogni giorno</span>
+              </label>
+              <label
+                className={`flex flex-col rounded-lg border p-3 cursor-pointer transition-colors ${
+                  calorieDistribution === "polarized"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/40"
+                }`}
+              >
+                <RadioGroupItem value="polarized" className="sr-only" />
+                <span className="text-sm font-semibold text-foreground">Polarizzata</span>
+                <span className="text-xs text-muted-foreground">+20% nei giorni di allenamento</span>
+              </label>
+            </RadioGroup>
+          </div>
+
+          {/* Training Days (only if polarized) */}
+          {calorieDistribution === "polarized" && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Giorni di allenamento / settimana</Label>
+              <Select value={trainingDays} onValueChange={setTrainingDays}>
+                <SelectTrigger className="border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6].map((d) => (
+                    <SelectItem key={d} value={d.toString()}>
+                      {d} giorni
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Button onClick={handleSave} disabled={submitting} className="w-full">
             {submitting ? (
