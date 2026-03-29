@@ -73,7 +73,7 @@ export default function Settings() {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name ?? "");
-      setSex(profile.sex ?? "");
+      setSex(profile.sex ?? "not_set");
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
