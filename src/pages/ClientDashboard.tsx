@@ -3,12 +3,83 @@ import { Activity, Flame, Target, Utensils, TrendingUp } from "lucide-react";
 
 import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
+import { WeightTrendChart } from "@/components/WeightTrendChart";
 
 const ClientDashboard = () => {
-  const { profile, currentTDEE, targetCalories, targetMacros } = useAppStore();
+  const {
+    currentTDEE,
+    targetCalories,
+    targetMacros,
+    smoothedLogs,
+    dailyLogs,
+  } = useAppStore();
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
 
   const calories = targetCalories ?? 2450;
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
+
+  const todayCalories = todayLog?.calories ?? 0;
+  const todayWeight = todayLog?.weight;
+
+  // Progress percentages
+  const calPct = Math.min(100, Math.round((todayCalories / calories) * 100));
+
+  const metrics = [
+    {
+      label: "Calorie",
+      value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—",
+      target: calories.toLocaleString("it-IT"),
+      icon: Flame,
+      color: "text-orange-400",
+      pct: todayCalories > 0 ? calPct : 0,
+    },
+    {
+      label: "Proteine",
+      value: "—",
+      target: `${macros.protein}g`,
+      icon: Target,
+      color: "text-primary",
+      pct: 0,
+    },
+    {
+      label: "Carboidrati",
+      value: "—",
+      target: `${macros.carbs}g`,
+      icon: Utensils,
+      color: "text-blue-400",
+      pct: 0,
+    },
+    {
+      label: "Grassi",
+      value: "—",
+      target: `${macros.fats}g`,
+      icon: TrendingUp,
+      color: "text-yellow-400",
+      pct: 0,
+    },
+  ];
+
+  // Weekly stats
+  const last7Logs = dailyLogs
+    .filter((l) => {
+      const d = new Date(l.log_date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return d >= weekAgo;
+    });
+  const validCalLogs = last7Logs.filter((l) => l.calories && l.calories > 0);
+  const avgWeeklyCal = validCalLogs.length > 0
+    ? Math.round(validCalLogs.reduce((s, l) => s + (l.calories ?? 0), 0) / validCalLogs.length)
+    : null;
+  const adherencePct = last7Logs.length > 0
+    ? Math.round((last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length / 7) * 100)
+    : null;
+
+  const latestTrend = smoothedLogs.length > 0
+    ? [...smoothedLogs].reverse().find((l) => l.trendWeight != null)?.trendWeight
+    : null;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -17,24 +88,24 @@ const ClientDashboard = () => {
         <p className="text-muted-foreground text-sm mt-1">Panoramica giornaliera di nutrizione e progressi</p>
       </div>
 
-      {/* Widget Hero - Contesto Giornaliero */}
+      {/* Hero - Obiettivi di Oggi */}
       <Card className="glass-card glow-primary border-border overflow-hidden">
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
             <Activity className="h-5 w-5 text-primary" />
             <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
             <span className="ml-auto text-xs text-muted-foreground">
               {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
             </span>
           </div>
+          {currentTDEE && (
+            <p className="text-xs text-muted-foreground mb-4">
+              TDEE adattivo: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
+            </p>
+          )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Calorie", value: "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-orange-400" },
-              { label: "Proteine", value: "—", target: `${macros.protein}g`, icon: Target, color: "text-primary" },
-              { label: "Carboidrati", value: "—", target: `${macros.carbs}g`, icon: Utensils, color: "text-blue-400" },
-              { label: "Grassi", value: "—", target: `${macros.fats}g`, icon: TrendingUp, color: "text-yellow-400" },
-            ].map((metric) => (
+            {metrics.map((metric) => (
               <div key={metric.label} className="bg-secondary/50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <metric.icon className={`h-4 w-4 ${metric.color}`} />
@@ -45,13 +116,19 @@ const ClientDashboard = () => {
                   <p className="text-xs text-muted-foreground">di {metric.target}</p>
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full w-0 bg-primary rounded-full transition-all" />
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-500"
+                    style={{ width: `${metric.pct}%` }}
+                  />
                 </div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Chart */}
+      <WeightTrendChart />
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Daily Log Widget */}
@@ -68,10 +145,26 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { label: "Variazione Peso Target", value: "−0,25 kg", sub: "Deficit moderato" },
-              { label: "Calorie Giornaliere Target", value: "2.450 kcal", sub: "Adattate dal TDEE" },
-              { label: "Media Calorie Settimanale", value: "— kcal", sub: "Registra per calcolare" },
-              { label: "Aderenza", value: "— %", sub: "Giorni registrati questa settimana" },
+              {
+                label: "Peso Trend Attuale",
+                value: latestTrend != null ? `${latestTrend.toFixed(1)} kg` : "— kg",
+                sub: "Media mobile esponenziale",
+              },
+              {
+                label: "Calorie Giornaliere Target",
+                value: `${calories.toLocaleString("it-IT")} kcal`,
+                sub: currentTDEE ? "Calcolate dal TDEE adattivo" : "Valore predefinito",
+              },
+              {
+                label: "Media Calorie Settimanale",
+                value: avgWeeklyCal != null ? `${avgWeeklyCal.toLocaleString("it-IT")} kcal` : "— kcal",
+                sub: validCalLogs.length > 0 ? `Su ${validCalLogs.length} giorni registrati` : "Registra per calcolare",
+              },
+              {
+                label: "Aderenza",
+                value: adherencePct != null ? `${adherencePct} %` : "— %",
+                sub: `${last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length}/7 giorni registrati`,
+              },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div>
