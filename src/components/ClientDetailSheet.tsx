@@ -116,12 +116,26 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="font-display">
-            Dashboard di {client.displayName}
-          </SheetTitle>
-          <p className="text-xs text-muted-foreground">
-            Vista in sola lettura
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <SheetTitle className="font-display">
+                Dashboard di {client.displayName}
+              </SheetTitle>
+              <p className="text-xs text-muted-foreground">
+                Vista in sola lettura
+              </p>
+            </div>
+            {smoothed.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportClientCSV(smoothed, client.displayName)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Esporta CSV
+              </Button>
+            )}
+          </div>
         </SheetHeader>
 
         <div className="space-y-6 mt-6">

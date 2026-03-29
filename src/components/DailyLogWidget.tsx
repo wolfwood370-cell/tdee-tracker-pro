@@ -188,7 +188,7 @@ export function DailyLogWidget() {
               Salvataggio...
             </>
           ) : (
-            "Salva Log"
+            isEditing ? "Aggiorna Log" : "Salva Log"
           )}
         </Button>
       </CardContent>

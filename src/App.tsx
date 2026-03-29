@@ -66,6 +66,22 @@ function AppRoutes() {
       />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute allowedRole="client">
+            <Onboarding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute allowedRole="client">
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/client-dashboard"
         element={
           <ProtectedRoute allowedRole="client">
