@@ -83,6 +83,16 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [manualCarbs, setManualCarbs] = useState("");
   const [savingOverride, setSavingOverride] = useState(false);
 
+  // Strategy Editor state
+  const [editGoalType, setEditGoalType] = useState<string>("sustainable_loss");
+  const [editDietStrategy, setEditDietStrategy] = useState<string>("linear");
+  const [editDietType, setEditDietType] = useState<string>("balanced");
+  const [editProteinPref, setEditProteinPref] = useState<string>("moderate");
+  const [editCalorieDist, setEditCalorieDist] = useState<string>("stable");
+  const [editTrainingDays, setEditTrainingDays] = useState<string>("4");
+  const [editActivityLevel, setEditActivityLevel] = useState<string>("1.2");
+  const [savingConfig, setSavingConfig] = useState(false);
+
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
