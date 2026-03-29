@@ -133,7 +133,7 @@ export function DailyLogWidget() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(d) => d && setDate(d)}
+                onSelect={(d) => d && handleDateChange(d)}
                 disabled={(d) => d > new Date()}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
