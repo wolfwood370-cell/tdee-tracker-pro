@@ -154,7 +154,7 @@ export default function Settings() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Sesso</Label>
-              <Select value={sex} onValueChange={setSex}>
+              <Select value={sex || undefined} onValueChange={setSex}>
                 <SelectTrigger className="border-border">
                   <SelectValue placeholder="Seleziona" />
                 </SelectTrigger>
