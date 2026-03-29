@@ -228,6 +228,8 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
       setSavingOverride(false);
     }
   };
+
+  return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
