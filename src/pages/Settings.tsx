@@ -283,6 +283,29 @@ export default function Settings() {
             </RadioGroup>
           </div>
 
+          {/* Diet Strategy */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Strategia Dietetica
+            </Label>
+            <RadioGroup value={dietStrategy} onValueChange={setDietStrategy} className="grid grid-cols-1 gap-2">
+              {DIET_STRATEGIES.map((ds) => (
+                <label
+                  key={ds.value}
+                  className={`flex flex-col rounded-lg border p-3 cursor-pointer transition-colors ${
+                    dietStrategy === ds.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <RadioGroupItem value={ds.value} className="sr-only" />
+                  <span className="text-sm font-semibold text-foreground">{ds.label}</span>
+                  <span className="text-xs text-muted-foreground">{ds.desc}</span>
+                </label>
+              ))}
+            </RadioGroup>
+          </div>
+
           {/* Calorie Distribution */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
