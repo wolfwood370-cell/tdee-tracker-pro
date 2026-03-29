@@ -87,6 +87,11 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     if (!client || !open) return;
     setLoading(true);
     setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
+    setOverrideActive((client.profile as any)?.manual_override_active ?? false);
+    setManualCalories((client.profile as any)?.manual_calories?.toString() ?? "");
+    setManualProtein((client.profile as any)?.manual_protein?.toString() ?? "");
+    setManualFats((client.profile as any)?.manual_fats?.toString() ?? "");
+    setManualCarbs((client.profile as any)?.manual_carbs?.toString() ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
