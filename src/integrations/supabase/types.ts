@@ -14,16 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_metrics: {
+        Row: {
+          calories: number | null
+          id: string
+          is_interpolated: boolean
+          log_date: string
+          notes: string | null
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          calories?: number | null
+          id?: string
+          is_interpolated?: boolean
+          log_date: string
+          notes?: string | null
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          calories?: number | null
+          id?: string
+          is_interpolated?: boolean
+          log_date?: string
+          notes?: string | null
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          activity_level: number | null
+          birth_date: string | null
+          created_at: string
+          goal_rate: number | null
+          height_cm: number | null
+          id: string
+          sex: string | null
+        }
+        Insert: {
+          activity_level?: number | null
+          birth_date?: string | null
+          created_at?: string
+          goal_rate?: number | null
+          height_cm?: number | null
+          id: string
+          sex?: string | null
+        }
+        Update: {
+          activity_level?: number | null
+          birth_date?: string | null
+          created_at?: string
+          goal_rate?: number | null
+          height_cm?: number | null
+          id?: string
+          sex?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      weekly_analytics: {
+        Row: {
+          adaptive_tdee: number | null
+          avg_calories: number | null
+          avg_weight: number | null
+          id: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          adaptive_tdee?: number | null
+          avg_calories?: number | null
+          avg_weight?: number | null
+          id?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          adaptive_tdee?: number | null
+          avg_calories?: number | null
+          avg_weight?: number | null
+          id?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "coach" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +276,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["coach", "client"],
+    },
   },
 } as const
