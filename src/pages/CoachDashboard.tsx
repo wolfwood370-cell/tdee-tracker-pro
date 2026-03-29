@@ -5,16 +5,16 @@ const CoachDashboard = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Coach Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage and monitor your clients</p>
+        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard Coach</h1>
+        <p className="text-muted-foreground text-sm mt-1">Gestisci e monitora i tuoi clienti</p>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Active Clients", value: "0", icon: Users, change: "" },
-          { label: "Avg. Compliance", value: "—%", icon: TrendingUp, change: "" },
-          { label: "Check-ins Today", value: "0", icon: Activity, change: "" },
-          { label: "Avg. TDEE Accuracy", value: "—%", icon: BarChart3, change: "" },
+          { label: "Clienti Attivi", value: "0", icon: Users, change: "" },
+          { label: "Aderenza Media", value: "—%", icon: TrendingUp, change: "" },
+          { label: "Check-in Oggi", value: "0", icon: Activity, change: "" },
+          { label: "Precisione TDEE Media", value: "—%", icon: BarChart3, change: "" },
         ].map((stat) => (
           <Card key={stat.label} className="glass-card border-border">
             <CardContent className="p-5">
@@ -30,13 +30,13 @@ const CoachDashboard = () => {
 
       <Card className="glass-card border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-display">Client List</CardTitle>
+          <CardTitle className="text-lg font-display">Lista Clienti</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">No clients yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Clients will appear here once they sign up</p>
+            <p className="text-muted-foreground">Nessun cliente ancora</p>
+            <p className="text-xs text-muted-foreground mt-1">I clienti appariranno qui una volta registrati</p>
           </div>
         </CardContent>
       </Card>
