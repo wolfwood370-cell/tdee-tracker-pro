@@ -2,10 +2,11 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, TrendingUp, Activity, BarChart3, Search, Eye, Loader2 } from "lucide-react";
+import { Users, TrendingUp, Activity, BarChart3, Search, Eye } from "lucide-react";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
@@ -162,7 +163,7 @@ const CoachDashboard = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: "Clienti Totali", value: String(clients.length), icon: Users },
           { label: "Aderenza Media", value: `${avgAdherence}%`, icon: TrendingUp },
@@ -170,11 +171,11 @@ const CoachDashboard = () => {
           { label: "Clienti Attivi", value: String(activeCount), icon: BarChart3 },
         ].map((stat) => (
           <Card key={stat.label} className="glass-card border-border">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-3">
+            <CardContent className="p-4 md:p-5">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
                 <stat.icon className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-2xl font-display font-bold text-foreground">
+              <p className="text-xl md:text-2xl font-display font-bold text-foreground">
                 {stat.value}
               </p>
               <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
@@ -186,9 +187,9 @@ const CoachDashboard = () => {
       {/* Client Roster */}
       <Card className="glass-card border-border">
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle className="text-lg font-display">Lista Clienti</CardTitle>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Cerca cliente..."
@@ -201,9 +202,19 @@ const CoachDashboard = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Caricamento clienti...
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 py-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <div className="ml-auto">
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -218,22 +229,29 @@ const CoachDashboard = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-6 px-6">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>Età</TableHead>
-                    <TableHead>Sesso</TableHead>
-                    <TableHead>Goal Rate</TableHead>
-                    <TableHead>Log (7gg)</TableHead>
+                    <TableHead className="hidden sm:table-cell">Età</TableHead>
+                    <TableHead className="hidden sm:table-cell">Sesso</TableHead>
+                    <TableHead className="hidden md:table-cell">Goal Rate</TableHead>
+                    <TableHead className="hidden md:table-cell">Log (7gg)</TableHead>
                     <TableHead>Stato</TableHead>
                     <TableHead className="text-right">Azioni</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((client) => (
-                    <TableRow key={client.id}>
+                    <TableRow
+                      key={client.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setSheetOpen(true);
+                      }}
+                    >
                       <TableCell className="font-medium text-foreground">
                         <div>
                           <p className="text-sm">{client.displayName}</p>
@@ -242,18 +260,18 @@ const CoachDashboard = () => {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {calcAge(client.profile.birth_date)}
                       </TableCell>
-                      <TableCell className="capitalize">
+                      <TableCell className="hidden sm:table-cell capitalize">
                         {client.profile.sex ?? "—"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {client.profile.goal_rate != null
                           ? `${client.profile.goal_rate > 0 ? "+" : ""}${client.profile.goal_rate} kg/sett`
                           : "—"}
                       </TableCell>
-                      <TableCell>{client.logsLast7}/7</TableCell>
+                      <TableCell className="hidden md:table-cell">{client.logsLast7}/7</TableCell>
                       <TableCell>
                         {getAdherenceBadge(client.lastLogDate)}
                       </TableCell>
@@ -261,13 +279,15 @@ const CoachDashboard = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => {
+                          className="hover:bg-primary/10 hover:text-primary transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedClient(client);
                             setSheetOpen(true);
                           }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          Dettagli
+                          <span className="hidden sm:inline">Dettagli</span>
                         </Button>
                       </TableCell>
                     </TableRow>
