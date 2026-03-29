@@ -9,6 +9,8 @@ import AuthPage from "./pages/AuthPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import ResetPassword from "./pages/ResetPassword";
+import Onboarding from "./pages/Onboarding";
+import Settings from "./pages/Settings";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 
