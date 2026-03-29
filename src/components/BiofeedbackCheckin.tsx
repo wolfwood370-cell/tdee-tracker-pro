@@ -71,8 +71,8 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
 
       if (error) throw error;
 
-      // --- Auto-Regulation Check ---
-      if (profile) {
+      // --- Auto-Regulation Check (skip if manual override is active) ---
+      if (profile && !(profile as any).manual_override_active) {
         // Fetch previous biofeedback logs
         const { data: prevLogs } = await supabase
           .from("biofeedback_logs")
