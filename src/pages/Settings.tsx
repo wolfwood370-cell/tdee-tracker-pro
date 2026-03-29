@@ -67,6 +67,7 @@ export default function Settings() {
   const [proteinPref, setProteinPref] = useState("moderate");
   const [calorieDistribution, setCalorieDistribution] = useState("stable");
   const [trainingDays, setTrainingDays] = useState("4");
+  const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
