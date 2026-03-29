@@ -25,6 +25,14 @@ const ACTIVITY_LEVELS = [
   { value: "1.9", label: "Estremamente attivo (atleta)" },
 ];
 
+const DIET_STRATEGIES = [
+  { value: "linear", label: "Lineare", desc: "Deficit costante ogni giorno" },
+  { value: "refeed_1_day", label: "Refeed 1 giorno", desc: "1 giorno a mantenimento (Dom), deficit distribuito nei restanti 6" },
+  { value: "refeed_2_days", label: "Refeed 2 giorni", desc: "2 giorni a mantenimento (Sab-Dom), deficit distribuito nei restanti 5" },
+  { value: "matador_break", label: "MATADOR", desc: "Ciclo 2 sett deficit + 2 sett mantenimento" },
+  { value: "reverse_diet", label: "Reverse Diet", desc: "Post-cut: +75 kcal/sett fino al TDEE" },
+];
+
 const GOAL_TYPES = [
   { value: "sustainable_loss", label: "Dimagrimento sostenibile (-0.5% BW/sett)" },
   { value: "aggressive_minicut", label: "Mini-cut aggressivo (-1% BW/sett)" },
