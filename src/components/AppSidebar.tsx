@@ -1,7 +1,7 @@
 import { Activity, LayoutDashboard, ClipboardList, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
 import { useAppStore } from "@/stores";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -18,20 +18,15 @@ import { Button } from "@/components/ui/button";
 
 const clientNav = [
   { title: "Dashboard", url: "/client-dashboard", icon: LayoutDashboard },
-  { title: "Registri", url: "/logs", icon: ClipboardList },
-  { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 const coachNav = [
   { title: "Dashboard", url: "/coach-dashboard", icon: LayoutDashboard },
-  { title: "Clienti", url: "/clients", icon: ClipboardList },
-  { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
   const { user, logout } = useAppStore();
 
   const items = user?.role === "coach" ? coachNav : clientNav;
@@ -85,7 +80,6 @@ export function AppSidebar() {
           size={collapsed ? "icon" : "sm"}
           className="w-full justify-start text-muted-foreground hover:text-destructive"
           onClick={async () => {
-            const { supabase } = await import("@/integrations/supabase/client");
             await supabase.auth.signOut();
             logout();
           }}
