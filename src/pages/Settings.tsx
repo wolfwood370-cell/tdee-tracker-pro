@@ -95,7 +95,7 @@ export default function Settings() {
         .from("profiles")
         .update({
           full_name: fullName || null,
-          sex: sex || null,
+          sex: sex === "not_set" ? null : sex,
           birth_date: birthDate || null,
           height_cm: heightCm ? parseFloat(heightCm) : null,
           activity_level: parseFloat(activityLevel),
