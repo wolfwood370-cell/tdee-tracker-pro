@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
+import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 
@@ -128,6 +129,9 @@ const ClientDashboard = () => {
     setLogs,
   } = useAppStore();
 
+  const [needsCheckin, setNeedsCheckin] = useState(false);
+  const [checkinDismissed, setCheckinDismissed] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -143,6 +147,24 @@ const ClientDashboard = () => {
         if (data && data.length > 0) {
           setLogs(data);
         }
+      });
+
+    // Check biofeedback status
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diff);
+    const weekStart = monday.toISOString().slice(0, 10);
+
+    supabase
+      .from("biofeedback_logs" as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("week_start_date", weekStart)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) setNeedsCheckin(true);
       });
   }, [user?.id]);
 
@@ -254,6 +276,11 @@ const ClientDashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Biofeedback Check-in */}
+      {needsCheckin && !checkinDismissed && (
+        <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
+      )}
 
       {/* Non-Linear Weekly Plan */}
       {weeklyPlan && weeklyPlan.strategy !== 'linear' && (

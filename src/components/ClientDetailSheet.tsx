@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ResponsiveContainer,
@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2 } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -71,26 +71,36 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
+  const [biofeedbackLogs, setBiofeedbackLogs] = useState<any[]>([]);
 
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
     setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
 
-    supabase
-      .from("daily_metrics")
-      .select("*")
-      .eq("user_id", client.id)
-      .order("log_date", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("Error fetching client logs:", error);
-          setLogs([]);
-        } else {
-          setLogs(data ?? []);
-        }
-        setLoading(false);
-      });
+    // Fetch daily metrics and biofeedback in parallel
+    Promise.all([
+      supabase
+        .from("daily_metrics")
+        .select("*")
+        .eq("user_id", client.id)
+        .order("log_date", { ascending: true }),
+      supabase
+        .from("biofeedback_logs" as any)
+        .select("*")
+        .eq("user_id", client.id)
+        .order("week_start_date", { ascending: false })
+        .limit(8),
+    ]).then(([metricsRes, bioRes]) => {
+      if (metricsRes.error) {
+        console.error("Error fetching client logs:", metricsRes.error);
+        setLogs([]);
+      } else {
+        setLogs(metricsRes.data ?? []);
+      }
+      setBiofeedbackLogs(bioRes.data ?? []);
+      setLoading(false);
+    });
   }, [client?.id, open]);
 
   useEffect(() => {
@@ -386,6 +396,75 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                       <p className="text-[10px] text-muted-foreground mt-1">
                         Totale: {previewPlan.weeklyTotal.toLocaleString("it-IT")} kcal/sett
                       </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Biofeedback & Fatigue */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-primary" />
+                    Biofeedback & Fatica
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Check-in settimanali del cliente
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {biofeedbackLogs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nessun check-in registrato dal cliente.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {biofeedbackLogs.slice(0, 6).map((log: any) => {
+                        const hasAlert = log.energy_score <= 2 || log.performance_score <= 2;
+                        return (
+                          <div
+                            key={log.id}
+                            className={`rounded-lg border p-3 space-y-2 ${
+                              hasAlert ? "border-destructive/50 bg-destructive/5" : "border-border"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-foreground">
+                                Sett. {log.week_start_date}
+                              </span>
+                              {hasAlert && (
+                                <Badge variant="destructive" className="text-[10px] gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Attenzione
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                              {[
+                                { label: "Fame", value: log.hunger_score, icon: Utensils },
+                                { label: "Energia", value: log.energy_score, icon: Zap },
+                                { label: "Sonno", value: log.sleep_score, icon: Moon },
+                                { label: "Perf.", value: log.performance_score, icon: Dumbbell },
+                              ].map((m) => (
+                                <div key={m.label} className="text-center">
+                                  <m.icon className={`h-3 w-3 mx-auto mb-0.5 ${
+                                    m.value <= 2 ? "text-destructive" : "text-muted-foreground"
+                                  }`} />
+                                  <p className={`text-lg font-display font-bold ${
+                                    m.value <= 2 ? "text-destructive" : "text-foreground"
+                                  }`}>
+                                    {m.value}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">{m.label}</p>
+                                </div>
+                              ))}
+                            </div>
+                            {log.notes && (
+                              <p className="text-xs text-muted-foreground italic">"{log.notes}"</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
