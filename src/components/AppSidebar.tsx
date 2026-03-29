@@ -84,9 +84,10 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={() => {
+          onClick={async () => {
+            const { supabase } = await import("@/integrations/supabase/client");
+            await supabase.auth.signOut();
             logout();
-            window.location.href = "/";
           }}
         >
           <LogOut className="h-4 w-4 mr-2" />
