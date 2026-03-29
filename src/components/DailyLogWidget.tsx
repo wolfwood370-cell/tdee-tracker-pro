@@ -57,7 +57,7 @@ export function DailyLogWidget() {
       return;
     }
 
-    const logDate = format(date, "yyyy-MM-dd");
+    const submitDate = format(date, "yyyy-MM-dd");
     setIsSubmitting(true);
 
     try {
@@ -66,7 +66,7 @@ export function DailyLogWidget() {
         .upsert(
           {
             user_id: user.id,
-            log_date: logDate,
+            log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
             calories: calories ? parseInt(calories, 10) : null,
           },
@@ -78,10 +78,10 @@ export function DailyLogWidget() {
       if (error) throw error;
 
       // Update Zustand store
-      const existingLog = dailyLogs.find(
-        (l) => l.log_date === logDate && l.user_id === user.id
+      const existingEntry = dailyLogs.find(
+        (l) => l.log_date === submitDate && l.user_id === user.id
       );
-      if (existingLog) {
+      if (existingEntry) {
         updateLog(data);
       } else {
         addLog(data);

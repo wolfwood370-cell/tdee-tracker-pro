@@ -86,7 +86,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         .eq("user_id", client.id)
         .order("log_date", { ascending: true }),
       supabase
-        .from("biofeedback_logs" as any)
+        .from("biofeedback_logs")
         .select("*")
         .eq("user_id", client.id)
         .order("week_start_date", { ascending: false })

@@ -84,11 +84,13 @@ const CoachDashboard = () => {
 
       if (logErr) throw logErr;
 
+      // Fetch only the most recent log per client (1 per client max)
       const { data: allLatest, error: latestErr } = await supabase
         .from("daily_metrics")
         .select("user_id, log_date")
         .in("user_id", clientIds)
-        .order("log_date", { ascending: false });
+        .order("log_date", { ascending: false })
+        .limit(clientIds.length * 2);
 
       if (latestErr) throw latestErr;
 

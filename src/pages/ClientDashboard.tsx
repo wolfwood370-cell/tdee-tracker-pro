@@ -158,7 +158,7 @@ const ClientDashboard = () => {
     const weekStart = monday.toISOString().slice(0, 10);
 
     supabase
-      .from("biofeedback_logs" as any)
+      .from("biofeedback_logs")
       .select("id")
       .eq("user_id", user.id)
       .eq("week_start_date", weekStart)

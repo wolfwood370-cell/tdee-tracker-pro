@@ -18,10 +18,9 @@ export function AutoRegulationModal({ open, onConfirm }: AutoRegulationModalProp
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-md"
+        className="sm:max-w-md [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        // Hide close button by overriding
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>

@@ -232,7 +232,7 @@ export default function Onboarding() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Sesso</Label>
-                    <Select value={sex} onValueChange={setSex}>
+                    <Select value={sex || undefined} onValueChange={setSex}>
                       <SelectTrigger className="border-border">
                         <SelectValue placeholder="Seleziona" />
                       </SelectTrigger>
@@ -282,7 +282,7 @@ export default function Onboarding() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Livello di Attività</Label>
-                  <Select value={activityLevel} onValueChange={setActivityLevel}>
+                  <Select value={activityLevel || undefined} onValueChange={setActivityLevel}>
                     <SelectTrigger className="border-border">
                       <SelectValue placeholder="Seleziona livello" />
                     </SelectTrigger>
