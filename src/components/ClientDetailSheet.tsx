@@ -248,7 +248,43 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     }
   };
 
-  return (
+  const handleSaveConfig = async () => {
+    if (!client) return;
+    setSavingConfig(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          goal_type: editGoalType,
+          diet_strategy: editDietStrategy,
+          diet_type: editDietType,
+          protein_pref: editProteinPref,
+          calorie_distribution: editCalorieDist,
+          training_days_per_week: parseInt(editTrainingDays),
+          activity_level: parseFloat(editActivityLevel),
+        } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      // Update local client profile for immediate reactivity
+      Object.assign(client.profile, {
+        goal_type: editGoalType,
+        diet_strategy: editDietStrategy,
+        diet_type: editDietType,
+        protein_pref: editProteinPref,
+        calorie_distribution: editCalorieDist,
+        training_days_per_week: parseInt(editTrainingDays),
+        activity_level: parseFloat(editActivityLevel),
+      });
+      setSelectedStrategy(editDietStrategy as DietStrategy);
+      toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
+
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
