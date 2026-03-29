@@ -15,17 +15,33 @@ import { TrendingUp } from "lucide-react";
 import { useAppStore } from "@/stores";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function WeightTrendChart() {
+interface ChartDataPoint {
+  date: string;
+  scaleWeight?: number;
+  trendWeight?: number;
+}
+
+interface WeightTrendChartProps {
+  /** Pass data directly to render for a specific client (coach view). Omit to use global store. */
+  data?: ChartDataPoint[];
+}
+
+export function WeightTrendChart({ data }: WeightTrendChartProps) {
   const { smoothedLogs } = useAppStore();
 
-  // Only logs with at least one weight data point
-  const chartData = smoothedLogs
-    .filter((l) => l.weight != null || l.trendWeight != null)
-    .map((l) => ({
-      date: l.log_date,
-      scaleWeight: l.weight ?? undefined,
-      trendWeight: l.trendWeight != null ? Math.round(l.trendWeight * 100) / 100 : undefined,
-    }));
+  // Use provided data or derive from store
+  const chartData: ChartDataPoint[] =
+    data ??
+    smoothedLogs
+      .filter((l) => l.weight != null || l.trendWeight != null)
+      .map((l) => ({
+        date: l.log_date,
+        scaleWeight: l.weight ?? undefined,
+        trendWeight:
+          l.trendWeight != null
+            ? Math.round(l.trendWeight * 100) / 100
+            : undefined,
+      }));
 
   if (chartData.length === 0) {
     return (
@@ -66,34 +82,41 @@ export function WeightTrendChart() {
       <CardContent>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
+            >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="hsl(220 14% 18%)"
+                stroke="hsl(var(--border))"
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                tickFormatter={(v) => format(parseISO(v), "d MMM", { locale: it })}
-                tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }}
+                tickFormatter={(v) =>
+                  format(parseISO(v), "d MMM", { locale: it })
+                }
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 domain={[minW, maxW]}
-                tick={{ fill: "hsl(215 12% 50%)", fontSize: 11 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 unit=" kg"
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(220 18% 10%)",
-                  border: "1px solid hsl(220 14% 18%)",
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
                   borderRadius: "0.5rem",
                   fontSize: 12,
                 }}
-                labelFormatter={(v) => format(parseISO(v as string), "d MMMM yyyy", { locale: it })}
+                labelFormatter={(v) =>
+                  format(parseISO(v as string), "d MMMM yyyy", { locale: it })
+                }
                 formatter={(value: number, name: string) => [
                   `${value} kg`,
                   name === "scaleWeight" ? "Bilancia" : "Trend",
@@ -102,7 +125,7 @@ export function WeightTrendChart() {
               {/* Raw weight as dots */}
               <Scatter
                 dataKey="scaleWeight"
-                fill="hsl(215 12% 50%)"
+                fill="hsl(var(--muted-foreground))"
                 name="scaleWeight"
                 shape="circle"
                 r={3}
@@ -111,7 +134,7 @@ export function WeightTrendChart() {
               <Line
                 type="monotone"
                 dataKey="trendWeight"
-                stroke="hsl(160 84% 39%)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={2.5}
                 dot={false}
                 name="trendWeight"
