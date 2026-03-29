@@ -54,6 +54,65 @@ function MacroCard({ title, icon: Icon, calories, macros, todayCalories }: Macro
   );
 }
 
+const STRATEGY_LABELS: Record<DietStrategy, string> = {
+  linear: "Lineare",
+  refeed_1_day: "Refeed 1g",
+  refeed_2_days: "Refeed 2g",
+  matador_break: "MATADOR",
+  reverse_diet: "Reverse Diet",
+};
+
+function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
+  const maxCal = Math.max(...plan.days.map((d) => d.calories));
+  return (
+    <Card className="glass-card border-border">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-display flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            Piano Settimanale
+          </CardTitle>
+          <Badge variant="secondary" className="text-xs">
+            {STRATEGY_LABELS[plan.strategy] ?? plan.strategy}
+            {plan.isMaintenancePhase && " — Fase Mantenimento"}
+            {plan.reverseWeekNumber && ` — Settimana ${plan.reverseWeekNumber}`}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Totale settimanale: {plan.weeklyTotal.toLocaleString("it-IT")} kcal
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-end gap-1.5 h-28">
+          {plan.days.map((d, i) => {
+            const pct = maxCal > 0 ? (d.calories / maxCal) * 100 : 0;
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-[10px] font-semibold text-foreground">
+                  {d.calories}
+                </span>
+                <div
+                  className={`w-full rounded-t transition-all ${
+                    d.isRefeed ? "bg-accent" : "bg-primary"
+                  }`}
+                  style={{ height: `${pct}%`, minHeight: 4 }}
+                />
+                <span className="text-[10px] text-muted-foreground">{d.label}</span>
+              </div>
+            );
+          })}
+        </div>
+        {plan.days.some((d) => d.isRefeed) && (
+          <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+            <RefreshCw className="h-3 w-3" />
+            <span>I giorni evidenziati sono giorni di refeed a mantenimento (extra carb)</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 const ClientDashboard = () => {
   const {
     user,
