@@ -54,33 +54,8 @@ const ClientDashboard = () => {
       </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Inserimento Rapido */}
-        <Card className="glass-card border-border">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <Plus className="h-4 w-4 text-primary" />
-                Registrazione Rapida
-              </CardTitle>
-            </div>
-            <p className="text-xs text-muted-foreground">Registra il peso e la nutrizione giornaliera</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="h-20 flex-col gap-2 border-border hover:border-primary/50 hover:bg-primary/5">
-                <Scale className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground">Registra Peso</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2 border-border hover:border-primary/50 hover:bg-primary/5">
-                <Utensils className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground">Registra Pasti</span>
-              </Button>
-            </div>
-            <p className="text-center text-xs text-muted-foreground">
-              Nessuna voce registrata oggi
-            </p>
-          </CardContent>
-        </Card>
+        {/* Daily Log Widget */}
+        <DailyLogWidget />
 
         {/* Obiettivi Settimanali */}
         <Card className="glass-card border-border">
