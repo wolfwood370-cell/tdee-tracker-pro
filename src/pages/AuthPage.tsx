@@ -24,13 +24,11 @@ const AuthPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // TODO: Replace with Supabase auth
-    // Simulated login for UI skeleton
     setTimeout(() => {
       const role = email.includes("coach") ? "coach" as const : "client" as const;
       setUser({ id: "demo", email, role });
       setLoading(false);
-      toast({ title: "Welcome back!", description: `Logged in as ${role}` });
+      toast({ title: "Bentornato!", description: `Accesso effettuato come ${role === "coach" ? "coach" : "cliente"}` });
       navigate(role === "coach" ? "/coach-dashboard" : "/client-dashboard");
       setIsSubmitting(false);
     }, 800);
@@ -40,7 +38,7 @@ const AuthPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setTimeout(() => {
-      toast({ title: "Account created!", description: "Please check your email to verify." });
+      toast({ title: "Account creato!", description: "Controlla la tua email per la verifica." });
       setView("login");
       setIsSubmitting(false);
     }, 800);
@@ -50,7 +48,7 @@ const AuthPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setTimeout(() => {
-      toast({ title: "Recovery email sent", description: "Check your inbox for reset instructions." });
+      toast({ title: "Email di recupero inviata", description: "Controlla la tua casella per le istruzioni di reset." });
       setView("login");
       setIsSubmitting(false);
     }, 800);
@@ -58,7 +56,7 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel - branding */}
+      {/* Pannello sinistro - branding */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background" />
         <div className="relative z-10">
@@ -66,21 +64,21 @@ const AuthPage = () => {
             <Activity className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-display font-bold text-foreground">AdaptiveTDEE</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Precision Nutrition Coaching</p>
+          <p className="text-muted-foreground text-sm">Coaching Nutrizionale di Precisione</p>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-display font-bold leading-tight text-foreground">
-            Your metabolism,<br />
-            <span className="text-gradient-primary">decoded.</span>
+            Il tuo metabolismo,<br />
+            <span className="text-gradient-primary">decodificato.</span>
           </h2>
           <p className="text-muted-foreground max-w-md leading-relaxed">
-            Track your energy expenditure with precision algorithms that adapt to your body's real responses. No more guessing.
+            Monitora il tuo dispendio energetico con algoritmi di precisione che si adattano alle risposte reali del tuo corpo. Niente più congetture.
           </p>
           <div className="flex gap-8 pt-4">
             {[
-              { label: "Active Users", value: "2.4K+" },
-              { label: "Avg. Accuracy", value: "97%" },
-              { label: "Goals Hit", value: "89%" },
+              { label: "Utenti Attivi", value: "2.4K+" },
+              { label: "Precisione Media", value: "97%" },
+              { label: "Obiettivi Raggiunti", value: "89%" },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
@@ -90,14 +88,14 @@ const AuthPage = () => {
           </div>
         </div>
         <div className="relative z-10">
-          <p className="text-xs text-muted-foreground">© 2026 AdaptiveTDEE. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2026 AdaptiveTDEE. Tutti i diritti riservati.</p>
         </div>
       </div>
 
-      {/* Right panel - auth forms */}
+      {/* Pannello destro - form di autenticazione */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile logo */}
+          {/* Logo mobile */}
           <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
             <Activity className="h-7 w-7 text-primary" />
             <h1 className="text-xl font-display font-bold text-foreground">AdaptiveTDEE</h1>
@@ -106,8 +104,8 @@ const AuthPage = () => {
           {view === "recovery" ? (
             <Card className="glass-card border-border">
               <CardHeader className="space-y-1">
-                <CardTitle className="text-xl font-display">Reset Password</CardTitle>
-                <CardDescription>Enter your email to receive a reset link</CardDescription>
+                <CardTitle className="text-xl font-display">Reimposta Password</CardTitle>
+                <CardDescription>Inserisci la tua email per ricevere un link di reset</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleRecovery} className="space-y-4">
@@ -118,7 +116,7 @@ const AuthPage = () => {
                       <Input
                         id="recovery-email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder="tu@esempio.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10 bg-secondary border-border"
@@ -127,7 +125,7 @@ const AuthPage = () => {
                     </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Reset Link"}
+                    {isSubmitting ? "Invio in corso..." : "Invia Link di Reset"}
                   </Button>
                   <Button
                     type="button"
@@ -135,7 +133,7 @@ const AuthPage = () => {
                     className="w-full text-muted-foreground"
                     onClick={() => setView("login")}
                   >
-                    Back to Login
+                    Torna al Login
                   </Button>
                 </form>
               </CardContent>
@@ -143,15 +141,15 @@ const AuthPage = () => {
           ) : (
             <Tabs value={view} onValueChange={(v) => setView(v as AuthView)} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 bg-secondary">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="register">Sign Up</TabsTrigger>
+                <TabsTrigger value="login">Accedi</TabsTrigger>
+                <TabsTrigger value="register">Registrati</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
                 <Card className="glass-card border-border">
                   <CardHeader className="space-y-1">
-                    <CardTitle className="text-xl font-display">Welcome back</CardTitle>
-                    <CardDescription>Enter your credentials to continue</CardDescription>
+                    <CardTitle className="text-xl font-display">Bentornato</CardTitle>
+                    <CardDescription>Inserisci le tue credenziali per continuare</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
@@ -162,7 +160,7 @@ const AuthPage = () => {
                           <Input
                             id="login-email"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="tu@esempio.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="pl-10 bg-secondary border-border"
@@ -191,13 +189,13 @@ const AuthPage = () => {
                           onClick={() => setView("recovery")}
                           className="text-xs text-primary hover:underline"
                         >
-                          Forgot password?
+                          Password dimenticata?
                         </button>
                       </div>
                       <Button type="submit" className="w-full group" disabled={isSubmitting}>
-                        {isSubmitting ? "Signing in..." : (
+                        {isSubmitting ? "Accesso in corso..." : (
                           <span className="flex items-center gap-2">
-                            Sign In <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            Accedi <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                           </span>
                         )}
                       </Button>
@@ -209,19 +207,19 @@ const AuthPage = () => {
               <TabsContent value="register">
                 <Card className="glass-card border-border">
                   <CardHeader className="space-y-1">
-                    <CardTitle className="text-xl font-display">Create account</CardTitle>
-                    <CardDescription>Start tracking your adaptive TDEE</CardDescription>
+                    <CardTitle className="text-xl font-display">Crea un account</CardTitle>
+                    <CardDescription>Inizia a monitorare il tuo TDEE adattivo</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="reg-name">Full Name</Label>
+                        <Label htmlFor="reg-name">Nome Completo</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="reg-name"
                             type="text"
-                            placeholder="John Doe"
+                            placeholder="Mario Rossi"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             className="pl-10 bg-secondary border-border"
@@ -236,7 +234,7 @@ const AuthPage = () => {
                           <Input
                             id="reg-email"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="tu@esempio.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="pl-10 bg-secondary border-border"
@@ -261,7 +259,7 @@ const AuthPage = () => {
                         </div>
                       </div>
                       <Button type="submit" className="w-full" disabled={isSubmitting}>
-                        {isSubmitting ? "Creating account..." : "Create Account"}
+                        {isSubmitting ? "Creazione account..." : "Crea Account"}
                       </Button>
                     </form>
                   </CardContent>

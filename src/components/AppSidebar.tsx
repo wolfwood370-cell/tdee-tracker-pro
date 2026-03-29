@@ -18,14 +18,14 @@ import { Button } from "@/components/ui/button";
 
 const clientNav = [
   { title: "Dashboard", url: "/client-dashboard", icon: LayoutDashboard },
-  { title: "Logs", url: "/logs", icon: ClipboardList },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Registri", url: "/logs", icon: ClipboardList },
+  { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 const coachNav = [
   { title: "Dashboard", url: "/coach-dashboard", icon: LayoutDashboard },
-  { title: "Clients", url: "/clients", icon: ClipboardList },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Clienti", url: "/clients", icon: ClipboardList },
+  { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -50,7 +50,7 @@ export function AppSidebar() {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigazione</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -77,7 +77,7 @@ export function AppSidebar() {
         {!collapsed && user && (
           <div className="mb-2 px-2">
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            <p className="text-xs text-primary capitalize">{user.role}</p>
+            <p className="text-xs text-primary capitalize">{user.role === "coach" ? "coach" : "cliente"}</p>
           </div>
         )}
         <Button
@@ -90,7 +90,7 @@ export function AppSidebar() {
           }}
         >
           <LogOut className="h-4 w-4 mr-2" />
-          {!collapsed && "Sign Out"}
+          {!collapsed && "Esci"}
         </Button>
       </SidebarFooter>
     </Sidebar>
