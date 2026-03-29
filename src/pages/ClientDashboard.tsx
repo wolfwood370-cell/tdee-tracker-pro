@@ -216,6 +216,11 @@ const ClientDashboard = () => {
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-5 w-5 text-primary" />
             <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
+            {(profile as any)?.manual_override_active && (
+              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
+                Override Manuale
+              </Badge>
+            )}
             <span className="ml-auto text-xs text-muted-foreground">
               {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
             </span>
