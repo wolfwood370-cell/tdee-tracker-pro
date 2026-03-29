@@ -78,8 +78,8 @@ export function DailyLogWidget() {
       if (error) throw error;
 
       // Update Zustand store
-      const existingLog = dailyLogs.find(
-        (l) => l.log_date === logDate && l.user_id === user.id
+      const existingEntry = dailyLogs.find(
+        (l) => l.log_date === submitDate && l.user_id === user.id
       );
       if (existingLog) {
         updateLog(data);
