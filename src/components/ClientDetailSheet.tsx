@@ -71,6 +71,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
+  const [biofeedbackLogs, setBiofeedbackLogs] = useState<any[]>([]);
 
   useEffect(() => {
     if (!client || !open) return;
