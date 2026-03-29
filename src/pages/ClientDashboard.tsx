@@ -277,6 +277,11 @@ const ClientDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Biofeedback Check-in */}
+      {needsCheckin && !checkinDismissed && (
+        <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
+      )}
+
       {/* Non-Linear Weekly Plan */}
       {weeklyPlan && weeklyPlan.strategy !== 'linear' && (
         <WeeklyPlanBar plan={weeklyPlan} />
