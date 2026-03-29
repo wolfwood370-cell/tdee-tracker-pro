@@ -58,7 +58,7 @@ export default function Settings() {
   const { user, profile, setProfile, recalculateMetrics } = useAppStore();
 
   const [fullName, setFullName] = useState("");
-  const [sex, setSex] = useState("");
+  const [sex, setSex] = useState("not_set");
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [activityLevel, setActivityLevel] = useState("1.2");
