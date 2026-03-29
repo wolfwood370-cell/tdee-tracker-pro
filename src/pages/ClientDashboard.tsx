@@ -124,6 +124,7 @@ const ClientDashboard = () => {
     dynamicGoalRate,
     smoothedLogs,
     dailyLogs,
+    weeklyPlan,
     setLogs,
   } = useAppStore();
 
