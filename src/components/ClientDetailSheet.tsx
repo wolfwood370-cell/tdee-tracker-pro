@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -432,12 +432,20 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                               <span className="text-xs font-semibold text-foreground">
                                 Sett. {log.week_start_date}
                               </span>
-                              {hasAlert && (
-                                <Badge variant="destructive" className="text-[10px] gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  Attenzione
-                                </Badge>
-                              )}
+                              <div className="flex items-center gap-1.5">
+                                {log.energy_score <= 2 && log.performance_score <= 2 && (
+                                  <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
+                                    <Bot className="h-3 w-3" />
+                                    AI Intervened
+                                  </Badge>
+                                )}
+                                {hasAlert && (
+                                  <Badge variant="destructive" className="text-[10px] gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Attenzione
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
                               {[
