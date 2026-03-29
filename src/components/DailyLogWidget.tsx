@@ -57,7 +57,7 @@ export function DailyLogWidget() {
       return;
     }
 
-    const logDate = format(date, "yyyy-MM-dd");
+    const submitDate = format(date, "yyyy-MM-dd");
     setIsSubmitting(true);
 
     try {
