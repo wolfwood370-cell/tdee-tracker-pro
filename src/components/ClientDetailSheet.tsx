@@ -206,7 +206,28 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     }
   };
 
-  return (
+  const handleSaveOverride = async () => {
+    if (!client) return;
+    setSavingOverride(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          manual_override_active: overrideActive,
+          manual_calories: overrideActive && manualCalories ? parseInt(manualCalories) : null,
+          manual_protein: overrideActive && manualProtein ? parseInt(manualProtein) : null,
+          manual_fats: overrideActive && manualFats ? parseInt(manualFats) : null,
+          manual_carbs: overrideActive && manualCarbs ? parseInt(manualCarbs) : null,
+        } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      toast({ title: "Override salvato ✓", description: overrideActive ? "Target manuali attivi per il cliente." : "Override disattivato, target algoritmici ripristinati." });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingOverride(false);
+    }
+  };
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
