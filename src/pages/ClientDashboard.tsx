@@ -255,6 +255,11 @@ const ClientDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Non-Linear Weekly Plan */}
+      {weeklyPlan && weeklyPlan.strategy !== 'linear' && (
+        <WeeklyPlanBar plan={weeklyPlan} />
+      )}
+
       {/* Chart */}
       <WeightTrendChart />
 
