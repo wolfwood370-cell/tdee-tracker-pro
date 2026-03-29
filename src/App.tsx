@@ -68,9 +68,7 @@ function AppRoutes() {
       <Route
         path="/onboarding"
         element={
-          <ProtectedRoute allowedRole="client" skipOnboardingCheck>
-            <Onboarding />
-          </ProtectedRoute>
+          user && user.role === "client" ? <Onboarding /> : <Navigate to="/" replace />
         }
       />
       <Route
