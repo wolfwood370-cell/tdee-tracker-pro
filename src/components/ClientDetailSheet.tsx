@@ -439,6 +439,48 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
+              {/* Coach Manual Override */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    Override Manuale Coach
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Bypassa l'algoritmo e imposta target personalizzati
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">Override attivo</Label>
+                    <Switch checked={overrideActive} onCheckedChange={setOverrideActive} />
+                  </div>
+                  {overrideActive && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Calorie (kcal)</Label>
+                        <Input type="number" min="0" placeholder="es. 2200" value={manualCalories} onChange={(e) => setManualCalories(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Proteine (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 180" value={manualProtein} onChange={(e) => setManualProtein(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Grassi (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 70" value={manualFats} onChange={(e) => setManualFats(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Carboidrati (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 250" value={manualCarbs} onChange={(e) => setManualCarbs(e.target.value)} className="border-border" />
+                      </div>
+                    </div>
+                  )}
+                  <Button size="sm" onClick={handleSaveOverride} disabled={savingOverride} className="w-full">
+                    {savingOverride ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salva Override"}
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Biofeedback & Fatigue */}
               <Card className="glass-card border-border">
                 <CardHeader className="pb-3">
