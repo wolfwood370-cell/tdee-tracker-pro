@@ -82,6 +82,7 @@ export default function Settings() {
       setProteinPref((profile as any).protein_pref ?? "moderate");
       setCalorieDistribution((profile as any).calorie_distribution ?? "stable");
       setTrainingDays(((profile as any).training_days_per_week ?? 4).toString());
+      setDietStrategy((profile as any).diet_strategy ?? "linear");
     }
   }, [profile]);
 
