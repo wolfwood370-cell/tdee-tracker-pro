@@ -5,7 +5,14 @@ import {
   calculateAdaptiveTDEE,
   calculateTargetCalories,
   calculateTargetMacros,
+  calculateDynamicGoalRate,
+  calculatePolarizedCalories,
   type SmoothedLog,
+  type GoalType,
+  type DietType,
+  type ProteinPref,
+  type CalorieDistribution,
+  type PolarizedTargets,
 } from '@/lib/algorithms';
 
 // Re-export useful types
@@ -56,6 +63,8 @@ interface CalculationSlice {
   currentTDEE: number | null;
   targetCalories: number | null;
   targetMacros: TargetMacros | null;
+  polarizedTargets: PolarizedTargets | null;
+  dynamicGoalRate: number | null;
   weeklyAnalytics: WeeklyAnalytic[];
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
@@ -80,6 +89,8 @@ const initialState = {
   currentTDEE: null,
   targetCalories: null,
   targetMacros: null,
+  polarizedTargets: null,
+  dynamicGoalRate: null,
   weeklyAnalytics: [],
 };
 
@@ -137,15 +148,45 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (tdee != null) {
       updates.currentTDEE = tdee;
 
-      // 3. Target calories from goal rate
-      const goalRate = profile?.goal_rate ?? -0.25; // kg/week default
-      const targetCal = calculateTargetCalories(tdee, goalRate);
+      // Get latest trend weight
+      const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+
+      // 3. Dynamic goal rate based on goal_type and trend weight
+      const goalType = ((profile as any)?.goal_type as GoalType) ?? 'sustainable_loss';
+      const proteinPref = ((profile as any)?.protein_pref as ProteinPref) ?? 'moderate';
+      const dietType = ((profile as any)?.diet_type as DietType) ?? 'balanced';
+      const calorieDistribution = ((profile as any)?.calorie_distribution as CalorieDistribution) ?? 'stable';
+      const trainingDays = ((profile as any)?.training_days_per_week as number) ?? 4;
+
+      const dynamicRate = latestWeight != null
+        ? calculateDynamicGoalRate(goalType, latestWeight)
+        : (profile?.goal_rate ?? -0.25);
+
+      updates.dynamicGoalRate = dynamicRate;
+
+      const targetCal = calculateTargetCalories(tdee, dynamicRate);
       updates.targetCalories = targetCal;
 
-      // 4. Target macros from latest trend weight
-      const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+      // 4. Macros
       if (latestWeight != null) {
-        updates.targetMacros = calculateTargetMacros(targetCal, latestWeight);
+        updates.targetMacros = calculateTargetMacros(targetCal, latestWeight, proteinPref, dietType);
+
+        // 5. Polarized distribution
+        if (calorieDistribution === 'polarized') {
+          const { trainingDayCal, restDayCal } = calculatePolarizedCalories(targetCal, trainingDays);
+          updates.polarizedTargets = {
+            trainingDay: {
+              calories: trainingDayCal,
+              macros: calculateTargetMacros(trainingDayCal, latestWeight, proteinPref, dietType),
+            },
+            restDay: {
+              calories: restDayCal,
+              macros: calculateTargetMacros(restDayCal, latestWeight, proteinPref, dietType),
+            },
+          };
+        } else {
+          updates.polarizedTargets = null;
+        }
       }
     }
 
