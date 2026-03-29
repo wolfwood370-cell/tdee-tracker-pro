@@ -80,8 +80,7 @@ const AuthPage = () => {
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-display font-bold leading-tight text-foreground">
             Il tuo motore<br />
-            nutrizionale<br />
-            <span className="text-gradient-primary">dinamico.</span>
+            <span className="text-gradient-primary">nutrizionale.</span>
           </h2>
           <p className="text-muted-foreground max-w-md leading-relaxed">
             Accedi per tracciare i tuoi progressi e ricevere i tuoi target nutrizionali personalizzati.
