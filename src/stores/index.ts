@@ -7,12 +7,15 @@ import {
   calculateTargetMacros,
   calculateDynamicGoalRate,
   calculatePolarizedCalories,
+  calculateWeeklyPlan,
   type SmoothedLog,
   type GoalType,
   type DietType,
   type ProteinPref,
   type CalorieDistribution,
+  type DietStrategy,
   type PolarizedTargets,
+  type WeeklyPlan,
 } from '@/lib/algorithms';
 
 // Re-export useful types
@@ -65,6 +68,7 @@ interface CalculationSlice {
   targetMacros: TargetMacros | null;
   polarizedTargets: PolarizedTargets | null;
   dynamicGoalRate: number | null;
+  weeklyPlan: WeeklyPlan | null;
   weeklyAnalytics: WeeklyAnalytic[];
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
@@ -91,6 +95,7 @@ const initialState = {
   targetMacros: null,
   polarizedTargets: null,
   dynamicGoalRate: null,
+  weeklyPlan: null,
   weeklyAnalytics: [],
 };
 
@@ -157,6 +162,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const dietType = ((profile as any)?.diet_type as DietType) ?? 'balanced';
       const calorieDistribution = ((profile as any)?.calorie_distribution as CalorieDistribution) ?? 'stable';
       const trainingDays = ((profile as any)?.training_days_per_week as number) ?? 4;
+      const dietStrategy = ((profile as any)?.diet_strategy as DietStrategy) ?? 'linear';
 
       const dynamicRate = latestWeight != null
         ? calculateDynamicGoalRate(goalType, latestWeight)
@@ -187,6 +193,17 @@ export const useAppStore = create<AppState>((set, get) => ({
         } else {
           updates.polarizedTargets = null;
         }
+
+        // 6. Non-linear weekly plan
+        updates.weeklyPlan = calculateWeeklyPlan({
+          strategy: dietStrategy,
+          tdee,
+          goalRateKgPerWeek: dynamicRate,
+          bodyWeightKg: latestWeight,
+          proteinPref,
+          dietType,
+          profileCreatedAt: profile?.created_at,
+        });
       }
     }
 

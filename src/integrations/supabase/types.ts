@@ -58,6 +58,7 @@ export type Database = {
           birth_date: string | null
           calorie_distribution: string
           created_at: string
+          diet_strategy: string
           diet_type: string
           full_name: string | null
           goal_rate: number | null
@@ -73,6 +74,7 @@ export type Database = {
           birth_date?: string | null
           calorie_distribution?: string
           created_at?: string
+          diet_strategy?: string
           diet_type?: string
           full_name?: string | null
           goal_rate?: number | null
@@ -88,6 +90,7 @@ export type Database = {
           birth_date?: string | null
           calorie_distribution?: string
           created_at?: string
+          diet_strategy?: string
           diet_type?: string
           full_name?: string | null
           goal_rate?: number | null

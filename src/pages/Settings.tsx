@@ -25,6 +25,14 @@ const ACTIVITY_LEVELS = [
   { value: "1.9", label: "Estremamente attivo (atleta)" },
 ];
 
+const DIET_STRATEGIES = [
+  { value: "linear", label: "Lineare", desc: "Deficit costante ogni giorno" },
+  { value: "refeed_1_day", label: "Refeed 1 giorno", desc: "1 giorno a mantenimento (Dom), deficit distribuito nei restanti 6" },
+  { value: "refeed_2_days", label: "Refeed 2 giorni", desc: "2 giorni a mantenimento (Sab-Dom), deficit distribuito nei restanti 5" },
+  { value: "matador_break", label: "MATADOR", desc: "Ciclo 2 sett deficit + 2 sett mantenimento" },
+  { value: "reverse_diet", label: "Reverse Diet", desc: "Post-cut: +75 kcal/sett fino al TDEE" },
+];
+
 const GOAL_TYPES = [
   { value: "sustainable_loss", label: "Dimagrimento sostenibile (-0.5% BW/sett)" },
   { value: "aggressive_minicut", label: "Mini-cut aggressivo (-1% BW/sett)" },
@@ -59,6 +67,7 @@ export default function Settings() {
   const [proteinPref, setProteinPref] = useState("moderate");
   const [calorieDistribution, setCalorieDistribution] = useState("stable");
   const [trainingDays, setTrainingDays] = useState("4");
+  const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -73,6 +82,7 @@ export default function Settings() {
       setProteinPref((profile as any).protein_pref ?? "moderate");
       setCalorieDistribution((profile as any).calorie_distribution ?? "stable");
       setTrainingDays(((profile as any).training_days_per_week ?? 4).toString());
+      setDietStrategy((profile as any).diet_strategy ?? "linear");
     }
   }, [profile]);
 
@@ -94,6 +104,7 @@ export default function Settings() {
           protein_pref: proteinPref,
           calorie_distribution: calorieDistribution,
           training_days_per_week: parseInt(trainingDays),
+          diet_strategy: dietStrategy,
         } as any)
         .eq("id", user.id)
         .select()
@@ -267,6 +278,29 @@ export default function Settings() {
                   <RadioGroupItem value={pp.value} className="sr-only" />
                   <span className="text-sm font-semibold text-foreground">{pp.label}</span>
                   <span className="text-xs text-muted-foreground">{pp.desc}</span>
+                </label>
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* Diet Strategy */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Strategia Dietetica
+            </Label>
+            <RadioGroup value={dietStrategy} onValueChange={setDietStrategy} className="grid grid-cols-1 gap-2">
+              {DIET_STRATEGIES.map((ds) => (
+                <label
+                  key={ds.value}
+                  className={`flex flex-col rounded-lg border p-3 cursor-pointer transition-colors ${
+                    dietStrategy === ds.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <RadioGroupItem value={ds.value} className="sr-only" />
+                  <span className="text-sm font-semibold text-foreground">{ds.label}</span>
+                  <span className="text-xs text-muted-foreground">{ds.desc}</span>
                 </label>
               ))}
             </RadioGroup>

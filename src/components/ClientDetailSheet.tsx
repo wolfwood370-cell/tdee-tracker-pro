@@ -9,23 +9,50 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  BarChart,
+  Bar,
+  Cell,
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { exportClientCSV } from "@/lib/csvExport";
+import { toast } from "@/hooks/use-toast";
 import {
   calculateSmoothedWeight,
   calculateAdaptiveTDEE,
   calculateTargetCalories,
   calculateTargetMacros,
+  calculateDynamicGoalRate,
+  calculateWeeklyPlan,
+  type DietStrategy,
+  type GoalType,
+  type ProteinPref,
+  type DietType,
 } from "@/lib/algorithms";
 import type { Tables } from "@/integrations/supabase/types";
 import type { SmoothedLog } from "@/lib/algorithms";
+
+const STRATEGY_OPTIONS: { value: DietStrategy; label: string }[] = [
+  { value: "linear", label: "Lineare" },
+  { value: "refeed_1_day", label: "Refeed 1 giorno" },
+  { value: "refeed_2_days", label: "Refeed 2 giorni" },
+  { value: "matador_break", label: "MATADOR (2+2 sett)" },
+  { value: "reverse_diet", label: "Reverse Diet" },
+];
 
 interface ClientDetailSheetProps {
   open: boolean;
@@ -42,10 +69,13 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [smoothed, setSmoothed] = useState<SmoothedLog[]>([]);
   const [tdee, setTdee] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
+  const [savingStrategy, setSavingStrategy] = useState(false);
 
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
+    setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
 
     supabase
       .from("daily_metrics")
@@ -76,14 +106,36 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
   if (!client) return null;
 
-  const goalRate = client.profile.goal_rate ?? -0.25;
-  const targetCal = tdee ? calculateTargetCalories(tdee, goalRate) : null;
+  const goalType = ((client.profile as any)?.goal_type as GoalType) ?? "sustainable_loss";
+  const proteinPref = ((client.profile as any)?.protein_pref as ProteinPref) ?? "moderate";
+  const dietType = ((client.profile as any)?.diet_type as DietType) ?? "balanced";
+
   const latestTrend = [...smoothed]
     .reverse()
     .find((l) => l.trendWeight != null)?.trendWeight;
+
+  const dynamicRate = latestTrend != null
+    ? calculateDynamicGoalRate(goalType, latestTrend)
+    : (client.profile.goal_rate ?? -0.25);
+
+  const targetCal = tdee ? calculateTargetCalories(tdee, dynamicRate) : null;
   const targetMac =
     targetCal && latestTrend
-      ? calculateTargetMacros(targetCal, latestTrend)
+      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType)
+      : null;
+
+  // Build preview weekly plan for the selected strategy
+  const previewPlan =
+    tdee && latestTrend
+      ? calculateWeeklyPlan({
+          strategy: selectedStrategy,
+          tdee,
+          goalRateKgPerWeek: dynamicRate,
+          bodyWeightKg: latestTrend,
+          proteinPref,
+          dietType,
+          profileCreatedAt: client.profile.created_at,
+        })
       : null;
 
   const chartData = smoothed
@@ -111,6 +163,23 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
             validCalLogs.length
         )
       : null;
+
+  const handleAssignStrategy = async () => {
+    if (!client) return;
+    setSavingStrategy(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ diet_strategy: selectedStrategy } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      toast({ title: "Strategia assegnata ✓", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingStrategy(false);
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -141,7 +210,6 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         <div className="space-y-6 mt-6">
           {loading ? (
             <div className="space-y-6">
-              {/* Skeleton for targets */}
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
                   <Skeleton className="h-4 w-32 mb-4" />
@@ -155,7 +223,6 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   </div>
                 </CardContent>
               </Card>
-              {/* Skeleton for chart */}
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
                   <Skeleton className="h-4 w-28 mb-3" />
@@ -226,6 +293,104 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
+              {/* Strategic Protocols - Coach Assignment */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" />
+                    Protocolli Strategici
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Assegna una strategia dietetica non-lineare al cliente
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Strategia</Label>
+                      <Select value={selectedStrategy} onValueChange={(v) => setSelectedStrategy(v as DietStrategy)}>
+                        <SelectTrigger className="border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STRATEGY_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleAssignStrategy}
+                      disabled={savingStrategy}
+                    >
+                      {savingStrategy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Assegna"
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* 7-day preview bar chart */}
+                  {previewPlan && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Anteprima distribuzione settimanale
+                        {previewPlan.isMaintenancePhase && (
+                          <Badge variant="secondary" className="ml-2 text-[10px]">Fase Mantenimento</Badge>
+                        )}
+                        {previewPlan.reverseWeekNumber && (
+                          <Badge variant="secondary" className="ml-2 text-[10px]">Sett. {previewPlan.reverseWeekNumber}</Badge>
+                        )}
+                      </p>
+                      <div className="h-32 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={previewPlan.days}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis
+                              dataKey="label"
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                              axisLine={false}
+                              tickLine={false}
+                              width={40}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "0.5rem",
+                                fontSize: 11,
+                                color: "hsl(var(--card-foreground))",
+                              }}
+                              formatter={(value: number) => [`${value} kcal`, "Calorie"]}
+                            />
+                            <Bar dataKey="calories" radius={[4, 4, 0, 0]}>
+                              {previewPlan.days.map((d, i) => (
+                                <Cell
+                                  key={i}
+                                  fill={d.isRefeed ? "hsl(var(--accent))" : "hsl(var(--primary))"}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Totale: {previewPlan.weeklyTotal.toLocaleString("it-IT")} kcal/sett
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Weight Chart */}
               {chartData.length > 0 ? (
                 <ClientWeightChart data={chartData} />
@@ -260,7 +425,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                     },
                     {
                       label: "Goal rate",
-                      value: `${goalRate > 0 ? "+" : ""}${goalRate} kg/sett`,
+                      value: `${dynamicRate > 0 ? "+" : ""}${dynamicRate.toFixed(2)} kg/sett`,
                     },
                   ].map((s) => (
                     <div
