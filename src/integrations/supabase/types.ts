@@ -109,6 +109,11 @@ export type Database = {
           goal_type: string
           height_cm: number | null
           id: string
+          manual_calories: number | null
+          manual_carbs: number | null
+          manual_fats: number | null
+          manual_override_active: boolean
+          manual_protein: number | null
           protein_pref: string
           sex: string | null
           training_days_per_week: number
@@ -125,6 +130,11 @@ export type Database = {
           goal_type?: string
           height_cm?: number | null
           id: string
+          manual_calories?: number | null
+          manual_carbs?: number | null
+          manual_fats?: number | null
+          manual_override_active?: boolean
+          manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
           training_days_per_week?: number
@@ -141,6 +151,11 @@ export type Database = {
           goal_type?: string
           height_cm?: number | null
           id?: string
+          manual_calories?: number | null
+          manual_carbs?: number | null
+          manual_fats?: number | null
+          manual_override_active?: boolean
+          manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
           training_days_per_week?: number
