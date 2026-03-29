@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Scale, Target, Utensils, TrendingUp, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Activity, Flame, Target, Utensils, TrendingUp } from "lucide-react";
 
 import { useAppStore } from "@/stores";
+import { DailyLogWidget } from "@/components/DailyLogWidget";
 
 const ClientDashboard = () => {
   const { profile, currentTDEE, targetCalories, targetMacros } = useAppStore();
