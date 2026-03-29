@@ -103,6 +103,15 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setManualFats((client.profile as any)?.manual_fats?.toString() ?? "");
     setManualCarbs((client.profile as any)?.manual_carbs?.toString() ?? "");
 
+    // Strategy editor pre-population
+    setEditGoalType(client.profile.goal_type ?? "sustainable_loss");
+    setEditDietStrategy((client.profile as any)?.diet_strategy ?? "linear");
+    setEditDietType(client.profile.diet_type ?? "balanced");
+    setEditProteinPref(client.profile.protein_pref ?? "moderate");
+    setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
+    setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
+    setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
+
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
       supabase
