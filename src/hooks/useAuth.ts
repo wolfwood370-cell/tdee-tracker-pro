@@ -7,58 +7,58 @@ export function useAuth() {
   const { setUser, setLoading, setProfile, logout } = useAppStore();
 
   useEffect(() => {
-    async function handleSession(userId: string, email: string) {
-      // Fetch role
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .single();
-
-      const role: AppRole = roleData?.role ?? "client";
-      setUser({ id: userId, email, role });
-
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (profileData) {
-        setProfile(profileData);
+    // Restore session first (non-blocking)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Fire and forget — do NOT await inside callbacks
+        handleSession(session.user.id, session.user.email ?? "");
+      } else {
+        setLoading(false);
       }
-    }
+    });
 
+    // Listen for subsequent auth changes (sign in/out/token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          if (session?.user) {
-            await handleSession(session.user.id, session.user.email ?? "");
-          } else {
-            logout();
-          }
-        } catch (e) {
-          console.error("Auth state change error:", e);
-        } finally {
+      (_event, session) => {
+        if (session?.user) {
+          // Fire and forget — never await inside onAuthStateChange
+          handleSession(session.user.id, session.user.email ?? "");
+        } else {
+          logout();
           setLoading(false);
         }
       }
     );
 
-    // Check existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    return () => subscription.unsubscribe();
+
+    async function handleSession(userId: string, email: string) {
       try {
-        if (session?.user) {
-          await handleSession(session.user.id, session.user.email ?? "");
+        // Fetch role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .single();
+
+        const role: AppRole = roleData?.role ?? "client";
+        setUser({ id: userId, email, role });
+
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (profileData) {
+          setProfile(profileData);
         }
       } catch (e) {
-        console.error("Session restore error:", e);
+        console.error("Error loading session data:", e);
       } finally {
         setLoading(false);
       }
-    });
-
-    return () => subscription.unsubscribe();
+    }
   }, [setUser, setLoading, setProfile, logout]);
 }
