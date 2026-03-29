@@ -12,21 +12,21 @@ import { differenceInYears, parseISO } from "date-fns";
 
 interface ClientRow {
   id: string;
-  email: string;
+  displayName: string;
   profile: Tables<"profiles">;
   lastLogDate: string | null;
   logsLast7: number;
 }
 
-function getAdherenceBadge(lastLogDate: string | null, logsLast7: number) {
+function getAdherenceBadge(lastLogDate: string | null) {
   if (!lastLogDate) {
     return <Badge variant="destructive">Nessun log</Badge>;
   }
   const daysSince = Math.floor(
     (Date.now() - new Date(lastLogDate).getTime()) / (1000 * 60 * 60 * 24)
   );
-  if (daysSince <= 1) return <Badge className="bg-emerald-600 text-white border-0">Attivo</Badge>;
-  if (daysSince <= 3) return <Badge className="bg-yellow-600 text-white border-0">Attenzione</Badge>;
+  if (daysSince <= 1) return <Badge className="bg-primary text-primary-foreground border-0">Attivo</Badge>;
+  if (daysSince <= 3) return <Badge className="bg-accent text-accent-foreground border-0">Attenzione</Badge>;
   return <Badge variant="destructive">Azione richiesta</Badge>;
 }
 
@@ -49,7 +49,6 @@ const CoachDashboard = () => {
   async function fetchClients() {
     setLoading(true);
     try {
-      // 1. Get all client role entries
       const { data: roles, error: rolesErr } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -64,7 +63,6 @@ const CoachDashboard = () => {
 
       const clientIds = roles.map((r) => r.user_id);
 
-      // 2. Fetch profiles for these clients
       const { data: profiles, error: profErr } = await supabase
         .from("profiles")
         .select("*")
@@ -72,7 +70,6 @@ const CoachDashboard = () => {
 
       if (profErr) throw profErr;
 
-      // 3. Fetch latest log dates and count of logs in last 7 days
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       const weekAgoStr = weekAgo.toISOString().slice(0, 10);
@@ -86,7 +83,6 @@ const CoachDashboard = () => {
 
       if (logErr) throw logErr;
 
-      // Also fetch the absolute latest log per client
       const { data: allLatest, error: latestErr } = await supabase
         .from("daily_metrics")
         .select("user_id, log_date")
@@ -95,24 +91,21 @@ const CoachDashboard = () => {
 
       if (latestErr) throw latestErr;
 
-      // Build lookup maps
       const latestLogMap = new Map<string, string>();
       const logs7Map = new Map<string, number>();
 
-      for (const log of (allLatest ?? [])) {
+      for (const log of allLatest ?? []) {
         if (!latestLogMap.has(log.user_id)) {
           latestLogMap.set(log.user_id, log.log_date);
         }
       }
-      for (const log of (recentLogs ?? [])) {
+      for (const log of recentLogs ?? []) {
         logs7Map.set(log.user_id, (logs7Map.get(log.user_id) ?? 0) + 1);
       }
 
-      // 4. We need emails — fetch from profiles or use ID as fallback
-      // Since we can't access auth.users, we'll show the user ID or use a display approach
       const rows: ClientRow[] = (profiles ?? []).map((p) => ({
         id: p.id,
-        email: p.id.slice(0, 8) + "…", // placeholder — will be replaced below
+        displayName: p.full_name || p.id.slice(0, 8) + "…",
         profile: p,
         lastLogDate: latestLogMap.get(p.id) ?? null,
         logsLast7: logs7Map.get(p.id) ?? 0,
@@ -130,28 +123,42 @@ const CoachDashboard = () => {
     if (!search.trim()) return clients;
     const q = search.toLowerCase();
     return clients.filter(
-      (c) => c.email.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
+      (c) =>
+        c.displayName.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q)
     );
   }, [clients, search]);
 
-  // Summary stats
   const activeCount = clients.filter((c) => {
     if (!c.lastLogDate) return false;
-    const days = Math.floor((Date.now() - new Date(c.lastLogDate).getTime()) / (1000 * 60 * 60 * 24));
+    const days = Math.floor(
+      (Date.now() - new Date(c.lastLogDate).getTime()) / (1000 * 60 * 60 * 24)
+    );
     return days <= 1;
   }).length;
 
-  const avgAdherence = clients.length > 0
-    ? Math.round((clients.reduce((s, c) => s + c.logsLast7, 0) / (clients.length * 7)) * 100)
-    : 0;
+  const avgAdherence =
+    clients.length > 0
+      ? Math.round(
+          (clients.reduce((s, c) => s + c.logsLast7, 0) /
+            (clients.length * 7)) *
+            100
+        )
+      : 0;
 
-  const checkinToday = clients.filter((c) => c.lastLogDate === new Date().toISOString().slice(0, 10)).length;
+  const checkinToday = clients.filter(
+    (c) => c.lastLogDate === new Date().toISOString().slice(0, 10)
+  ).length;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard Coach</h1>
-        <p className="text-muted-foreground text-sm mt-1">Gestisci e monitora i tuoi clienti</p>
+        <h1 className="text-2xl font-display font-bold text-foreground">
+          Dashboard Coach
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Gestisci e monitora i tuoi clienti
+        </p>
       </div>
 
       {/* Stats Overview */}
@@ -167,7 +174,9 @@ const CoachDashboard = () => {
               <div className="flex items-center justify-between mb-3">
                 <stat.icon className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
+              <p className="text-2xl font-display font-bold text-foreground">
+                {stat.value}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
             </CardContent>
           </Card>
@@ -203,7 +212,9 @@ const CoachDashboard = () => {
                 {search ? "Nessun cliente trovato" : "Nessun cliente ancora"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {search ? "Prova con un termine diverso" : "I clienti appariranno qui una volta registrati"}
+                {search
+                  ? "Prova con un termine diverso"
+                  : "I clienti appariranno qui una volta registrati"}
               </p>
             </div>
           ) : (
@@ -225,19 +236,27 @@ const CoachDashboard = () => {
                     <TableRow key={client.id}>
                       <TableCell className="font-medium text-foreground">
                         <div>
-                          <p className="text-sm">{client.email}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{client.id.slice(0, 8)}</p>
+                          <p className="text-sm">{client.displayName}</p>
+                          <p className="text-xs text-muted-foreground font-mono">
+                            {client.id.slice(0, 8)}
+                          </p>
                         </div>
                       </TableCell>
-                      <TableCell>{calcAge(client.profile.birth_date)}</TableCell>
-                      <TableCell className="capitalize">{client.profile.sex ?? "—"}</TableCell>
+                      <TableCell>
+                        {calcAge(client.profile.birth_date)}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {client.profile.sex ?? "—"}
+                      </TableCell>
                       <TableCell>
                         {client.profile.goal_rate != null
                           ? `${client.profile.goal_rate > 0 ? "+" : ""}${client.profile.goal_rate} kg/sett`
                           : "—"}
                       </TableCell>
                       <TableCell>{client.logsLast7}/7</TableCell>
-                      <TableCell>{getAdherenceBadge(client.lastLogDate, client.logsLast7)}</TableCell>
+                      <TableCell>
+                        {getAdherenceBadge(client.lastLogDate)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           size="sm"
@@ -260,7 +279,6 @@ const CoachDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Client Detail Sheet */}
       <ClientDetailSheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}

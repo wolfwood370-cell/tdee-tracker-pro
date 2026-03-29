@@ -57,6 +57,7 @@ export type Database = {
           activity_level: number | null
           birth_date: string | null
           created_at: string
+          full_name: string | null
           goal_rate: number | null
           height_cm: number | null
           id: string
@@ -66,6 +67,7 @@ export type Database = {
           activity_level?: number | null
           birth_date?: string | null
           created_at?: string
+          full_name?: string | null
           goal_rate?: number | null
           height_cm?: number | null
           id: string
@@ -75,6 +77,7 @@ export type Database = {
           activity_level?: number | null
           birth_date?: string | null
           created_at?: string
+          full_name?: string | null
           goal_rate?: number | null
           height_cm?: number | null
           id?: string
