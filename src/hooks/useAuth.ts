@@ -4,26 +4,36 @@ import { useAppStore } from "@/stores";
 import type { AppRole } from "@/stores";
 
 export function useAuth() {
-  const { setUser, setLoading, logout } = useAppStore();
+  const { setUser, setLoading, setProfile, logout } = useAppStore();
 
   useEffect(() => {
+    async function handleSession(userId: string, email: string) {
+      // Fetch role
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
+
+      const role: AppRole = roleData?.role ?? "client";
+      setUser({ id: userId, email, role });
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          // Fetch role from user_roles table
-          const { data: roleData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .single();
-
-          const role: AppRole = roleData?.role ?? "client";
-
-          setUser({
-            id: session.user.id,
-            email: session.user.email ?? "",
-            role,
-          });
+          await handleSession(session.user.id, session.user.email ?? "");
         } else {
           logout();
         }
@@ -34,23 +44,11 @@ export function useAuth() {
     // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single();
-
-        const role: AppRole = roleData?.role ?? "client";
-
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? "",
-          role,
-        });
+        await handleSession(session.user.id, session.user.email ?? "");
       }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setLoading, logout]);
+  }, [setUser, setLoading, setProfile, logout]);
 }

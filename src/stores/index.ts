@@ -10,56 +10,102 @@ export type DailyMetricInsert = TablesInsert<'daily_metrics'>;
 export type DailyMetricUpdate = TablesUpdate<'daily_metrics'>;
 export type WeeklyAnalyticInsert = TablesInsert<'weekly_analytics'>;
 
-// Auth slice
+// Macros type
+export interface TargetMacros {
+  protein: number;
+  carbs: number;
+  fats: number;
+}
+
+// --- Auth Slice ---
 interface AuthSlice {
   user: { id: string; email: string; role: AppRole } | null;
   isLoading: boolean;
   setUser: (user: AuthSlice['user']) => void;
   setLoading: (loading: boolean) => void;
-  logout: () => void;
 }
 
-// Profile slice
+// --- Profile Slice ---
 interface ProfileSlice {
   profile: Profile | null;
+  isLoadingProfile: boolean;
   setProfile: (profile: Profile | null) => void;
+  clearProfile: () => void;
+  updateGoalRate: (newRate: number) => void;
 }
 
-// Logs slice
+// --- Logs Slice ---
 interface LogsSlice {
-  logs: DailyMetric[];
+  dailyLogs: DailyMetric[];
   setLogs: (logs: DailyMetric[]) => void;
+  addLog: (log: DailyMetric) => void;
+  updateLog: (log: DailyMetric) => void;
+  deleteLog: (id: string) => void;
 }
 
-// Calculation slice
+// --- Calculations Slice ---
 interface CalculationSlice {
-  tdee: number | null;
+  currentTDEE: number | null;
+  targetCalories: number | null;
+  targetMacros: TargetMacros | null;
   weeklyAnalytics: WeeklyAnalytic[];
-  setTdee: (tdee: number | null) => void;
+  setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
 }
 
-export type AppState = AuthSlice & ProfileSlice & LogsSlice & CalculationSlice;
+export type AppState = AuthSlice & ProfileSlice & LogsSlice & CalculationSlice & {
+  logout: () => void;
+};
 
-export const useAppStore = create<AppState>((set) => ({
+const initialState = {
   // Auth
   user: null,
   isLoading: true,
-  setUser: (user) => set({ user }),
-  setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null, profile: null, logs: [], weeklyAnalytics: [], tdee: null }),
-
   // Profile
   profile: null,
-  setProfile: (profile) => set({ profile }),
-
+  isLoadingProfile: false,
   // Logs
-  logs: [],
-  setLogs: (logs) => set({ logs }),
-
-  // Calculation
-  tdee: null,
+  dailyLogs: [],
+  // Calculations
+  currentTDEE: null,
+  targetCalories: null,
+  targetMacros: null,
   weeklyAnalytics: [],
-  setTdee: (tdee) => set({ tdee }),
+};
+
+export const useAppStore = create<AppState>((set) => ({
+  ...initialState,
+
+  // Auth actions
+  setUser: (user) => set({ user }),
+  setLoading: (isLoading) => set({ isLoading }),
+
+  // Profile actions
+  setProfile: (profile) => set({ profile, isLoadingProfile: false }),
+  clearProfile: () => set({ profile: null }),
+  updateGoalRate: (newRate) =>
+    set((state) => ({
+      profile: state.profile ? { ...state.profile, goal_rate: newRate } : null,
+    })),
+
+  // Logs actions (optimistic)
+  setLogs: (dailyLogs) => set({ dailyLogs }),
+  addLog: (log) =>
+    set((state) => ({ dailyLogs: [log, ...state.dailyLogs] })),
+  updateLog: (log) =>
+    set((state) => ({
+      dailyLogs: state.dailyLogs.map((l) => (l.id === log.id ? log : l)),
+    })),
+  deleteLog: (id) =>
+    set((state) => ({
+      dailyLogs: state.dailyLogs.filter((l) => l.id !== id),
+    })),
+
+  // Calculations actions
+  setCalculations: (tdee, calories, macros) =>
+    set({ currentTDEE: tdee, targetCalories: calories, targetMacros: macros }),
   setWeeklyAnalytics: (weeklyAnalytics) => set({ weeklyAnalytics }),
+
+  // Full reset on logout
+  logout: () => set({ ...initialState, isLoading: false }),
 }));
