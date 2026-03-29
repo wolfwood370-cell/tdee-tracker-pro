@@ -16,7 +16,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; allowedRole?: "coach" | "client" }) {
+function ProtectedRoute({ children, allowedRole, skipOnboardingCheck }: { children: React.ReactNode; allowedRole?: "coach" | "client"; skipOnboardingCheck?: boolean }) {
   const { user, isLoading, profile } = useAppStore();
 
   if (isLoading) {
@@ -32,8 +32,8 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
     return <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />;
   }
 
-  // Onboarding check for clients
-  if (user.role === "client" && profile && (!profile.height_cm || !profile.birth_date)) {
+  // Onboarding check for clients (skip on onboarding page itself)
+  if (!skipOnboardingCheck && user.role === "client" && profile && (!profile.height_cm || !profile.birth_date)) {
     return <Navigate to="/onboarding" replace />;
   }
 
