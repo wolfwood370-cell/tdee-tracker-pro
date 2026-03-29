@@ -14,7 +14,9 @@ import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, TrendingUp, Utensils } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { exportClientCSV } from "@/lib/csvExport";
 import {
   calculateSmoothedWeight,
   calculateAdaptiveTDEE,
