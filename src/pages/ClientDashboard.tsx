@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import type { TargetMacros } from "@/stores";
+import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 
 interface MacroCardProps {
   title: string;
