@@ -27,6 +27,30 @@ export function DailyLogWidget() {
   const [calories, setCalories] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Auto-populate from existing log when date changes
+  const logDate = format(date, "yyyy-MM-dd");
+  const existingLog = dailyLogs.find(
+    (l) => l.log_date === logDate && l.user_id === user?.id
+  );
+
+  const isEditing = !!existingLog;
+
+  // Populate fields when date changes
+  useState(() => {});
+  // Use effect-like pattern via key
+  const handleDateChange = (d: Date) => {
+    setDate(d);
+    const dateStr = format(d, "yyyy-MM-dd");
+    const found = dailyLogs.find((l) => l.log_date === dateStr && l.user_id === user?.id);
+    if (found) {
+      setWeight(found.weight?.toString() ?? "");
+      setCalories(found.calories?.toString() ?? "");
+    } else {
+      setWeight("");
+      setCalories("");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
     if (!weight && !calories) {
