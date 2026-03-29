@@ -32,21 +32,31 @@ export function useAuth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
-          await handleSession(session.user.id, session.user.email ?? "");
-        } else {
-          logout();
+        try {
+          if (session?.user) {
+            await handleSession(session.user.id, session.user.email ?? "");
+          } else {
+            logout();
+          }
+        } catch (e) {
+          console.error("Auth state change error:", e);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
     // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        await handleSession(session.user.id, session.user.email ?? "");
+      try {
+        if (session?.user) {
+          await handleSession(session.user.id, session.user.email ?? "");
+        }
+      } catch (e) {
+        console.error("Session restore error:", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
