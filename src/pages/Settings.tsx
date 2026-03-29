@@ -58,7 +58,7 @@ export default function Settings() {
   const { user, profile, setProfile, recalculateMetrics } = useAppStore();
 
   const [fullName, setFullName] = useState("");
-  const [sex, setSex] = useState("");
+  const [sex, setSex] = useState("not_set");
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [activityLevel, setActivityLevel] = useState("1.2");
@@ -73,7 +73,7 @@ export default function Settings() {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name ?? "");
-      setSex(profile.sex ?? "");
+      setSex(profile.sex ?? "not_set");
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
@@ -95,7 +95,7 @@ export default function Settings() {
         .from("profiles")
         .update({
           full_name: fullName || null,
-          sex: sex || null,
+          sex: sex === "not_set" ? null : sex,
           birth_date: birthDate || null,
           height_cm: heightCm ? parseFloat(heightCm) : null,
           activity_level: parseFloat(activityLevel),
@@ -154,11 +154,12 @@ export default function Settings() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Sesso</Label>
-              <Select value={sex || undefined} onValueChange={setSex}>
+              <Select value={sex} onValueChange={setSex}>
                 <SelectTrigger className="border-border">
                   <SelectValue placeholder="Seleziona" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="not_set">Seleziona</SelectItem>
                   <SelectItem value="M">Maschio</SelectItem>
                   <SelectItem value="F">Femmina</SelectItem>
                 </SelectContent>
