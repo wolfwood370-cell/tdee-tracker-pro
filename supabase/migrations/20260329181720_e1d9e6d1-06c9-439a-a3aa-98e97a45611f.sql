@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS diet_strategy text NOT NULL DEFAULT 'linear';
