@@ -449,9 +449,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                               </span>
                               <div className="flex items-center gap-1.5">
                                 {log.energy_score <= 2 && log.performance_score <= 2 && (
-                                  <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
+                                   <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
                                     <Bot className="h-3 w-3" />
-                                    AI Intervened
+                                    AI Auto-regolazione
                                   </Badge>
                                 )}
                                 {hasAlert && (
