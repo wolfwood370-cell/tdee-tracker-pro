@@ -42,7 +42,7 @@ export function AppSidebar() {
           <Activity className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
             <span className="font-display font-bold text-foreground text-sm tracking-tight">
-              AdaptiveTDEE
+              NC Smart Nutrition
             </span>
           )}
         </div>
