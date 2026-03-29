@@ -1,18 +1,41 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Target, Utensils, TrendingUp } from "lucide-react";
 
+import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 
 const ClientDashboard = () => {
   const {
+    user,
     currentTDEE,
     targetCalories,
     targetMacros,
     smoothedLogs,
     dailyLogs,
+    setLogs,
   } = useAppStore();
+
+  // Fetch logs from DB on mount
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("daily_metrics")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("log_date", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching daily logs:", error);
+          return;
+        }
+        if (data && data.length > 0) {
+          setLogs(data);
+        }
+      });
+  }, [user?.id]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
@@ -21,7 +44,6 @@ const ClientDashboard = () => {
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
 
   const todayCalories = todayLog?.calories ?? 0;
-  const todayWeight = todayLog?.weight;
 
   // Progress percentages
   const calPct = Math.min(100, Math.round((todayCalories / calories) * 100));
@@ -32,7 +54,7 @@ const ClientDashboard = () => {
       value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—",
       target: calories.toLocaleString("it-IT"),
       icon: Flame,
-      color: "text-orange-400",
+      color: "text-destructive",
       pct: todayCalories > 0 ? calPct : 0,
     },
     {
@@ -48,7 +70,7 @@ const ClientDashboard = () => {
       value: "—",
       target: `${macros.carbs}g`,
       icon: Utensils,
-      color: "text-blue-400",
+      color: "text-accent-foreground",
       pct: 0,
     },
     {
@@ -56,36 +78,52 @@ const ClientDashboard = () => {
       value: "—",
       target: `${macros.fats}g`,
       icon: TrendingUp,
-      color: "text-yellow-400",
+      color: "text-muted-foreground",
       pct: 0,
     },
   ];
 
   // Weekly stats
-  const last7Logs = dailyLogs
-    .filter((l) => {
-      const d = new Date(l.log_date);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return d >= weekAgo;
-    });
+  const last7Logs = dailyLogs.filter((l) => {
+    const d = new Date(l.log_date);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return d >= weekAgo;
+  });
   const validCalLogs = last7Logs.filter((l) => l.calories && l.calories > 0);
-  const avgWeeklyCal = validCalLogs.length > 0
-    ? Math.round(validCalLogs.reduce((s, l) => s + (l.calories ?? 0), 0) / validCalLogs.length)
-    : null;
-  const adherencePct = last7Logs.length > 0
-    ? Math.round((last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length / 7) * 100)
-    : null;
+  const avgWeeklyCal =
+    validCalLogs.length > 0
+      ? Math.round(
+          validCalLogs.reduce((s, l) => s + (l.calories ?? 0), 0) /
+            validCalLogs.length
+        )
+      : null;
+  const adherencePct =
+    last7Logs.length > 0
+      ? Math.round(
+          (last7Logs.filter(
+            (l) => l.weight != null || (l.calories != null && l.calories > 0)
+          ).length /
+            7) *
+            100
+        )
+      : null;
 
-  const latestTrend = smoothedLogs.length > 0
-    ? [...smoothedLogs].reverse().find((l) => l.trendWeight != null)?.trendWeight
-    : null;
+  const latestTrend =
+    smoothedLogs.length > 0
+      ? [...smoothedLogs].reverse().find((l) => l.trendWeight != null)
+          ?.trendWeight
+      : null;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Panoramica giornaliera di nutrizione e progressi</p>
+        <h1 className="text-2xl font-display font-bold text-foreground">
+          Dashboard
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Panoramica giornaliera di nutrizione e progressi
+        </p>
       </div>
 
       {/* Hero - Obiettivi di Oggi */}
@@ -93,27 +131,45 @@ const ClientDashboard = () => {
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-5 w-5 text-primary" />
-            <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
+            <h2 className="font-display font-semibold text-foreground">
+              Obiettivi di Oggi
+            </h2>
             <span className="ml-auto text-xs text-muted-foreground">
-              {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
+              {new Date().toLocaleDateString("it-IT", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              })}
             </span>
           </div>
           {currentTDEE && (
             <p className="text-xs text-muted-foreground mb-4">
-              TDEE adattivo: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
+              TDEE adattivo:{" "}
+              <span className="text-primary font-semibold">
+                {currentTDEE.toLocaleString("it-IT")} kcal
+              </span>
             </p>
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {metrics.map((metric) => (
-              <div key={metric.label} className="bg-secondary/50 rounded-lg p-4 space-y-2">
+              <div
+                key={metric.label}
+                className="bg-secondary/50 rounded-lg p-4 space-y-2"
+              >
                 <div className="flex items-center gap-2">
                   <metric.icon className={`h-4 w-4 ${metric.color}`} />
-                  <span className="text-xs text-muted-foreground">{metric.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {metric.label}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                  <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                  <p className="text-2xl font-display font-bold text-foreground">
+                    {metric.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    di {metric.target}
+                  </p>
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
@@ -141,37 +197,54 @@ const ClientDashboard = () => {
               <Target className="h-4 w-4 text-primary" />
               Obiettivi Settimanali
             </CardTitle>
-            <p className="text-xs text-muted-foreground">Obiettivi algoritmici per questa settimana</p>
+            <p className="text-xs text-muted-foreground">
+              Obiettivi algoritmici per questa settimana
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
               {
                 label: "Peso Trend Attuale",
-                value: latestTrend != null ? `${latestTrend.toFixed(1)} kg` : "— kg",
+                value:
+                  latestTrend != null ? `${latestTrend.toFixed(1)} kg` : "— kg",
                 sub: "Media mobile esponenziale",
               },
               {
                 label: "Calorie Giornaliere Target",
                 value: `${calories.toLocaleString("it-IT")} kcal`,
-                sub: currentTDEE ? "Calcolate dal TDEE adattivo" : "Valore predefinito",
+                sub: currentTDEE
+                  ? "Calcolate dal TDEE adattivo"
+                  : "Valore predefinito",
               },
               {
                 label: "Media Calorie Settimanale",
-                value: avgWeeklyCal != null ? `${avgWeeklyCal.toLocaleString("it-IT")} kcal` : "— kcal",
-                sub: validCalLogs.length > 0 ? `Su ${validCalLogs.length} giorni registrati` : "Registra per calcolare",
+                value:
+                  avgWeeklyCal != null
+                    ? `${avgWeeklyCal.toLocaleString("it-IT")} kcal`
+                    : "— kcal",
+                sub:
+                  validCalLogs.length > 0
+                    ? `Su ${validCalLogs.length} giorni registrati`
+                    : "Registra per calcolare",
               },
               {
                 label: "Aderenza",
-                value: adherencePct != null ? `${adherencePct} %` : "— %",
+                value:
+                  adherencePct != null ? `${adherencePct} %` : "— %",
                 sub: `${last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length}/7 giorni registrati`,
               },
             ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+              <div
+                key={item.label}
+                className="flex items-center justify-between py-2 border-b border-border last:border-0"
+              >
                 <div>
                   <p className="text-sm text-foreground">{item.label}</p>
                   <p className="text-xs text-muted-foreground">{item.sub}</p>
                 </div>
-                <p className="text-sm font-display font-semibold text-foreground">{item.value}</p>
+                <p className="text-sm font-display font-semibold text-foreground">
+                  {item.value}
+                </p>
               </div>
             ))}
           </CardContent>
