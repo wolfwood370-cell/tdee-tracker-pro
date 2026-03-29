@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import type { Tables, TablesInsert, TablesUpdate, Enums } from '@/integrations/supabase/types';
+import {
+  calculateSmoothedWeight,
+  calculateAdaptiveTDEE,
+  calculateTargetCalories,
+  calculateTargetMacros,
+  type SmoothedLog,
+} from '@/lib/algorithms';
 
 // Re-export useful types
 export type Profile = Tables<'profiles'>;
@@ -37,6 +44,7 @@ interface ProfileSlice {
 // --- Logs Slice ---
 interface LogsSlice {
   dailyLogs: DailyMetric[];
+  smoothedLogs: SmoothedLog[];
   setLogs: (logs: DailyMetric[]) => void;
   addLog: (log: DailyMetric) => void;
   updateLog: (log: DailyMetric) => void;
@@ -51,6 +59,7 @@ interface CalculationSlice {
   weeklyAnalytics: WeeklyAnalytic[];
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
+  recalculateMetrics: () => void;
 }
 
 export type AppState = AuthSlice & ProfileSlice & LogsSlice & CalculationSlice & {
@@ -66,6 +75,7 @@ const initialState = {
   isLoadingProfile: false,
   // Logs
   dailyLogs: [],
+  smoothedLogs: [],
   // Calculations
   currentTDEE: null,
   targetCalories: null,
@@ -73,7 +83,7 @@ const initialState = {
   weeklyAnalytics: [],
 };
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   ...initialState,
 
   // Auth actions
@@ -88,23 +98,59 @@ export const useAppStore = create<AppState>((set) => ({
       profile: state.profile ? { ...state.profile, goal_rate: newRate } : null,
     })),
 
-  // Logs actions (optimistic)
-  setLogs: (dailyLogs) => set({ dailyLogs }),
-  addLog: (log) =>
-    set((state) => ({ dailyLogs: [log, ...state.dailyLogs] })),
-  updateLog: (log) =>
+  // Logs actions (optimistic) — trigger recalculation after mutation
+  setLogs: (dailyLogs) => {
+    set({ dailyLogs });
+    get().recalculateMetrics();
+  },
+  addLog: (log) => {
+    set((state) => ({ dailyLogs: [log, ...state.dailyLogs] }));
+    get().recalculateMetrics();
+  },
+  updateLog: (log) => {
     set((state) => ({
       dailyLogs: state.dailyLogs.map((l) => (l.id === log.id ? log : l)),
-    })),
-  deleteLog: (id) =>
+    }));
+    get().recalculateMetrics();
+  },
+  deleteLog: (id) => {
     set((state) => ({
       dailyLogs: state.dailyLogs.filter((l) => l.id !== id),
-    })),
+    }));
+    get().recalculateMetrics();
+  },
 
   // Calculations actions
   setCalculations: (tdee, calories, macros) =>
     set({ currentTDEE: tdee, targetCalories: calories, targetMacros: macros }),
   setWeeklyAnalytics: (weeklyAnalytics) => set({ weeklyAnalytics }),
+
+  recalculateMetrics: () => {
+    const { dailyLogs, profile } = get();
+
+    // 1. Smooth weights via EMA
+    const smoothed = calculateSmoothedWeight(dailyLogs);
+    const updates: Partial<AppState> = { smoothedLogs: smoothed };
+
+    // 2. Adaptive TDEE (need ≥2 data points)
+    const tdee = calculateAdaptiveTDEE(smoothed, 14);
+    if (tdee != null) {
+      updates.currentTDEE = tdee;
+
+      // 3. Target calories from goal rate
+      const goalRate = profile?.goal_rate ?? -0.25; // kg/week default
+      const targetCal = calculateTargetCalories(tdee, goalRate);
+      updates.targetCalories = targetCal;
+
+      // 4. Target macros from latest trend weight
+      const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+      if (latestWeight != null) {
+        updates.targetMacros = calculateTargetMacros(targetCal, latestWeight);
+      }
+    }
+
+    set(updates as any);
+  },
 
   // Full reset on logout
   logout: () => set({ ...initialState, isLoading: false }),
