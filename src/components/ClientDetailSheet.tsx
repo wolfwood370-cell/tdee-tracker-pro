@@ -536,7 +536,107 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
-              {/* Biofeedback & Fatigue */}
+              {/* Configurazione Strategia */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    Configurazione Strategia
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Modifica le impostazioni fondamentali del cliente
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Obiettivo</Label>
+                      <Select value={editGoalType} onValueChange={setEditGoalType}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sustainable_loss">Perdita di peso sostenibile</SelectItem>
+                          <SelectItem value="aggressive_loss">Mini-cut aggressivo</SelectItem>
+                          <SelectItem value="maintenance">Mantenimento</SelectItem>
+                          <SelectItem value="weight_gain">Aumento di peso</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Strategia Dietetica</Label>
+                      <Select value={editDietStrategy} onValueChange={setEditDietStrategy}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STRATEGY_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Tipo di Dieta</Label>
+                      <Select value={editDietType} onValueChange={setEditDietType}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="balanced">Bilanciata</SelectItem>
+                          <SelectItem value="low_fat">Pochi grassi</SelectItem>
+                          <SelectItem value="low_carb">Pochi carboidrati</SelectItem>
+                          <SelectItem value="keto">Keto</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Preferenza Proteine</Label>
+                      <Select value={editProteinPref} onValueChange={setEditProteinPref}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Basse</SelectItem>
+                          <SelectItem value="moderate">Moderate</SelectItem>
+                          <SelectItem value="high">Alte</SelectItem>
+                          <SelectItem value="very_high">Molto alte</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Distribuzione Calorie</Label>
+                      <Select value={editCalorieDist} onValueChange={setEditCalorieDist}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="stable">Stabile</SelectItem>
+                          <SelectItem value="polarized">Polarizzata</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Giorni di Allenamento</Label>
+                      <Select value={editTrainingDays} onValueChange={setEditTrainingDays}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {[1,2,3,4,5,6,7].map((d) => (
+                            <SelectItem key={d} value={String(d)}>{d} {d === 1 ? "giorno" : "giorni"}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Livello di Attività</Label>
+                      <Select value={editActivityLevel} onValueChange={setEditActivityLevel}>
+                        <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1.2">Sedentario (1.2)</SelectItem>
+                          <SelectItem value="1.375">Leggero (1.375)</SelectItem>
+                          <SelectItem value="1.55">Moderato (1.55)</SelectItem>
+                          <SelectItem value="1.725">Attivo (1.725)</SelectItem>
+                          <SelectItem value="1.9">Molto attivo (1.9)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={handleSaveConfig} disabled={savingConfig} className="w-full">
+                    {savingConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salva Nuova Strategia"}
+                  </Button>
+                </CardContent>
+              </Card>
+
               <Card className="glass-card border-border">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-display flex items-center gap-2">
