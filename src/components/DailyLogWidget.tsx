@@ -104,9 +104,13 @@ export function DailyLogWidget() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-display flex items-center gap-2">
           <Scale className="h-4 w-4 text-primary" />
-          Registra Dati Giornalieri
+          {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">Inserisci peso e calorie per la giornata selezionata</p>
+        <p className="text-xs text-muted-foreground">
+          {isEditing
+            ? "Stai modificando un log esistente per questa data"
+            : "Inserisci peso e calorie per la giornata selezionata"}
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Date Picker */}
