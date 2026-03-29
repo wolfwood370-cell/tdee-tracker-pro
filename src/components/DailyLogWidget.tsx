@@ -81,7 +81,7 @@ export function DailyLogWidget() {
       const existingEntry = dailyLogs.find(
         (l) => l.log_date === submitDate && l.user_id === user.id
       );
-      if (existingLog) {
+      if (existingEntry) {
         updateLog(data);
       } else {
         addLog(data);
