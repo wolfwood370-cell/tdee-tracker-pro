@@ -68,7 +68,7 @@ function AppRoutes() {
       <Route
         path="/onboarding"
         element={
-          <ProtectedRoute allowedRole="client">
+          <ProtectedRoute allowedRole="client" skipOnboardingCheck>
             <Onboarding />
           </ProtectedRoute>
         }
