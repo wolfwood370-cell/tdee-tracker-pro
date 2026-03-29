@@ -1,30 +1,42 @@
 import { create } from 'zustand';
+import type { Tables, TablesInsert, TablesUpdate, Enums } from '@/integrations/supabase/types';
+
+// Re-export useful types
+export type Profile = Tables<'profiles'>;
+export type DailyMetric = Tables<'daily_metrics'>;
+export type WeeklyAnalytic = Tables<'weekly_analytics'>;
+export type AppRole = Enums<'app_role'>;
+export type DailyMetricInsert = TablesInsert<'daily_metrics'>;
+export type DailyMetricUpdate = TablesUpdate<'daily_metrics'>;
+export type WeeklyAnalyticInsert = TablesInsert<'weekly_analytics'>;
 
 // Auth slice
 interface AuthSlice {
-  user: { id: string; email: string; role: 'coach' | 'client' } | null;
+  user: { id: string; email: string; role: AppRole } | null;
   isLoading: boolean;
   setUser: (user: AuthSlice['user']) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
 }
 
-// Profile slice (placeholder for future)
+// Profile slice
 interface ProfileSlice {
-  profile: Record<string, unknown> | null;
-  setProfile: (profile: Record<string, unknown> | null) => void;
+  profile: Profile | null;
+  setProfile: (profile: Profile | null) => void;
 }
 
-// Logs slice (placeholder for future)
+// Logs slice
 interface LogsSlice {
-  logs: unknown[];
-  setLogs: (logs: unknown[]) => void;
+  logs: DailyMetric[];
+  setLogs: (logs: DailyMetric[]) => void;
 }
 
-// Calculation slice (placeholder for future)
+// Calculation slice
 interface CalculationSlice {
   tdee: number | null;
+  weeklyAnalytics: WeeklyAnalytic[];
   setTdee: (tdee: number | null) => void;
+  setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
 }
 
 export type AppState = AuthSlice & ProfileSlice & LogsSlice & CalculationSlice;
@@ -35,7 +47,7 @@ export const useAppStore = create<AppState>((set) => ({
   isLoading: true,
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null }),
+  logout: () => set({ user: null, profile: null, logs: [], weeklyAnalytics: [], tdee: null }),
 
   // Profile
   profile: null,
@@ -47,5 +59,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   // Calculation
   tdee: null,
+  weeklyAnalytics: [],
   setTdee: (tdee) => set({ tdee }),
+  setWeeklyAnalytics: (weeklyAnalytics) => set({ weeklyAnalytics }),
 }));
