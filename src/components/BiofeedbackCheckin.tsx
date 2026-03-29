@@ -55,7 +55,7 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
       const weekStart = getWeekStart();
 
       const { error } = await supabase
-        .from("biofeedback_logs" as any)
+        .from("biofeedback_logs")
         .upsert(
           {
             user_id: user.id,
