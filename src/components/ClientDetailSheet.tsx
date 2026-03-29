@@ -432,12 +432,20 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                               <span className="text-xs font-semibold text-foreground">
                                 Sett. {log.week_start_date}
                               </span>
-                              {hasAlert && (
-                                <Badge variant="destructive" className="text-[10px] gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  Attenzione
-                                </Badge>
-                              )}
+                              <div className="flex items-center gap-1.5">
+                                {log.energy_score <= 2 && log.performance_score <= 2 && (
+                                  <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
+                                    <Bot className="h-3 w-3" />
+                                    AI Intervened
+                                  </Badge>
+                                )}
+                                {hasAlert && (
+                                  <Badge variant="destructive" className="text-[10px] gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Attenzione
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
                               {[
