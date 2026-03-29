@@ -66,7 +66,7 @@ export function DailyLogWidget() {
         .upsert(
           {
             user_id: user.id,
-            log_date: logDate,
+            log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
             calories: calories ? parseInt(calories, 10) : null,
           },
