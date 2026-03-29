@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { exportClientCSV } from "@/lib/csvExport";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -72,11 +74,24 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
   const [biofeedbackLogs, setBiofeedbackLogs] = useState<any[]>([]);
+  
+  // Manual Override state
+  const [overrideActive, setOverrideActive] = useState(false);
+  const [manualCalories, setManualCalories] = useState("");
+  const [manualProtein, setManualProtein] = useState("");
+  const [manualFats, setManualFats] = useState("");
+  const [manualCarbs, setManualCarbs] = useState("");
+  const [savingOverride, setSavingOverride] = useState(false);
 
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
     setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
+    setOverrideActive((client.profile as any)?.manual_override_active ?? false);
+    setManualCalories((client.profile as any)?.manual_calories?.toString() ?? "");
+    setManualProtein((client.profile as any)?.manual_protein?.toString() ?? "");
+    setManualFats((client.profile as any)?.manual_fats?.toString() ?? "");
+    setManualCarbs((client.profile as any)?.manual_carbs?.toString() ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
@@ -188,6 +203,29 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
       toast({ title: "Errore", description: e.message, variant: "destructive" });
     } finally {
       setSavingStrategy(false);
+    }
+  };
+
+  const handleSaveOverride = async () => {
+    if (!client) return;
+    setSavingOverride(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          manual_override_active: overrideActive,
+          manual_calories: overrideActive && manualCalories ? parseInt(manualCalories) : null,
+          manual_protein: overrideActive && manualProtein ? parseInt(manualProtein) : null,
+          manual_fats: overrideActive && manualFats ? parseInt(manualFats) : null,
+          manual_carbs: overrideActive && manualCarbs ? parseInt(manualCarbs) : null,
+        } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      toast({ title: "Override salvato ✓", description: overrideActive ? "Target manuali attivi per il cliente." : "Override disattivato, target algoritmici ripristinati." });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingOverride(false);
     }
   };
 
@@ -401,6 +439,48 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
+              {/* Coach Manual Override */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    Override Manuale Coach
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Bypassa l'algoritmo e imposta target personalizzati
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">Override attivo</Label>
+                    <Switch checked={overrideActive} onCheckedChange={setOverrideActive} />
+                  </div>
+                  {overrideActive && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Calorie (kcal)</Label>
+                        <Input type="number" min="0" placeholder="es. 2200" value={manualCalories} onChange={(e) => setManualCalories(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Proteine (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 180" value={manualProtein} onChange={(e) => setManualProtein(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Grassi (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 70" value={manualFats} onChange={(e) => setManualFats(e.target.value)} className="border-border" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Carboidrati (g)</Label>
+                        <Input type="number" min="0" placeholder="es. 250" value={manualCarbs} onChange={(e) => setManualCarbs(e.target.value)} className="border-border" />
+                      </div>
+                    </div>
+                  )}
+                  <Button size="sm" onClick={handleSaveOverride} disabled={savingOverride} className="w-full">
+                    {savingOverride ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salva Override"}
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Biofeedback & Fatigue */}
               <Card className="glass-card border-border">
                 <CardHeader className="pb-3">
@@ -434,9 +514,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                               </span>
                               <div className="flex items-center gap-1.5">
                                 {log.energy_score <= 2 && log.performance_score <= 2 && (
-                                  <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
+                                   <Badge variant="secondary" className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/30">
                                     <Bot className="h-3 w-3" />
-                                    AI Intervened
+                                    AI Auto-regolazione
                                   </Badge>
                                 )}
                                 {hasAlert && (

@@ -144,6 +144,33 @@ export const useAppStore = create<AppState>((set, get) => ({
   recalculateMetrics: () => {
     const { dailyLogs, profile } = get();
 
+    // --- Manual Override: bypass all calculations ---
+    if ((profile as any)?.manual_override_active) {
+      const manualCal = (profile as any)?.manual_calories as number | null;
+      const manualP = (profile as any)?.manual_protein as number | null;
+      const manualF = (profile as any)?.manual_fats as number | null;
+      const manualC = (profile as any)?.manual_carbs as number | null;
+
+      // Still compute smoothed weights for chart
+      const smoothed = calculateSmoothedWeight(dailyLogs);
+      const tdee = calculateAdaptiveTDEE(smoothed, 14);
+
+      set({
+        smoothedLogs: smoothed,
+        currentTDEE: tdee,
+        targetCalories: manualCal ?? 2000,
+        targetMacros: {
+          protein: manualP ?? 150,
+          carbs: manualC ?? 200,
+          fats: manualF ?? 70,
+        },
+        polarizedTargets: null,
+        dynamicGoalRate: null,
+        weeklyPlan: null,
+      } as any);
+      return;
+    }
+
     // 1. Smooth weights via EMA
     const smoothed = calculateSmoothedWeight(dailyLogs);
     const updates: Partial<AppState> = { smoothedLogs: smoothed };
