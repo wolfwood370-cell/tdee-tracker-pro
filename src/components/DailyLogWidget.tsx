@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { CalendarIcon, Loader2, Scale, Flame } from "lucide-react";
@@ -27,7 +27,7 @@ export function DailyLogWidget() {
   const [calories, setCalories] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-populate from existing log when date changes
+  // Auto-populate from existing log when date or dailyLogs change
   const logDate = format(date, "yyyy-MM-dd");
   const existingLog = dailyLogs.find(
     (l) => l.log_date === logDate && l.user_id === user?.id
@@ -35,20 +35,19 @@ export function DailyLogWidget() {
 
   const isEditing = !!existingLog;
 
-  // Populate fields when date changes
-  useState(() => {});
-  // Use effect-like pattern via key
-  const handleDateChange = (d: Date) => {
-    setDate(d);
-    const dateStr = format(d, "yyyy-MM-dd");
-    const found = dailyLogs.find((l) => l.log_date === dateStr && l.user_id === user?.id);
-    if (found) {
-      setWeight(found.weight?.toString() ?? "");
-      setCalories(found.calories?.toString() ?? "");
+  // Sync fields when date changes or logs are loaded
+  useEffect(() => {
+    if (existingLog) {
+      setWeight(existingLog.weight?.toString() ?? "");
+      setCalories(existingLog.calories?.toString() ?? "");
     } else {
       setWeight("");
       setCalories("");
     }
+  }, [logDate, existingLog?.id]);
+
+  const handleDateChange = (d: Date) => {
+    setDate(d);
   };
 
   const handleSubmit = async () => {
