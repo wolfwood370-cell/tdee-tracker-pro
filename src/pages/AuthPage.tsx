@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useAppStore } from "@/stores";
+import { supabase } from "@/integrations/supabase/client";
 import { Activity, ArrowRight, Lock, Mail, User } from "lucide-react";
 
 type AuthView = "login" | "register" | "recovery";
@@ -18,40 +17,52 @@ const AuthPage = () => {
   const [fullName, setFullName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { setUser, setLoading } = useAppStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      const role = email.includes("coach") ? "coach" as const : "client" as const;
-      setUser({ id: "demo", email, role });
-      setLoading(false);
-      toast({ title: "Bentornato!", description: `Accesso effettuato come ${role === "coach" ? "coach" : "cliente"}` });
-      navigate(role === "coach" ? "/coach-dashboard" : "/client-dashboard");
-      setIsSubmitting(false);
-    }, 800);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast({ title: "Errore di accesso", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Bentornato!", description: "Accesso effettuato con successo." });
+    }
+    setIsSubmitting(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      toast({ title: "Errore di registrazione", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Account creato!", description: "Controlla la tua email per la verifica." });
       setView("login");
-      setIsSubmitting(false);
-    }, 800);
+    }
+    setIsSubmitting(false);
   };
 
   const handleRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Email di recupero inviata", description: "Controlla la tua casella per le istruzioni di reset." });
       setView("login");
-      setIsSubmitting(false);
-    }, 800);
+    }
+    setIsSubmitting(false);
   };
 
   return (
