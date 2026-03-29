@@ -27,6 +27,30 @@ export function DailyLogWidget() {
   const [calories, setCalories] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Auto-populate from existing log when date changes
+  const logDate = format(date, "yyyy-MM-dd");
+  const existingLog = dailyLogs.find(
+    (l) => l.log_date === logDate && l.user_id === user?.id
+  );
+
+  const isEditing = !!existingLog;
+
+  // Populate fields when date changes
+  useState(() => {});
+  // Use effect-like pattern via key
+  const handleDateChange = (d: Date) => {
+    setDate(d);
+    const dateStr = format(d, "yyyy-MM-dd");
+    const found = dailyLogs.find((l) => l.log_date === dateStr && l.user_id === user?.id);
+    if (found) {
+      setWeight(found.weight?.toString() ?? "");
+      setCalories(found.calories?.toString() ?? "");
+    } else {
+      setWeight("");
+      setCalories("");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
     if (!weight && !calories) {
@@ -80,9 +104,13 @@ export function DailyLogWidget() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-display flex items-center gap-2">
           <Scale className="h-4 w-4 text-primary" />
-          Registra Dati Giornalieri
+          {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">Inserisci peso e calorie per la giornata selezionata</p>
+        <p className="text-xs text-muted-foreground">
+          {isEditing
+            ? "Stai modificando un log esistente per questa data"
+            : "Inserisci peso e calorie per la giornata selezionata"}
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Date Picker */}
@@ -105,7 +133,7 @@ export function DailyLogWidget() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(d) => d && setDate(d)}
+                onSelect={(d) => d && handleDateChange(d)}
                 disabled={(d) => d > new Date()}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
@@ -160,7 +188,7 @@ export function DailyLogWidget() {
               Salvataggio...
             </>
           ) : (
-            "Salva Log"
+            isEditing ? "Aggiorna Log" : "Salva Log"
           )}
         </Button>
       </CardContent>

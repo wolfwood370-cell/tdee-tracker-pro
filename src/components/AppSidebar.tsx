@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 const clientNav = [
   { title: "Dashboard", url: "/client-dashboard", icon: LayoutDashboard },
+  { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 const coachNav = [

@@ -9,13 +9,15 @@ import AuthPage from "./pages/AuthPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import ResetPassword from "./pages/ResetPassword";
+import Onboarding from "./pages/Onboarding";
+import Settings from "./pages/Settings";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; allowedRole?: "coach" | "client" }) {
-  const { user, isLoading } = useAppStore();
+function ProtectedRoute({ children, allowedRole, skipOnboardingCheck }: { children: React.ReactNode; allowedRole?: "coach" | "client"; skipOnboardingCheck?: boolean }) {
+  const { user, isLoading, profile } = useAppStore();
 
   if (isLoading) {
     return (
@@ -28,6 +30,11 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
   if (!user) return <Navigate to="/" replace />;
   if (allowedRole && user.role !== allowedRole) {
     return <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />;
+  }
+
+  // Onboarding check for clients (skip on onboarding page itself)
+  if (!skipOnboardingCheck && user.role === "client" && profile && (!profile.height_cm || !profile.birth_date)) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <AuthLayout>{children}</AuthLayout>;
@@ -58,6 +65,20 @@ function AppRoutes() {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route
+        path="/onboarding"
+        element={
+          user && user.role === "client" ? <Onboarding /> : <Navigate to="/" replace />
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute allowedRole="client">
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/client-dashboard"
         element={
