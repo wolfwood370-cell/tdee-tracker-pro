@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      biofeedback_logs: {
+        Row: {
+          created_at: string
+          energy_score: number
+          hunger_score: number
+          id: string
+          notes: string | null
+          performance_score: number
+          sleep_score: number
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          created_at?: string
+          energy_score: number
+          hunger_score: number
+          id?: string
+          notes?: string | null
+          performance_score: number
+          sleep_score: number
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          created_at?: string
+          energy_score?: number
+          hunger_score?: number
+          id?: string
+          notes?: string | null
+          performance_score?: number
+          sleep_score?: number
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biofeedback_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_metrics: {
         Row: {
           calories: number | null
