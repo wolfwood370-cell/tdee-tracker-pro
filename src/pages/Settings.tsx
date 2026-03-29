@@ -104,6 +104,7 @@ export default function Settings() {
           protein_pref: proteinPref,
           calorie_distribution: calorieDistribution,
           training_days_per_week: parseInt(trainingDays),
+          diet_strategy: dietStrategy,
         } as any)
         .eq("id", user.id)
         .select()
