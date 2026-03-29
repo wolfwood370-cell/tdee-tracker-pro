@@ -1,6 +1,7 @@
-import { Activity, LayoutDashboard, ClipboardList, Settings, LogOut } from "lucide-react";
+import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAppStore } from "@/stores";
+import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -29,6 +30,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { user, logout } = useAppStore();
+  const { theme, toggleTheme } = useTheme();
 
   const items = user?.role === "coach" ? coachNav : clientNav;
 
@@ -69,9 +71,24 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-2">
+        {/* Theme toggle */}
+        <Button
+          variant="ghost"
+          size={collapsed ? "icon" : "sm"}
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4 mr-2 shrink-0" />
+          ) : (
+            <Moon className="h-4 w-4 mr-2 shrink-0" />
+          )}
+          {!collapsed && (theme === "dark" ? "Tema Chiaro" : "Tema Scuro")}
+        </Button>
+
         {!collapsed && user && (
-          <div className="mb-2 px-2">
+          <div className="px-2">
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             <p className="text-xs text-primary capitalize">{user.role === "coach" ? "coach" : "cliente"}</p>
           </div>

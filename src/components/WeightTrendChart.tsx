@@ -22,14 +22,12 @@ interface ChartDataPoint {
 }
 
 interface WeightTrendChartProps {
-  /** Pass data directly to render for a specific client (coach view). Omit to use global store. */
   data?: ChartDataPoint[];
 }
 
 export function WeightTrendChart({ data }: WeightTrendChartProps) {
   const { smoothedLogs } = useAppStore();
 
-  // Use provided data or derive from store
   const chartData: ChartDataPoint[] =
     data ??
     smoothedLogs
@@ -61,7 +59,6 @@ export function WeightTrendChart({ data }: WeightTrendChartProps) {
     );
   }
 
-  // Compute Y domain with padding
   const weights = chartData.flatMap((d) =>
     [d.scaleWeight, d.trendWeight].filter((v): v is number => v != null)
   );
@@ -113,6 +110,7 @@ export function WeightTrendChart({ data }: WeightTrendChartProps) {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "0.5rem",
                   fontSize: 12,
+                  color: "hsl(var(--card-foreground))",
                 }}
                 labelFormatter={(v) =>
                   format(parseISO(v as string), "d MMMM yyyy", { locale: it })
@@ -122,7 +120,6 @@ export function WeightTrendChart({ data }: WeightTrendChartProps) {
                   name === "scaleWeight" ? "Bilancia" : "Trend",
                 ]}
               />
-              {/* Raw weight as dots */}
               <Scatter
                 dataKey="scaleWeight"
                 fill="hsl(var(--muted-foreground))"
@@ -130,7 +127,6 @@ export function WeightTrendChart({ data }: WeightTrendChartProps) {
                 shape="circle"
                 r={3}
               />
-              {/* Trend line */}
               <Line
                 type="monotone"
                 dataKey="trendWeight"

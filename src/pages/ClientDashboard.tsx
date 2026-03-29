@@ -18,7 +18,6 @@ const ClientDashboard = () => {
     setLogs,
   } = useAppStore();
 
-  // Fetch logs from DB on mount
   useEffect(() => {
     if (!user) return;
     supabase
@@ -44,8 +43,6 @@ const ClientDashboard = () => {
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
 
   const todayCalories = todayLog?.calories ?? 0;
-
-  // Progress percentages
   const calPct = Math.min(100, Math.round((todayCalories / calories) * 100));
 
   const metrics = [
@@ -83,7 +80,6 @@ const ClientDashboard = () => {
     },
   ];
 
-  // Weekly stats
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);
     const weekAgo = new Date();
@@ -128,7 +124,7 @@ const ClientDashboard = () => {
 
       {/* Hero - Obiettivi di Oggi */}
       <Card className="glass-card glow-primary border-border overflow-hidden">
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-5 w-5 text-primary" />
             <h2 className="font-display font-semibold text-foreground">
@@ -151,11 +147,11 @@ const ClientDashboard = () => {
             </p>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {metrics.map((metric) => (
               <div
                 key={metric.label}
-                className="bg-secondary/50 rounded-lg p-4 space-y-2"
+                className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2"
               >
                 <div className="flex items-center gap-2">
                   <metric.icon className={`h-4 w-4 ${metric.color}`} />
@@ -164,7 +160,7 @@ const ClientDashboard = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="text-2xl font-display font-bold text-foreground">
+                  <p className="text-xl md:text-2xl font-display font-bold text-foreground">
                     {metric.value}
                   </p>
                   <p className="text-xs text-muted-foreground">

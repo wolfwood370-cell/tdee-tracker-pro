@@ -14,6 +14,7 @@ import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, Download, Flame, Target, TrendingUp, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportClientCSV } from "@/lib/csvExport";
@@ -96,7 +97,6 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           : undefined,
     }));
 
-  // Weekly stats
   const last7 = logs.filter((l) => {
     const d = new Date(l.log_date);
     const weekAgo = new Date();
@@ -140,8 +140,28 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
         <div className="space-y-6 mt-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-muted-foreground animate-pulse">
-              Caricamento dati cliente...
+            <div className="space-y-6">
+              {/* Skeleton for targets */}
+              <Card className="glass-card border-border">
+                <CardContent className="p-5">
+                  <Skeleton className="h-4 w-32 mb-4" />
+                  <div className="grid grid-cols-2 gap-3">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="bg-secondary/50 rounded-lg p-3 space-y-2">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              {/* Skeleton for chart */}
+              <Card className="glass-card border-border">
+                <CardContent className="p-5">
+                  <Skeleton className="h-4 w-28 mb-3" />
+                  <Skeleton className="h-56 w-full rounded-lg" />
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <>
@@ -206,7 +226,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
-              {/* Weight Chart — reusable with props */}
+              {/* Weight Chart */}
               {chartData.length > 0 ? (
                 <ClientWeightChart data={chartData} />
               ) : (
@@ -265,7 +285,6 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   );
 }
 
-// Inline chart — uses design tokens, accepts data as props
 function ClientWeightChart({
   data,
 }: {
@@ -325,6 +344,7 @@ function ClientWeightChart({
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "0.5rem",
                   fontSize: 12,
+                  color: "hsl(var(--card-foreground))",
                 }}
                 labelFormatter={(v) =>
                   format(parseISO(v as string), "d MMMM yyyy", { locale: it })

@@ -56,6 +56,53 @@
     --glass-bg: hsla(0, 0%, 100%, 0.75);
     --glass-border: hsla(210, 14%, 80%, 0.5);
   }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 210 15% 90%;
+
+    --card: 220 18% 11%;
+    --card-foreground: 210 15% 90%;
+
+    --popover: 220 18% 11%;
+    --popover-foreground: 210 15% 90%;
+
+    --primary: 204 66% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 15% 80%;
+
+    --muted: 220 14% 18%;
+    --muted-foreground: 210 10% 55%;
+
+    --accent: 204 30% 18%;
+    --accent-foreground: 204 50% 70%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 204 66% 50%;
+
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 210 10% 60%;
+    --sidebar-primary: 204 66% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 204 30% 16%;
+    --sidebar-accent-foreground: 204 50% 70%;
+    --sidebar-border: 220 14% 15%;
+    --sidebar-ring: 204 66% 50%;
+
+    --warning: 38 80% 55%;
+    --warning-foreground: 38 80% 15%;
+    --success: 160 50% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --glass-bg: hsla(220, 18%, 11%, 0.8);
+    --glass-border: hsla(220, 14%, 22%, 0.6);
+  }
 }
 
 @layer base {
@@ -71,6 +118,29 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
+
+  /* Prevent iOS zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  @media (min-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      font-size: inherit !important;
+    }
+  }
 }
 
 @layer components {
@@ -85,9 +155,18 @@
                 0 0 60px hsla(204, 66%, 39%, 0.04);
   }
 
+  .dark .glow-primary {
+    box-shadow: 0 0 20px hsla(204, 66%, 50%, 0.15),
+                0 0 60px hsla(204, 66%, 50%, 0.06);
+  }
+
   .text-gradient-primary {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(204, 66%, 45%), hsl(204, 66%, 30%));
+  }
+
+  .dark .text-gradient-primary {
+    background-image: linear-gradient(135deg, hsl(204, 66%, 60%), hsl(204, 66%, 45%));
   }
 }
 
