@@ -74,6 +74,14 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
   const [biofeedbackLogs, setBiofeedbackLogs] = useState<any[]>([]);
+  
+  // Manual Override state
+  const [overrideActive, setOverrideActive] = useState(false);
+  const [manualCalories, setManualCalories] = useState("");
+  const [manualProtein, setManualProtein] = useState("");
+  const [manualFats, setManualFats] = useState("");
+  const [manualCarbs, setManualCarbs] = useState("");
+  const [savingOverride, setSavingOverride] = useState(false);
 
   useEffect(() => {
     if (!client || !open) return;
