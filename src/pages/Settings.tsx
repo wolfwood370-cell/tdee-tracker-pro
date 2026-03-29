@@ -159,6 +159,7 @@ export default function Settings() {
                   <SelectValue placeholder="Seleziona" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="not_set">Seleziona</SelectItem>
                   <SelectItem value="M">Maschio</SelectItem>
                   <SelectItem value="F">Femmina</SelectItem>
                 </SelectContent>
