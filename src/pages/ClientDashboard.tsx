@@ -30,10 +30,10 @@ const ClientDashboard = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Calorie", value: "—", target: "2.450", icon: Flame, color: "text-orange-400" },
-              { label: "Proteine", value: "—", target: "185g", icon: Target, color: "text-primary" },
-              { label: "Carboidrati", value: "—", target: "280g", icon: Utensils, color: "text-blue-400" },
-              { label: "Grassi", value: "—", target: "78g", icon: TrendingUp, color: "text-yellow-400" },
+              { label: "Calorie", value: "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-orange-400" },
+              { label: "Proteine", value: "—", target: `${macros.protein}g`, icon: Target, color: "text-primary" },
+              { label: "Carboidrati", value: "—", target: `${macros.carbs}g`, icon: Utensils, color: "text-blue-400" },
+              { label: "Grassi", value: "—", target: `${macros.fats}g`, icon: TrendingUp, color: "text-yellow-400" },
             ].map((metric) => (
               <div key={metric.label} className="bg-secondary/50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-2">
