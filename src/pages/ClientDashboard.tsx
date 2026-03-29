@@ -2,7 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Scale, Target, Utensils, TrendingUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { useAppStore } from "@/stores";
+
 const ClientDashboard = () => {
+  const { profile, currentTDEE, targetCalories, targetMacros } = useAppStore();
+
+  const calories = targetCalories ?? 2450;
+  const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
