@@ -78,20 +78,29 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setLoading(true);
     setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
 
-    supabase
-      .from("daily_metrics")
-      .select("*")
-      .eq("user_id", client.id)
-      .order("log_date", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("Error fetching client logs:", error);
-          setLogs([]);
-        } else {
-          setLogs(data ?? []);
-        }
-        setLoading(false);
-      });
+    // Fetch daily metrics and biofeedback in parallel
+    Promise.all([
+      supabase
+        .from("daily_metrics")
+        .select("*")
+        .eq("user_id", client.id)
+        .order("log_date", { ascending: true }),
+      supabase
+        .from("biofeedback_logs" as any)
+        .select("*")
+        .eq("user_id", client.id)
+        .order("week_start_date", { ascending: false })
+        .limit(8),
+    ]).then(([metricsRes, bioRes]) => {
+      if (metricsRes.error) {
+        console.error("Error fetching client logs:", metricsRes.error);
+        setLogs([]);
+      } else {
+        setLogs(metricsRes.data ?? []);
+      }
+      setBiofeedbackLogs(bioRes.data ?? []);
+      setLoading(false);
+    });
   }, [client?.id, open]);
 
   useEffect(() => {
