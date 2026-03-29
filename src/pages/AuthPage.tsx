@@ -73,33 +73,22 @@ const AuthPage = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-display font-bold text-foreground">AdaptiveTDEE</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">NC Smart Nutrition</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Coaching Nutrizionale di Precisione</p>
+          <p className="text-muted-foreground text-sm">NC Personal Trainer</p>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-display font-bold leading-tight text-foreground">
-            Il tuo metabolismo,<br />
-            <span className="text-gradient-primary">decodificato.</span>
+            Il tuo motore<br />
+            metabolico<br />
+            <span className="text-gradient-primary">dinamico.</span>
           </h2>
           <p className="text-muted-foreground max-w-md leading-relaxed">
-            Monitora il tuo dispendio energetico con algoritmi di precisione che si adattano alle risposte reali del tuo corpo. Niente più congetture.
+            Accedi per tracciare i tuoi progressi e ricevere i tuoi target nutrizionali personalizzati.
           </p>
-          <div className="flex gap-8 pt-4">
-            {[
-              { label: "Utenti Attivi", value: "2.4K+" },
-              { label: "Precisione Media", value: "97%" },
-              { label: "Obiettivi Raggiunti", value: "89%" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
         <div className="relative z-10">
-          <p className="text-xs text-muted-foreground">© 2026 AdaptiveTDEE. Tutti i diritti riservati.</p>
+          <p className="text-xs text-muted-foreground">© 2026 NC Personal Trainer. Tutti i diritti riservati.</p>
         </div>
       </div>
 
@@ -109,7 +98,7 @@ const AuthPage = () => {
           {/* Logo mobile */}
           <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
             <Activity className="h-7 w-7 text-primary" />
-            <h1 className="text-xl font-display font-bold text-foreground">AdaptiveTDEE</h1>
+            <h1 className="text-xl font-display font-bold text-foreground">NC Smart Nutrition</h1>
           </div>
 
           {view === "recovery" ? (
@@ -219,7 +208,7 @@ const AuthPage = () => {
                 <Card className="glass-card border-border">
                   <CardHeader className="space-y-1">
                     <CardTitle className="text-xl font-display">Crea un account</CardTitle>
-                    <CardDescription>Inizia a monitorare il tuo TDEE adattivo</CardDescription>
+                    <CardDescription>Inizia a monitorare i tuoi progressi con NC Smart Nutrition</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
