@@ -129,6 +129,9 @@ const ClientDashboard = () => {
     setLogs,
   } = useAppStore();
 
+  const [needsCheckin, setNeedsCheckin] = useState(false);
+  const [checkinDismissed, setCheckinDismissed] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -144,6 +147,24 @@ const ClientDashboard = () => {
         if (data && data.length > 0) {
           setLogs(data);
         }
+      });
+
+    // Check biofeedback status
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diff);
+    const weekStart = monday.toISOString().slice(0, 10);
+
+    supabase
+      .from("biofeedback_logs" as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("week_start_date", weekStart)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) setNeedsCheckin(true);
       });
   }, [user?.id]);
 
