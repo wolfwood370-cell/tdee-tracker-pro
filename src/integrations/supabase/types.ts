@@ -56,32 +56,47 @@ export type Database = {
         Row: {
           activity_level: number | null
           birth_date: string | null
+          calorie_distribution: string
           created_at: string
+          diet_type: string
           full_name: string | null
           goal_rate: number | null
+          goal_type: string
           height_cm: number | null
           id: string
+          protein_pref: string
           sex: string | null
+          training_days_per_week: number
         }
         Insert: {
           activity_level?: number | null
           birth_date?: string | null
+          calorie_distribution?: string
           created_at?: string
+          diet_type?: string
           full_name?: string | null
           goal_rate?: number | null
+          goal_type?: string
           height_cm?: number | null
           id: string
+          protein_pref?: string
           sex?: string | null
+          training_days_per_week?: number
         }
         Update: {
           activity_level?: number | null
           birth_date?: string | null
+          calorie_distribution?: string
           created_at?: string
+          diet_type?: string
           full_name?: string | null
           goal_rate?: number | null
+          goal_type?: string
           height_cm?: number | null
           id?: string
+          protein_pref?: string
           sex?: string | null
+          training_days_per_week?: number
         }
         Relationships: []
       }
