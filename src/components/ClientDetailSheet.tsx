@@ -94,6 +94,10 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [editActivityLevel, setEditActivityLevel] = useState<string>("1.2");
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // Coach Note state
+  const [coachNote, setCoachNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
