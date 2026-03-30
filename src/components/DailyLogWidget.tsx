@@ -51,6 +51,17 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     }
   }, [logDate, existingLog?.id]);
 
+  // Handle external edit trigger
+  useEffect(() => {
+    if (editTrigger) {
+      const d = new Date(editTrigger.logDate + "T00:00:00");
+      setDate(d);
+      setWeight(editTrigger.weight?.toString() ?? "");
+      setCalories(editTrigger.calories?.toString() ?? "");
+      onEditConsumed?.();
+    }
+  }, [editTrigger]);
+
   const handleDateChange = (d: Date) => {
     setDate(d);
   };
