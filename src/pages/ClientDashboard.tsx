@@ -195,8 +195,8 @@ const ClientDashboard = () => {
       });
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null) => {
-    setEditTrigger({ logDate, weight, calories });
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, steps?: number | null) => {
+    setEditTrigger({ logDate, weight, calories, steps });
     setTimeout(() => {
       logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
