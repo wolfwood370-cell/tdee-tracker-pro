@@ -203,7 +203,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
         {/* Submit */}
         <Button
           onClick={handleSubmit}
-          disabled={isSubmitting || (!weight && !calories)}
+          disabled={isSubmitting || (!weight && !calories && !steps)}
           className="w-full"
         >
           {isSubmitting ? (
