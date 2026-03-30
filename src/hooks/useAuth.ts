@@ -1,31 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import type { AppRole } from "@/stores";
 
 export function useAuth() {
-  const { setUser, setLoading, setProfile, logout } = useAppStore();
+  const storeRef = useRef(useAppStore.getState());
+  
+  // Keep ref current without causing re-renders
+  useEffect(() => {
+    return useAppStore.subscribe((state) => {
+      storeRef.current = state;
+    });
+  }, []);
 
   useEffect(() => {
-    // Restore session first (non-blocking)
+    const { setUser, setLoading, setProfile, logout } = storeRef.current;
+
+    // Restore session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        // Fire and forget — do NOT await inside callbacks
         handleSession(session.user.id, session.user.email ?? "");
       } else {
         setLoading(false);
       }
     });
 
-    // Listen for subsequent auth changes (sign in/out/token refresh)
+    // Listen for subsequent auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user) {
-          // Fire and forget — never await inside onAuthStateChange
           handleSession(session.user.id, session.user.email ?? "");
         } else {
-          logout();
-          setLoading(false);
+          useAppStore.getState().logout();
+          useAppStore.getState().setLoading(false);
         }
       }
     );
@@ -33,6 +40,7 @@ export function useAuth() {
     return () => subscription.unsubscribe();
 
     async function handleSession(userId: string, email: string) {
+      const store = useAppStore.getState();
       try {
         // Fetch role
         const { data: roleData } = await supabase
@@ -42,7 +50,7 @@ export function useAuth() {
           .single();
 
         const role: AppRole = roleData?.role ?? "client";
-        setUser({ id: userId, email, role });
+        store.setUser({ id: userId, email, role });
 
         // Fetch profile
         const { data: profileData } = await supabase
@@ -52,13 +60,15 @@ export function useAuth() {
           .single();
 
         if (profileData) {
-          setProfile(profileData);
+          store.setProfile(profileData);
+          // Trigger recalculation after profile is loaded
+          useAppStore.getState().recalculateMetrics();
         }
       } catch (e) {
         console.error("Error loading session data:", e);
       } finally {
-        setLoading(false);
+        useAppStore.getState().setLoading(false);
       }
     }
-  }, [setUser, setLoading, setProfile, logout]);
+  }, []);
 }
