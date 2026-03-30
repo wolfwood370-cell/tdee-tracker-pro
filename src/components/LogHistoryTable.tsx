@@ -64,7 +64,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
   };
 
   const handleEdit = (log: typeof sorted[0]) => {
-    onEditLog?.(log.log_date, log.weight, log.calories);
+    onEditLog?.(log.log_date, log.weight, log.calories, (log as any).steps);
   };
 
   if (sorted.length === 0) return null;
