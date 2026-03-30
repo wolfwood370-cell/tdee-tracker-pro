@@ -67,6 +67,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setDate(d);
       setWeight(editTrigger.weight?.toString() ?? "");
       setCalories(editTrigger.calories?.toString() ?? "");
+      setSteps(editTrigger.steps?.toString() ?? "");
       onEditConsumed?.();
     }
   }, [editTrigger]);
