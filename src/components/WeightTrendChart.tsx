@@ -138,6 +138,16 @@ export function WeightTrendChart({ data }: WeightTrendChartProps) {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+        <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-muted-foreground" />
+            Bilancia
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-5 rounded-sm bg-primary" />
+            Trend (EMA)
+          </span>
+        </div>
       </CardContent>
     </Card>
   );
