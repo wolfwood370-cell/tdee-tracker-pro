@@ -250,27 +250,22 @@ const ClientDashboard = () => {
           </div>
 
           {isPolarized ? (
-            <>
-              <div className="grid md:grid-cols-2 gap-4">
-                <MacroCard
-                  title="Giorno Allenamento"
-                  icon={Dumbbell}
-                  calories={polarizedTargets.trainingDay.calories}
-                  macros={polarizedTargets.trainingDay.macros}
-                  todayCalories={todayCalories}
-                />
-                <MacroCard
-                  title="Giorno Riposo"
-                  icon={Moon}
-                  calories={polarizedTargets.restDay.calories}
-                  macros={polarizedTargets.restDay.macros}
-                  todayCalories={todayCalories}
-                />
-              </div>
-              <div className="mt-4 pt-4 border-t border-border">
-                <TrainingScheduleToggle />
-              </div>
-            </>
+            <div className="grid md:grid-cols-2 gap-4">
+              <MacroCard
+                title="Giorno Allenamento"
+                icon={Dumbbell}
+                calories={polarizedTargets.trainingDay.calories}
+                macros={polarizedTargets.trainingDay.macros}
+                todayCalories={todayCalories}
+              />
+              <MacroCard
+                title="Giorno Riposo"
+                icon={Moon}
+                calories={polarizedTargets.restDay.calories}
+                macros={polarizedTargets.restDay.macros}
+                todayCalories={todayCalories}
+              />
+            </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
