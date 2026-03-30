@@ -84,6 +84,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                   <TableHead>Data</TableHead>
                   <TableHead>Peso</TableHead>
                   <TableHead>Calorie</TableHead>
+                  <TableHead>Passi</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
