@@ -172,6 +172,13 @@ const ClientDashboard = () => {
       });
   }, [user?.id]);
 
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null) => {
+    setEditTrigger({ logDate, weight, calories });
+    setTimeout(() => {
+      logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }, []);
+
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
   const todayCalories = todayLog?.calories ?? 0;
