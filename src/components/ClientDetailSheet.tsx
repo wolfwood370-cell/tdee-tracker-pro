@@ -31,6 +31,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { exportClientCSV } from "@/lib/csvExport";
 import { toast } from "@/hooks/use-toast";
 import {
