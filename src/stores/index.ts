@@ -188,7 +188,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       const proteinPref = ((profile as any)?.protein_pref as ProteinPref) ?? 'moderate';
       const dietType = ((profile as any)?.diet_type as DietType) ?? 'balanced';
       const calorieDistribution = ((profile as any)?.calorie_distribution as CalorieDistribution) ?? 'stable';
-      const trainingDays = ((profile as any)?.training_days_per_week as number) ?? 4;
+      const trainingSchedule = ((profile as any)?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
+      const trainingDays = calorieDistribution === 'polarized'
+        ? trainingSchedule.filter(Boolean).length
+        : ((profile as any)?.training_days_per_week as number) ?? 4;
       const dietStrategy = ((profile as any)?.diet_strategy as DietStrategy) ?? 'linear';
 
       const dynamicRate = latestWeight != null
