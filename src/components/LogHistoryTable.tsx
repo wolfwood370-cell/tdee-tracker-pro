@@ -100,6 +100,9 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                     <TableCell className="text-sm">
                       {log.calories != null ? `${log.calories} kcal` : "—"}
                     </TableCell>
+                    <TableCell className="text-sm">
+                      {(log as any).steps != null ? (log as any).steps.toLocaleString("it-IT") : "—"}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button

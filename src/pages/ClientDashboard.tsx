@@ -244,6 +244,17 @@ const ClientDashboard = () => {
         </p>
       </div>
 
+      {/* Coach Note */}
+      {(profile as any)?.coach_note && String((profile as any).coach_note).trim() !== "" && (
+        <Alert className="border-primary/50 bg-primary/5">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-display text-foreground">Messaggio dal tuo Coach:</AlertTitle>
+          <AlertDescription className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">
+            {(profile as any).coach_note}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Hero - Obiettivi di Oggi */}
       <Card className="glass-card glow-primary border-border overflow-hidden">
         <CardContent className="p-4 md:p-6">

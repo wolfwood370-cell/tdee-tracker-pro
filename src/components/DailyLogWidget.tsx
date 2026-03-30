@@ -166,7 +166,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
           </Popover>
         </div>
 
-        {/* Weight & Calories */}
+        {/* Weight, Calories & Steps */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
@@ -195,6 +195,21 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
               placeholder="es. 2200"
               value={calories}
               onChange={(e) => setCalories(e.target.value)}
+              className="border-border"
+            />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
+              <Footprints className="h-3 w-3" /> Passi Giornalieri
+            </Label>
+            <Input
+              id="steps"
+              type="number"
+              step="1"
+              min="0"
+              placeholder="es. 8000"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
               className="border-border"
             />
           </div>
