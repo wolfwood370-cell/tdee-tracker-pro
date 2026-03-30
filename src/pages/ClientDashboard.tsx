@@ -66,7 +66,22 @@ const STRATEGY_LABELS: Record<DietStrategy, string> = {
 };
 
 function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
+  const { polarizedTargets, profile } = useAppStore();
+  const isPolarized = polarizedTargets != null;
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
+
+  const schedule: boolean[] =
+    ((profile as any)?.training_schedule as boolean[] | null) ??
+    [true, false, true, false, true, false, false];
+
+  // Determine per-day calorie target based on training schedule
+  const getDayCalories = (dayIndex: number) => {
+    if (!isPolarized) return null;
+    return schedule[dayIndex]
+      ? polarizedTargets.trainingDay.calories
+      : polarizedTargets.restDay.calories;
+  };
+
   return (
     <Card className="glass-card border-border">
       <CardHeader className="pb-3">
@@ -85,18 +100,25 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
           Totale settimanale: {plan.weeklyTotal.toLocaleString("it-IT")} kcal
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Training Schedule Toggle (polarized only) */}
+        {isPolarized && <TrainingScheduleToggle />}
+
+        {/* Bar chart */}
         <div className="flex items-end gap-1.5 h-28">
           {plan.days.map((d, i) => {
-            const pct = maxCal > 0 ? (d.calories / maxCal) * 100 : 0;
+            const dayCal = getDayCalories(i);
+            const displayCal = dayCal ?? d.calories;
+            const pct = maxCal > 0 ? (displayCal / maxCal) * 100 : 0;
+            const isTraining = isPolarized && schedule[i];
             return (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <span className="text-[10px] font-semibold text-foreground">
-                  {d.calories}
+                  {displayCal}
                 </span>
                 <div
                   className={`w-full rounded-t transition-all ${
-                    d.isRefeed ? "bg-accent" : "bg-primary"
+                    d.isRefeed ? "bg-accent" : isTraining ? "bg-primary" : "bg-muted-foreground/40"
                   }`}
                   style={{ height: `${pct}%`, minHeight: 4 }}
                 />
@@ -106,7 +128,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
           })}
         </div>
         {plan.days.some((d) => d.isRefeed) && (
-          <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <RefreshCw className="h-3 w-3" />
             <span>I giorni evidenziati sono giorni di refeed a mantenimento (extra carb)</span>
           </div>
@@ -250,27 +272,22 @@ const ClientDashboard = () => {
           </div>
 
           {isPolarized ? (
-            <>
-              <div className="grid md:grid-cols-2 gap-4">
-                <MacroCard
-                  title="Giorno Allenamento"
-                  icon={Dumbbell}
-                  calories={polarizedTargets.trainingDay.calories}
-                  macros={polarizedTargets.trainingDay.macros}
-                  todayCalories={todayCalories}
-                />
-                <MacroCard
-                  title="Giorno Riposo"
-                  icon={Moon}
-                  calories={polarizedTargets.restDay.calories}
-                  macros={polarizedTargets.restDay.macros}
-                  todayCalories={todayCalories}
-                />
-              </div>
-              <div className="mt-4 pt-4 border-t border-border">
-                <TrainingScheduleToggle />
-              </div>
-            </>
+            <div className="grid md:grid-cols-2 gap-4">
+              <MacroCard
+                title="Giorno Allenamento"
+                icon={Dumbbell}
+                calories={polarizedTargets.trainingDay.calories}
+                macros={polarizedTargets.trainingDay.macros}
+                todayCalories={todayCalories}
+              />
+              <MacroCard
+                title="Giorno Riposo"
+                icon={Moon}
+                calories={polarizedTargets.restDay.calories}
+                macros={polarizedTargets.restDay.macros}
+                todayCalories={todayCalories}
+              />
+            </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
@@ -303,8 +320,8 @@ const ClientDashboard = () => {
         <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
       )}
 
-      {/* Non-Linear Weekly Plan */}
-      {weeklyPlan && weeklyPlan.strategy !== 'linear' && (
+      {/* Non-Linear Weekly Plan / Polarized Schedule */}
+      {(weeklyPlan && (weeklyPlan.strategy !== 'linear' || isPolarized)) && (
         <WeeklyPlanBar plan={weeklyPlan} />
       )}
 
