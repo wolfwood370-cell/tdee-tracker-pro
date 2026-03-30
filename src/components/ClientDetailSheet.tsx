@@ -116,6 +116,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
+    setCoachNote((client.profile as any)?.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
