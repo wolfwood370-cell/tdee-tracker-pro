@@ -91,6 +91,27 @@ export default function Settings() {
     setSubmitting(true);
 
     try {
+      const newTrainingDays = parseInt(trainingDays);
+      
+      // Sync training_schedule when training_days_per_week changes
+      const currentSchedule: boolean[] =
+        ((profile as any)?.training_schedule as boolean[] | null) ??
+        [true, false, true, false, true, false, false];
+      
+      const currentCount = currentSchedule.filter(Boolean).length;
+      let newSchedule = [...currentSchedule];
+      
+      if (currentCount > newTrainingDays) {
+        // Too many active days — deactivate from the end
+        let excess = currentCount - newTrainingDays;
+        for (let i = 6; i >= 0 && excess > 0; i--) {
+          if (newSchedule[i]) {
+            newSchedule[i] = false;
+            excess--;
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .update({
@@ -103,8 +124,9 @@ export default function Settings() {
           diet_type: dietType,
           protein_pref: proteinPref,
           calorie_distribution: calorieDistribution,
-          training_days_per_week: parseInt(trainingDays),
+          training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
+          training_schedule: newSchedule,
         } as any)
         .eq("id", user.id)
         .select()
