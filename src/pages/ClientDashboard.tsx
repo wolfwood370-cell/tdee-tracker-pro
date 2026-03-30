@@ -311,7 +311,9 @@ const ClientDashboard = () => {
       <WeightTrendChart />
 
       <div className="grid md:grid-cols-2 gap-6">
-        <DailyLogWidget />
+        <div ref={logWidgetRef}>
+          <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
+        </div>
 
         <Card className="glass-card border-border">
           <CardHeader className="pb-3">
