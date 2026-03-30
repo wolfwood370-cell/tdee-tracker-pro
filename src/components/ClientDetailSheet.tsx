@@ -290,6 +290,24 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     }
   };
 
+  const handleSaveNote = async () => {
+    if (!client) return;
+    setSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ coach_note: coachNote || null } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      Object.assign(client.profile, { coach_note: coachNote || null });
+      toast({ title: "Nota salvata con successo ✓" });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
