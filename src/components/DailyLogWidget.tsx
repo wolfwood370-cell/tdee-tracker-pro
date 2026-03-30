@@ -19,7 +19,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DailyLogWidget() {
+interface DailyLogWidgetProps {
+  editTrigger?: { logDate: string; weight: number | null; calories: number | null } | null;
+  onEditConsumed?: () => void;
+}
+
+export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
   const { user, addLog, updateLog, dailyLogs } = useAppStore();
 
   const [date, setDate] = useState<Date>(new Date());
