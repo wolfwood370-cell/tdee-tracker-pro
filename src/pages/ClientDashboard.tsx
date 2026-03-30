@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 
@@ -155,7 +156,7 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null } | null>(null);
+  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; steps?: number | null } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -194,8 +195,8 @@ const ClientDashboard = () => {
       });
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null) => {
-    setEditTrigger({ logDate, weight, calories });
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, steps?: number | null) => {
+    setEditTrigger({ logDate, weight, calories, steps });
     setTimeout(() => {
       logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
@@ -242,6 +243,17 @@ const ClientDashboard = () => {
           Panoramica giornaliera di nutrizione e progressi
         </p>
       </div>
+
+      {/* Coach Note */}
+      {(profile as any)?.coach_note && String((profile as any).coach_note).trim() !== "" && (
+        <Alert className="border-primary/50 bg-primary/5">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-display text-foreground">Messaggio dal tuo Coach:</AlertTitle>
+          <AlertDescription className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">
+            {(profile as any).coach_note}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Hero - Obiettivi di Oggi */}
       <Card className="glass-card glow-primary border-border overflow-hidden">

@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LogHistoryTableProps {
-  onEditLog?: (logDate: string, weight: number | null, calories: number | null) => void;
+  onEditLog?: (logDate: string, weight: number | null, calories: number | null, steps?: number | null) => void;
 }
 
 export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
@@ -64,7 +64,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
   };
 
   const handleEdit = (log: typeof sorted[0]) => {
-    onEditLog?.(log.log_date, log.weight, log.calories);
+    onEditLog?.(log.log_date, log.weight, log.calories, (log as any).steps);
   };
 
   if (sorted.length === 0) return null;
@@ -84,6 +84,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                   <TableHead>Data</TableHead>
                   <TableHead>Peso</TableHead>
                   <TableHead>Calorie</TableHead>
+                  <TableHead>Passi</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
@@ -98,6 +99,9 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                     </TableCell>
                     <TableCell className="text-sm">
                       {log.calories != null ? `${log.calories} kcal` : "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {(log as any).steps != null ? (log as any).steps.toLocaleString("it-IT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">

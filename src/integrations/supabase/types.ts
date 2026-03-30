@@ -65,6 +65,7 @@ export type Database = {
           is_interpolated: boolean
           log_date: string
           notes: string | null
+          steps: number | null
           user_id: string
           weight: number | null
         }
@@ -74,6 +75,7 @@ export type Database = {
           is_interpolated?: boolean
           log_date: string
           notes?: string | null
+          steps?: number | null
           user_id: string
           weight?: number | null
         }
@@ -83,6 +85,7 @@ export type Database = {
           is_interpolated?: boolean
           log_date?: string
           notes?: string | null
+          steps?: number | null
           user_id?: string
           weight?: number | null
         }
@@ -101,6 +104,7 @@ export type Database = {
           activity_level: number | null
           birth_date: string | null
           calorie_distribution: string
+          coach_note: string | null
           created_at: string
           diet_strategy: string
           diet_type: string
@@ -123,6 +127,7 @@ export type Database = {
           activity_level?: number | null
           birth_date?: string | null
           calorie_distribution?: string
+          coach_note?: string | null
           created_at?: string
           diet_strategy?: string
           diet_type?: string
@@ -145,6 +150,7 @@ export type Database = {
           activity_level?: number | null
           birth_date?: string | null
           calorie_distribution?: string
+          coach_note?: string | null
           created_at?: string
           diet_strategy?: string
           diet_type?: string

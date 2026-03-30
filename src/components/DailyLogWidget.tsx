@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame } from "lucide-react";
+import { CalendarIcon, Loader2, Scale, Flame, Footprints } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 
 interface DailyLogWidgetProps {
-  editTrigger?: { logDate: string; weight: number | null; calories: number | null } | null;
+  editTrigger?: { logDate: string; weight: number | null; calories: number | null; steps?: number | null } | null;
   onEditConsumed?: () => void;
 }
 
@@ -30,6 +30,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
+  const [steps, setSteps] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
@@ -50,9 +51,11 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     if (existingLog) {
       setWeight(existingLog.weight?.toString() ?? "");
       setCalories(existingLog.calories?.toString() ?? "");
+      setSteps((existingLog as any).steps?.toString() ?? "");
     } else {
       setWeight("");
       setCalories("");
+      setSteps("");
     }
   }, [logDate, existingLog?.id]);
 
@@ -64,6 +67,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setDate(d);
       setWeight(editTrigger.weight?.toString() ?? "");
       setCalories(editTrigger.calories?.toString() ?? "");
+      setSteps(editTrigger.steps?.toString() ?? "");
       onEditConsumed?.();
     }
   }, [editTrigger]);
@@ -74,8 +78,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!weight && !calories) {
-      toast({ title: "Inserisci almeno un valore", description: "Peso o calorie sono richiesti.", variant: "destructive" });
+    if (!weight && !calories && !steps) {
+      toast({ title: "Inserisci almeno un valore", description: "Peso, calorie o passi sono richiesti.", variant: "destructive" });
       return;
     }
 
@@ -91,6 +95,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
             calories: calories ? parseInt(calories, 10) : null,
+            steps: steps ? parseInt(steps, 10) : null,
           },
           { onConflict: "user_id,log_date" }
         )
@@ -161,7 +166,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
           </Popover>
         </div>
 
-        {/* Weight & Calories */}
+        {/* Weight, Calories & Steps */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
@@ -193,12 +198,27 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
               className="border-border"
             />
           </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
+              <Footprints className="h-3 w-3" /> Passi Giornalieri
+            </Label>
+            <Input
+              id="steps"
+              type="number"
+              step="1"
+              min="0"
+              placeholder="es. 8000"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              className="border-border"
+            />
+          </div>
         </div>
 
         {/* Submit */}
         <Button
           onClick={handleSubmit}
-          disabled={isSubmitting || (!weight && !calories)}
+          disabled={isSubmitting || (!weight && !calories && !steps)}
           className="w-full"
         >
           {isSubmitting ? (

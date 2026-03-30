@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,6 +31,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { exportClientCSV } from "@/lib/csvExport";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -93,6 +94,10 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [editActivityLevel, setEditActivityLevel] = useState<string>("1.2");
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // Coach Note state
+  const [coachNote, setCoachNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
@@ -111,6 +116,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
+    setCoachNote((client.profile as any)?.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
@@ -281,6 +287,24 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
       toast({ title: "Errore", description: e.message, variant: "destructive" });
     } finally {
       setSavingConfig(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!client) return;
+    setSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ coach_note: coachNote || null } as any)
+        .eq("id", client.id);
+      if (error) throw error;
+      Object.assign(client.profile, { coach_note: coachNote || null });
+      toast({ title: "Nota salvata con successo ✓" });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -710,6 +734,31 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                       })}
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Note del Coach */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <MessageSquareText className="h-4 w-4 text-primary" />
+                    Note del Coach
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Scrivi una nota visibile al cliente nella sua dashboard
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Textarea
+                    placeholder="Scrivi una nota per il cliente..."
+                    value={coachNote}
+                    onChange={(e) => setCoachNote(e.target.value)}
+                    rows={3}
+                    className="border-border"
+                  />
+                  <Button size="sm" onClick={handleSaveNote} disabled={savingNote} className="w-full">
+                    {savingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salva Nota"}
+                  </Button>
                 </CardContent>
               </Card>
 
