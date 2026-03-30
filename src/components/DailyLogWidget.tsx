@@ -78,8 +78,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!weight && !calories) {
-      toast({ title: "Inserisci almeno un valore", description: "Peso o calorie sono richiesti.", variant: "destructive" });
+    if (!weight && !calories && !steps) {
+      toast({ title: "Inserisci almeno un valore", description: "Peso, calorie o passi sono richiesti.", variant: "destructive" });
       return;
     }
 
