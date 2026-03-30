@@ -737,6 +737,31 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </CardContent>
               </Card>
 
+              {/* Note del Coach */}
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    <MessageSquareText className="h-4 w-4 text-primary" />
+                    Note del Coach
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Scrivi una nota visibile al cliente nella sua dashboard
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Textarea
+                    placeholder="Scrivi una nota per il cliente..."
+                    value={coachNote}
+                    onChange={(e) => setCoachNote(e.target.value)}
+                    rows={3}
+                    className="border-border"
+                  />
+                  <Button size="sm" onClick={handleSaveNote} disabled={savingNote} className="w-full">
+                    {savingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salva Nota"}
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Weight Chart */}
               {chartData.length > 0 ? (
                 <ClientWeightChart data={chartData} />
