@@ -320,8 +320,8 @@ const ClientDashboard = () => {
         <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
       )}
 
-      {/* Non-Linear Weekly Plan */}
-      {weeklyPlan && weeklyPlan.strategy !== 'linear' && (
+      {/* Non-Linear Weekly Plan / Polarized Schedule */}
+      {(weeklyPlan && (weeklyPlan.strategy !== 'linear' || isPolarized)) && (
         <WeeklyPlanBar plan={weeklyPlan} />
       )}
 
