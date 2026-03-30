@@ -10,6 +10,7 @@ import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 
