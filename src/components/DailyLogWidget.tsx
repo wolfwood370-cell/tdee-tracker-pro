@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 
 interface DailyLogWidgetProps {
-  editTrigger?: { logDate: string; weight: number | null; calories: number | null } | null;
+  editTrigger?: { logDate: string; weight: number | null; calories: number | null; steps?: number | null } | null;
   onEditConsumed?: () => void;
 }
 
