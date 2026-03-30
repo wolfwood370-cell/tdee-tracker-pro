@@ -358,6 +358,9 @@ const ClientDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Log History */}
+      <LogHistoryTable onEditLog={handleEditLog} />
     </div>
   );
 };
