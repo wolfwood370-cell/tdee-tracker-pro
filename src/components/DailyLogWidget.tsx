@@ -31,6 +31,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExternalEdit, setIsExternalEdit] = useState(false);
 
   // Auto-populate from existing log when date or dailyLogs change
   const logDate = format(date, "yyyy-MM-dd");
@@ -40,8 +41,12 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const isEditing = !!existingLog;
 
-  // Sync fields when date changes or logs are loaded
+  // Sync fields when date changes or logs are loaded (skip if triggered by external edit)
   useEffect(() => {
+    if (isExternalEdit) {
+      setIsExternalEdit(false);
+      return;
+    }
     if (existingLog) {
       setWeight(existingLog.weight?.toString() ?? "");
       setCalories(existingLog.calories?.toString() ?? "");
@@ -54,6 +59,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   // Handle external edit trigger
   useEffect(() => {
     if (editTrigger) {
+      setIsExternalEdit(true);
       const d = new Date(editTrigger.logDate + "T00:00:00");
       setDate(d);
       setWeight(editTrigger.weight?.toString() ?? "");
