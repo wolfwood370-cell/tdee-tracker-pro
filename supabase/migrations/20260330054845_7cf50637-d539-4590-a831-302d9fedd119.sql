@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN training_schedule jsonb NOT NULL DEFAULT '[true, false, true, false, true, false, false]'::jsonb;

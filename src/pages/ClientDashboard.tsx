@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
+import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
+import { LogHistoryTable } from "@/components/LogHistoryTable";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 
@@ -131,6 +133,8 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
+  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null } | null>(null);
+  const logWidgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -167,6 +171,13 @@ const ClientDashboard = () => {
         if (!data) setNeedsCheckin(true);
       });
   }, [user?.id]);
+
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null) => {
+    setEditTrigger({ logDate, weight, calories });
+    setTimeout(() => {
+      logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }, []);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
@@ -239,22 +250,27 @@ const ClientDashboard = () => {
           </div>
 
           {isPolarized ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              <MacroCard
-                title="Giorno Allenamento"
-                icon={Dumbbell}
-                calories={polarizedTargets.trainingDay.calories}
-                macros={polarizedTargets.trainingDay.macros}
-                todayCalories={todayCalories}
-              />
-              <MacroCard
-                title="Giorno Riposo"
-                icon={Moon}
-                calories={polarizedTargets.restDay.calories}
-                macros={polarizedTargets.restDay.macros}
-                todayCalories={todayCalories}
-              />
-            </div>
+            <>
+              <div className="grid md:grid-cols-2 gap-4">
+                <MacroCard
+                  title="Giorno Allenamento"
+                  icon={Dumbbell}
+                  calories={polarizedTargets.trainingDay.calories}
+                  macros={polarizedTargets.trainingDay.macros}
+                  todayCalories={todayCalories}
+                />
+                <MacroCard
+                  title="Giorno Riposo"
+                  icon={Moon}
+                  calories={polarizedTargets.restDay.calories}
+                  macros={polarizedTargets.restDay.macros}
+                  todayCalories={todayCalories}
+                />
+              </div>
+              <div className="mt-4 pt-4 border-t border-border">
+                <TrainingScheduleToggle />
+              </div>
+            </>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
@@ -296,7 +312,9 @@ const ClientDashboard = () => {
       <WeightTrendChart />
 
       <div className="grid md:grid-cols-2 gap-6">
-        <DailyLogWidget />
+        <div ref={logWidgetRef}>
+          <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
+        </div>
 
         <Card className="glass-card border-border">
           <CardHeader className="pb-3">
@@ -340,6 +358,9 @@ const ClientDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Log History */}
+      <LogHistoryTable onEditLog={handleEditLog} />
     </div>
   );
 };

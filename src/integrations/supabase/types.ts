@@ -117,6 +117,7 @@ export type Database = {
           protein_pref: string
           sex: string | null
           training_days_per_week: number
+          training_schedule: Json
         }
         Insert: {
           activity_level?: number | null
@@ -138,6 +139,7 @@ export type Database = {
           protein_pref?: string
           sex?: string | null
           training_days_per_week?: number
+          training_schedule?: Json
         }
         Update: {
           activity_level?: number | null
@@ -159,6 +161,7 @@ export type Database = {
           protein_pref?: string
           sex?: string | null
           training_days_per_week?: number
+          training_schedule?: Json
         }
         Relationships: []
       }
