@@ -30,6 +30,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
+  const [steps, setSteps] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
