@@ -95,6 +95,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
             calories: calories ? parseInt(calories, 10) : null,
+            steps: steps ? parseInt(steps, 10) : null,
           },
           { onConflict: "user_id,log_date" }
         )
