@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LogHistoryTableProps {
-  onEditLog?: (logDate: string, weight: number | null, calories: number | null) => void;
+  onEditLog?: (logDate: string, weight: number | null, calories: number | null, steps?: number | null) => void;
 }
 
 export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
