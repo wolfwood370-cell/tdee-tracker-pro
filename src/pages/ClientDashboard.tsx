@@ -266,7 +266,11 @@ const ClientDashboard = () => {
                 todayCalories={todayCalories}
               />
             </div>
-          ) : (
+            {isPolarized && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <TrainingScheduleToggle />
+              </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
                 { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
