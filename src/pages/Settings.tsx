@@ -80,6 +80,7 @@ export default function Settings() {
   const [trainingDays, setTrainingDays] = useState("4");
   const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (profile) {
