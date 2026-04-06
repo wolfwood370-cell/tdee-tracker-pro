@@ -15,7 +15,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Settings as SettingsIcon, Loader2, Save, Dumbbell } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
