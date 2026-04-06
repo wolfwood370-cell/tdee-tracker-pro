@@ -406,6 +406,71 @@ export default function Settings() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Delete Account */}
+      <Card className="glass-card border-destructive/30">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-display text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Elimina Account
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Questa azione è irreversibile. Tutti i tuoi dati, log e impostazioni verranno eliminati permanentemente.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full" disabled={deleting}>
+                {deleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Eliminazione in corso...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Elimina il mio account
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Questa azione non può essere annullata. Il tuo account e tutti i dati associati verranno eliminati permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session) throw new Error("Non autenticato");
+                      
+                      const res = await supabase.functions.invoke("delete-user");
+                      if (res.error) throw res.error;
+                      
+                      await supabase.auth.signOut();
+                      toast({ title: "Account eliminato", description: "Il tuo account è stato eliminato con successo." });
+                    } catch (e: any) {
+                      console.error("Delete account error:", e);
+                      toast({ title: "Errore", description: e.message ?? "Impossibile eliminare l'account.", variant: "destructive" });
+                      setDeleting(false);
+                    }
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Elimina definitivamente
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
     </div>
   );
 }
