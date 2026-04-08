@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -17,9 +18,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Activity, ArrowRight, ArrowLeft, Loader2, Lightbulb, Settings } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  ArrowLeft,
+  Loader2,
+  Lightbulb,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 
-const STEPS = ["Biometria", "Storia Dietetica", "Comportamento", "Raccomandazione"];
+const STEPS = [
+  "Biometria",
+  "Obiettivo",
+  "Allenamento",
+  "Nutrizione",
+  "Biofeedback",
+  "Disclaimer",
+];
 
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
@@ -29,63 +45,33 @@ const ACTIVITY_LEVELS = [
   { value: "1.9", label: "Estremamente attivo (atleta)" },
 ];
 
+const GOAL_TYPES = [
+  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
+  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
+  { value: "maintenance", label: "Mantenimento" },
+  { value: "weight_gain", label: "Aumento di peso" },
+];
+
+const DIET_TYPES = [
+  { value: "balanced", label: "Bilanciata" },
+  { value: "low_fat", label: "Low Fat" },
+  { value: "low_carb", label: "Low Carb" },
+  { value: "keto", label: "Keto" },
+];
+
+const PROTEIN_PREFS = [
+  { value: "low", label: "Basso (1.6 g/kg)" },
+  { value: "moderate", label: "Moderato (2.0 g/kg)" },
+  { value: "high", label: "Alto (2.2 g/kg)" },
+  { value: "very_high", label: "Molto alto (2.6 g/kg)" },
+];
+
 const DEFICIT_DURATIONS = [
   { value: "none", label: "Non sto facendo dieta" },
   { value: "1-4", label: "1–4 settimane" },
   { value: "4-12", label: "4–12 settimane" },
   { value: "12+", label: "Più di 12 settimane" },
 ];
-
-type RecommendedStrategy = {
-  diet_strategy: string;
-  calorie_distribution: string;
-  goal_type: string;
-  reason: string;
-};
-
-function computeRecommendation(deficitDuration: string, weekendStruggle: boolean): RecommendedStrategy {
-  if (deficitDuration === "12+") {
-    return {
-      diet_strategy: "reverse_diet",
-      calorie_distribution: "stable",
-      goal_type: "maintenance",
-      reason: "Sei in deficit da più di 12 settimane. Il tuo metabolismo potrebbe aver subito un adattamento significativo. Ti raccomandiamo una fase di Reverse Diet per ripristinare gradualmente il TDEE prima di riprendere il deficit.",
-    };
-  }
-
-  if (deficitDuration === "4-12") {
-    if (weekendStruggle) {
-      return {
-        diet_strategy: "matador_break",
-        calorie_distribution: "polarized",
-        goal_type: "sustainable_loss",
-        reason: "Dopo diverse settimane di deficit e difficoltà nel weekend, il protocollo MATADOR con distribuzione polarizzata ti aiuterà a gestire la fatica metabolica con fasi di recupero strutturate e calorie più alte nei giorni di allenamento.",
-      };
-    }
-    return {
-      diet_strategy: "refeed_1_day",
-      calorie_distribution: "stable",
-      goal_type: "sustainable_loss",
-      reason: "Dopo 4-12 settimane di deficit, un giorno di refeed settimanale stimolerà la leptina e aiuterà a mantenere aderenza e performance senza interrompere i progressi.",
-    };
-  }
-
-  if (weekendStruggle) {
-    return {
-      diet_strategy: "refeed_2_days",
-      calorie_distribution: "polarized",
-      goal_type: "sustainable_loss",
-      reason: "Per gestire la tua tendenza a eccedere nel weekend, ti consigliamo 2 giorni di refeed (Sab-Dom) a calorie di mantenimento con distribuzione polarizzata: il deficit verrà redistribuito nei giorni feriali.",
-    };
-  }
-
-  return {
-    diet_strategy: "linear",
-    calorie_distribution: "stable",
-    goal_type: "sustainable_loss",
-    reason: "Il tuo profilo è ideale per un approccio lineare standard. Deficit costante e sostenibile ogni giorno per massimizzare la semplicità e l'aderenza.",
-  };
-}
 
 const STRATEGY_LABELS: Record<string, string> = {
   linear: "Lineare",
@@ -107,6 +93,66 @@ const GOAL_LABELS: Record<string, string> = {
   aggressive_minicut: "Mini-cut aggressivo",
 };
 
+type RecommendedStrategy = {
+  diet_strategy: string;
+  calorie_distribution: string;
+  reason: string;
+};
+
+function computeRecommendation(
+  deficitDuration: string,
+  weekendStruggle: boolean
+): RecommendedStrategy | null {
+  if (deficitDuration === "12+") {
+    return {
+      diet_strategy: "reverse_diet",
+      calorie_distribution: "stable",
+      reason:
+        "Sei in deficit da più di 12 settimane. Ti raccomandiamo una fase di Reverse Diet per ripristinare il TDEE prima di riprendere il deficit.",
+    };
+  }
+
+  if (deficitDuration === "4-12") {
+    if (weekendStruggle) {
+      return {
+        diet_strategy: "matador_break",
+        calorie_distribution: "polarized",
+        reason:
+          "Dopo diverse settimane di deficit e difficoltà nel weekend, il protocollo MATADOR con distribuzione polarizzata ti aiuterà a gestire la fatica metabolica.",
+      };
+    }
+    return {
+      diet_strategy: "refeed_1_day",
+      calorie_distribution: "stable",
+      reason:
+        "Dopo 4-12 settimane di deficit, un giorno di refeed settimanale stimolerà la leptina e aiuterà a mantenere aderenza e performance.",
+    };
+  }
+
+  if (weekendStruggle) {
+    return {
+      diet_strategy: "refeed_2_days",
+      calorie_distribution: "polarized",
+      reason:
+        "Per gestire la tendenza a eccedere nel weekend, ti consigliamo 2 giorni di refeed con distribuzione polarizzata.",
+    };
+  }
+
+  return null; // no special recommendation needed — linear is fine
+}
+
+function generateTrainingSchedule(days: number): boolean[] {
+  // Spread training days evenly across the week (Mon=0 ... Sun=6)
+  const schedule = Array(7).fill(false);
+  if (days <= 0) return schedule;
+  if (days >= 7) return Array(7).fill(true);
+  const gap = 7 / days;
+  for (let i = 0; i < days; i++) {
+    schedule[Math.round(i * gap) % 7] = true;
+  }
+  return schedule;
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, setProfile } = useAppStore();
@@ -114,40 +160,81 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 1 - Biometrics
+  // Step 0 — Biometrics
   const [sex, setSex] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [currentWeight, setCurrentWeight] = useState("");
   const [activityLevel, setActivityLevel] = useState("");
 
-  // Step 2 - Dietary History
-  const [deficitDuration, setDeficitDuration] = useState("");
+  // Step 1 — Goal
+  const [goalType, setGoalType] = useState("");
 
-  // Step 3 - Behavioral
-  const [weekendStruggle, setWeekendStruggle] = useState<string>("");
+  // Step 2 — Training
+  const [trainingDays, setTrainingDays] = useState("4");
+  const [calorieDistribution, setCalorieDistribution] = useState("stable");
+
+  // Step 3 — Nutrition
+  const [dietType, setDietType] = useState("balanced");
+  const [proteinPref, setProteinPref] = useState("moderate");
+
+  // Step 4 — Biofeedback / History
+  const [deficitDuration, setDeficitDuration] = useState("");
+  const [weekendStruggle, setWeekendStruggle] = useState("");
+
+  // Step 5 — Disclaimer
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+
+  // Recommendation (computed when reaching step 5)
+  const recommendation = computeRecommendation(
+    deficitDuration,
+    weekendStruggle === "yes"
+  );
 
   const canNext = () => {
-    if (step === 0) return sex !== "" && birthDate !== "" && heightCm !== "" && currentWeight !== "" && activityLevel !== "";
-    if (step === 1) return deficitDuration !== "";
-    if (step === 2) return weekendStruggle !== "";
-    return true;
+    switch (step) {
+      case 0:
+        return (
+          sex !== "" &&
+          birthDate !== "" &&
+          heightCm !== "" &&
+          currentWeight !== "" &&
+          activityLevel !== ""
+        );
+      case 1:
+        return goalType !== "";
+      case 2:
+        return trainingDays !== "";
+      case 3:
+        return true; // defaults are set
+      case 4:
+        return deficitDuration !== "" && weekendStruggle !== "";
+      case 5:
+        return disclaimerAccepted;
+      default:
+        return false;
+    }
   };
 
-  const recommendation = computeRecommendation(deficitDuration, weekendStruggle === "yes");
-
-  const handleAcceptRecommendation = async () => {
-    await saveProfile(recommendation.diet_strategy, recommendation.calorie_distribution, recommendation.goal_type);
-  };
-
-  const handleCustomize = async () => {
-    // Save basic biometrics then redirect to settings
-    await saveProfile("linear", "stable", "sustainable_loss", true);
-  };
-
-  const saveProfile = async (dietStrategy: string, calorieDistribution: string, goalType: string, goToSettings = false) => {
+  const saveProfile = async () => {
     if (!user) return;
     setSubmitting(true);
+
+    // Determine strategy
+    let finalStrategy = "linear";
+    let finalDistribution = calorieDistribution;
+    let finalGoal = goalType;
+
+    if (recommendation) {
+      finalStrategy = recommendation.diet_strategy;
+      finalDistribution = recommendation.calorie_distribution;
+      // Override goal for reverse_diet
+      if (recommendation.diet_strategy === "reverse_diet") {
+        finalGoal = "maintenance";
+      }
+    }
+
+    const schedule = generateTrainingSchedule(parseInt(trainingDays));
 
     try {
       const { data, error } = await supabase
@@ -157,9 +244,13 @@ export default function Onboarding() {
           birth_date: birthDate,
           height_cm: parseFloat(heightCm),
           activity_level: parseFloat(activityLevel),
-          goal_type: goalType,
-          diet_strategy: dietStrategy,
-          calorie_distribution: calorieDistribution,
+          goal_type: finalGoal,
+          diet_strategy: finalStrategy,
+          calorie_distribution: finalDistribution,
+          diet_type: dietType,
+          protein_pref: proteinPref,
+          training_days_per_week: parseInt(trainingDays),
+          training_schedule: schedule,
         } as any)
         .eq("id", user.id)
         .select()
@@ -167,7 +258,7 @@ export default function Onboarding() {
 
       if (error) throw error;
 
-      // Also log the initial weight
+      // Log initial weight
       if (currentWeight) {
         await supabase.from("daily_metrics").upsert(
           {
@@ -180,11 +271,18 @@ export default function Onboarding() {
       }
 
       setProfile(data);
-      toast({ title: "Profilo completato! 🎉", description: "Benvenuto nella tua dashboard." });
-      navigate(goToSettings ? "/settings" : "/client-dashboard", { replace: true });
+      toast({
+        title: "Profilo completato! 🎉",
+        description: "Benvenuto nella tua dashboard.",
+      });
+      navigate("/client-dashboard", { replace: true });
     } catch (e: any) {
       console.error("Onboarding error:", e);
-      toast({ title: "Errore", description: e.message ?? "Riprova.", variant: "destructive" });
+      toast({
+        title: "Errore",
+        description: e.message ?? "Riprova.",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -196,11 +294,13 @@ export default function Onboarding() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-3">
           <Activity className="h-8 w-8 text-primary" />
-          <span className="font-display font-bold text-xl text-foreground">AdaptiveTDEE</span>
+          <span className="font-display font-bold text-xl text-foreground">
+            AdaptiveTDEE
+          </span>
         </div>
 
         {/* Progress */}
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex items-center gap-1 px-2">
           {STEPS.map((s, i) => (
             <div key={s} className="flex-1 flex flex-col items-center gap-1">
               <div
@@ -208,7 +308,13 @@ export default function Onboarding() {
                   i <= step ? "bg-primary" : "bg-muted"
                 }`}
               />
-              <span className={`text-xs ${i <= step ? "text-primary font-medium" : "text-muted-foreground"}`}>
+              <span
+                className={`text-[10px] leading-tight text-center ${
+                  i <= step
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
+                }`}
+              >
                 {s}
               </span>
             </div>
@@ -217,21 +323,28 @@ export default function Onboarding() {
 
         <Card className="glass-card border-border">
           <CardHeader>
-            <CardTitle className="font-display text-lg">{STEPS[step]}</CardTitle>
+            <CardTitle className="font-display text-lg">
+              {STEPS[step]}
+            </CardTitle>
             <p className="text-xs text-muted-foreground">
               {step === 0 && "Inserisci i tuoi dati biometrici di base."}
-              {step === 1 && "Aiutaci a capire la tua storia dietetica recente."}
-              {step === 2 && "Una domanda sul tuo comportamento alimentare."}
-              {step === 3 && "Ecco la nostra raccomandazione personalizzata."}
+              {step === 1 && "Qual è il tuo obiettivo principale?"}
+              {step === 2 && "Dicci come ti alleni."}
+              {step === 3 && "Scegli le tue preferenze nutrizionali."}
+              {step === 4 &&
+                "Aiutaci a capire la tua storia dietetica recente."}
+              {step === 5 && "Leggi e accetta il disclaimer per completare."}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Step 0 - Biometrics */}
+            {/* ─── Step 0: Biometrics ─── */}
             {step === 0 && (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Sesso</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Sesso
+                    </Label>
                     <Select value={sex || undefined} onValueChange={setSex}>
                       <SelectTrigger className="border-border">
                         <SelectValue placeholder="Seleziona" />
@@ -243,7 +356,9 @@ export default function Onboarding() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Data di nascita</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Data di nascita
+                    </Label>
                     <Input
                       type="date"
                       value={birthDate}
@@ -255,7 +370,9 @@ export default function Onboarding() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Altezza (cm)</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Altezza (cm)
+                    </Label>
                     <Input
                       type="number"
                       min="100"
@@ -267,7 +384,9 @@ export default function Onboarding() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Peso attuale (kg)</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Peso attuale (kg)
+                    </Label>
                     <Input
                       type="number"
                       step="0.1"
@@ -281,8 +400,13 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Livello di Attività</Label>
-                  <Select value={activityLevel || undefined} onValueChange={setActivityLevel}>
+                  <Label className="text-xs text-muted-foreground">
+                    Livello di Attività
+                  </Label>
+                  <Select
+                    value={activityLevel || undefined}
+                    onValueChange={setActivityLevel}
+                  >
                     <SelectTrigger className="border-border">
                       <SelectValue placeholder="Seleziona livello" />
                     </SelectTrigger>
@@ -298,129 +422,332 @@ export default function Onboarding() {
               </>
             )}
 
-            {/* Step 1 - Dietary History */}
+            {/* ─── Step 1: Goal ─── */}
             {step === 1 && (
-              <div className="space-y-2">
-                <Label className="text-sm text-foreground font-medium">
-                  Da quanto tempo sei in deficit calorico continuo?
-                </Label>
-                <RadioGroup value={deficitDuration} onValueChange={setDeficitDuration} className="space-y-2">
-                  {DEFICIT_DURATIONS.map((dd) => (
+              <RadioGroup
+                value={goalType}
+                onValueChange={setGoalType}
+                className="space-y-2"
+              >
+                {GOAL_TYPES.map((g) => (
+                  <label
+                    key={g.value}
+                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                      goalType === g.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <RadioGroupItem value={g.value} />
+                    <span className="text-sm text-foreground">{g.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
+            )}
+
+            {/* ─── Step 2: Training ─── */}
+            {step === 2 && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    Giorni di allenamento a settimana
+                  </Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="7"
+                    value={trainingDays}
+                    onChange={(e) => {
+                      const v = Math.min(7, Math.max(1, parseInt(e.target.value) || 1));
+                      setTrainingDays(String(v));
+                    }}
+                    className="border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground font-medium">
+                    Distribuzione Calorie
+                  </Label>
+                  <RadioGroup
+                    value={calorieDistribution}
+                    onValueChange={setCalorieDistribution}
+                    className="grid grid-cols-2 gap-3"
+                  >
                     <label
-                      key={dd.value}
-                      className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                        deficitDuration === dd.value
+                      className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
+                        calorieDistribution === "stable"
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/40"
                       }`}
                     >
-                      <RadioGroupItem value={dd.value} />
-                      <span className="text-sm text-foreground">{dd.label}</span>
+                      <RadioGroupItem value="stable" className="sr-only" />
+                      <span className="text-sm font-semibold text-foreground">
+                        Stabile
+                      </span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        Stesse calorie ogni giorno
+                      </span>
                     </label>
-                  ))}
-                </RadioGroup>
-              </div>
+                    <label
+                      className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
+                        calorieDistribution === "polarized"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <RadioGroupItem value="polarized" className="sr-only" />
+                      <span className="text-sm font-semibold text-foreground">
+                        Polarizzata
+                      </span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        +20% nei giorni di allenamento
+                      </span>
+                    </label>
+                  </RadioGroup>
+                </div>
+              </>
             )}
 
-            {/* Step 2 - Behavioral */}
-            {step === 2 && (
-              <div className="space-y-2">
-                <Label className="text-sm text-foreground font-medium">
-                  Fai fatica a mantenere l'aderenza alla dieta durante il weekend?
-                </Label>
-                <RadioGroup value={weekendStruggle} onValueChange={setWeekendStruggle} className="grid grid-cols-2 gap-3">
-                  <label
-                    className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
-                      weekendStruggle === "yes"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40"
-                    }`}
-                  >
-                    <RadioGroupItem value="yes" className="sr-only" />
-                    <span className="text-lg mb-1">😩</span>
-                    <span className="text-sm font-semibold text-foreground">Sì</span>
-                    <span className="text-xs text-muted-foreground">È il mio punto debole</span>
-                  </label>
-                  <label
-                    className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
-                      weekendStruggle === "no"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40"
-                    }`}
-                  >
-                    <RadioGroupItem value="no" className="sr-only" />
-                    <span className="text-lg mb-1">💪</span>
-                    <span className="text-sm font-semibold text-foreground">No</span>
-                    <span className="text-xs text-muted-foreground">Nessun problema</span>
-                  </label>
-                </RadioGroup>
-              </div>
-            )}
-
-            {/* Step 3 - Recommendation */}
+            {/* ─── Step 3: Nutrition ─── */}
             {step === 3 && (
-              <div className="space-y-4">
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                    <p className="text-sm text-foreground leading-relaxed">{recommendation.reason}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {STRATEGY_LABELS[recommendation.diet_strategy] ?? recommendation.diet_strategy}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {DISTRIBUTION_LABELS[recommendation.calorie_distribution]}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {GOAL_LABELS[recommendation.goal_type]}
-                    </Badge>
-                  </div>
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground font-medium">
+                    Stile Alimentare
+                  </Label>
+                  <RadioGroup
+                    value={dietType}
+                    onValueChange={setDietType}
+                    className="space-y-2"
+                  >
+                    {DIET_TYPES.map((d) => (
+                      <label
+                        key={d.value}
+                        className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                          dietType === d.value
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <RadioGroupItem value={d.value} />
+                        <span className="text-sm text-foreground">
+                          {d.label}
+                        </span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground font-medium">
+                    Apporto Proteico
+                  </Label>
+                  <RadioGroup
+                    value={proteinPref}
+                    onValueChange={setProteinPref}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {PROTEIN_PREFS.map((p) => (
+                      <label
+                        key={p.value}
+                        className={`flex flex-col items-center rounded-lg border p-3 cursor-pointer transition-colors ${
+                          proteinPref === p.value
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <RadioGroupItem value={p.value} className="sr-only" />
+                        <span className="text-sm font-semibold text-foreground">
+                          {p.label}
+                        </span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </>
+            )}
+
+            {/* ─── Step 4: Biofeedback / History ─── */}
+            {step === 4 && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground font-medium">
+                    Da quanto tempo sei in deficit calorico continuo?
+                  </Label>
+                  <RadioGroup
+                    value={deficitDuration}
+                    onValueChange={setDeficitDuration}
+                    className="space-y-2"
+                  >
+                    {DEFICIT_DURATIONS.map((dd) => (
+                      <label
+                        key={dd.value}
+                        className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                          deficitDuration === dd.value
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <RadioGroupItem value={dd.value} />
+                        <span className="text-sm text-foreground">
+                          {dd.label}
+                        </span>
+                      </label>
+                    ))}
+                  </RadioGroup>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    onClick={handleAcceptRecommendation}
-                    disabled={submitting}
-                    className="flex-1"
+                <div className="space-y-2">
+                  <Label className="text-sm text-foreground font-medium">
+                    Fai fatica a mantenere l'aderenza alla dieta durante il
+                    weekend?
+                  </Label>
+                  <RadioGroup
+                    value={weekendStruggle}
+                    onValueChange={setWeekendStruggle}
+                    className="grid grid-cols-2 gap-3"
                   >
-                    {submitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Lightbulb className="mr-2 h-4 w-4" />
-                        Accetta
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleCustomize}
-                    disabled={submitting}
-                    className="flex-1"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Personalizza
-                  </Button>
+                    <label
+                      className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
+                        weekendStruggle === "yes"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <RadioGroupItem value="yes" className="sr-only" />
+                      <span className="text-lg mb-1">😩</span>
+                      <span className="text-sm font-semibold text-foreground">
+                        Sì
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        È il mio punto debole
+                      </span>
+                    </label>
+                    <label
+                      className={`flex flex-col items-center rounded-lg border p-4 cursor-pointer transition-colors ${
+                        weekendStruggle === "no"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <RadioGroupItem value="no" className="sr-only" />
+                      <span className="text-lg mb-1">💪</span>
+                      <span className="text-sm font-semibold text-foreground">
+                        No
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Nessun problema
+                      </span>
+                    </label>
+                  </RadioGroup>
+                </div>
+              </>
+            )}
+
+            {/* ─── Step 5: Disclaimer ─── */}
+            {step === 5 && (
+              <div className="space-y-4">
+                {/* AI Recommendation banner (if applicable) */}
+                {recommendation && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-primary">
+                          Raccomandazione automatica
+                        </p>
+                        <p className="text-sm text-foreground leading-relaxed">
+                          {recommendation.reason}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {STRATEGY_LABELS[recommendation.diet_strategy] ??
+                          recommendation.diet_strategy}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {DISTRIBUTION_LABELS[
+                          recommendation.calorie_distribution
+                        ]}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {/* Disclaimer */}
+                <div className="bg-muted/50 border border-border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary shrink-0" />
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Disclaimer Legale e Medico
+                    </h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Dichiaro di aver compreso che NC Metabolic Tracker e i
+                    servizi offerti dal Coach non sostituiscono in alcun modo il
+                    parere di un medico o le prescrizioni di un biologo
+                    nutrizionista. Le strategie proposte sono calcoli matematici
+                    basati sul dispendio energetico a puro scopo sportivo e di
+                    ricomposizione corporea. Sollevo il Coach da qualsiasi
+                    responsabilità legata a patologie o disturbi derivanti
+                    dall'applicazione di questi calcoli. Accetto di consultare un
+                    medico prima di intraprendere qualsiasi variazione drastica
+                    della mia dieta o del mio stile di vita.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Checkbox
+                      id="disclaimer"
+                      checked={disclaimerAccepted}
+                      onCheckedChange={(checked) =>
+                        setDisclaimerAccepted(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="disclaimer"
+                      className="text-sm font-medium text-foreground cursor-pointer"
+                    >
+                      Ho letto, compreso e accetto il disclaimer.
+                    </Label>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Navigation (steps 0-2) */}
-            {step < 3 && (
-              <div className="flex gap-3 pt-2">
-                {step > 0 && (
-                  <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Indietro
-                  </Button>
-                )}
-                <Button onClick={() => setStep(step + 1)} disabled={!canNext()} className="flex-1">
+            {/* ─── Navigation ─── */}
+            <div className="flex gap-3 pt-2">
+              {step > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Indietro
+                </Button>
+              )}
+              {step < STEPS.length - 1 ? (
+                <Button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!canNext()}
+                  className="flex-1"
+                >
                   Avanti
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
-            )}
+              ) : (
+                <Button
+                  onClick={saveProfile}
+                  disabled={!canNext() || submitting}
+                  className="flex-1"
+                >
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Completa Profilo"
+                  )}
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
