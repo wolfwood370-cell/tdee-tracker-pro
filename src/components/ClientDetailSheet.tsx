@@ -570,6 +570,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   <p className="text-xs text-muted-foreground">
                     Modifica le impostazioni fondamentali del cliente
                   </p>
+                  {(() => {
+                    const latestBia = [...logs].reverse().find((l: any) => l.bmr_inbody != null);
+                    if (!latestBia) return null;
+                    return (
+                      <div className="mt-2 flex items-center gap-2 bg-secondary/50 rounded-md px-3 py-1.5">
+                        <Zap className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-xs text-muted-foreground">BMR InBody:</span>
+                        <span className="text-xs font-semibold text-foreground">{(latestBia as any).bmr_inbody} kcal</span>
+                      </div>
+                    );
+                  })()}
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -813,6 +824,50 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   ))}
                 </CardContent>
               </Card>
+
+              {/* InBody BIA History */}
+              {(() => {
+                const biaLogs = logs.filter((l: any) => l.pbf != null).slice(-10).reverse();
+                if (biaLogs.length === 0) return null;
+                return (
+                  <Card className="glass-card border-border">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-display flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-primary" />
+                        Storico InBody BIA
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-auto max-h-60">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left py-1.5 text-muted-foreground font-medium">Data</th>
+                              <th className="text-right py-1.5 text-muted-foreground font-medium">SMM</th>
+                              <th className="text-right py-1.5 text-muted-foreground font-medium">BFM</th>
+                              <th className="text-right py-1.5 text-muted-foreground font-medium">PBF%</th>
+                              <th className="text-right py-1.5 text-muted-foreground font-medium">VFA</th>
+                              <th className="text-right py-1.5 text-muted-foreground font-medium">BMR</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {biaLogs.map((l: any) => (
+                              <tr key={l.id} className="border-b border-border last:border-0">
+                                <td className="py-1.5">{format(parseISO(l.log_date), "d MMM", { locale: it })}</td>
+                                <td className="text-right">{l.smm != null ? `${l.smm} kg` : "—"}</td>
+                                <td className="text-right">{l.bfm != null ? `${l.bfm} kg` : "—"}</td>
+                                <td className="text-right">{l.pbf != null ? `${l.pbf}%` : "—"}</td>
+                                <td className="text-right">{l.vfa ?? "—"}</td>
+                                <td className="text-right">{l.bmr_inbody != null ? `${l.bmr_inbody}` : "—"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             </>
           )}
         </div>
