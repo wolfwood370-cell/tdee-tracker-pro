@@ -156,7 +156,7 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; steps?: number | null } | null>(null);
+  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; steps?: number | null; smm?: number | null; bfm?: number | null; pbf?: number | null; vfa?: number | null; bmr_inbody?: number | null } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
