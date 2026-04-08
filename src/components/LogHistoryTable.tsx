@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, FileText } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -26,10 +26,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface LogHistoryTableProps {
-  onEditLog?: (logDate: string, weight: number | null, calories: number | null, steps?: number | null) => void;
+  onEditLog?: (logDate: string, weight: number | null, calories: number | null, steps?: number | null, smm?: number | null, bfm?: number | null, pbf?: number | null, vfa?: number | null, bmr_inbody?: number | null) => void;
 }
 
 export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
@@ -45,7 +52,6 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
     if (!deleteId) return;
     setIsDeleting(true);
 
-    // Optimistic
     deleteLog(deleteId);
 
     const { error } = await supabase
@@ -64,7 +70,8 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
   };
 
   const handleEdit = (log: typeof sorted[0]) => {
-    onEditLog?.(log.log_date, log.weight, log.calories, (log as any).steps);
+    const l = log as any;
+    onEditLog?.(log.log_date, log.weight, log.calories, l.steps, l.smm, l.bfm, l.pbf, l.vfa, l.bmr_inbody);
   };
 
   if (sorted.length === 0) return null;
@@ -89,42 +96,62 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-sm">
-                      {format(new Date(log.log_date + "T00:00:00"), "d MMM yyyy", { locale: it })}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {log.weight != null ? `${log.weight} kg` : "—"}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {log.calories != null ? `${log.calories} kcal` : "—"}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {(log as any).steps != null ? (log as any).steps.toLocaleString("it-IT") : "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => handleEdit(log)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteId(log.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {sorted.map((log) => {
+                  const hasBia = (log as any).pbf != null;
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {format(new Date(log.log_date + "T00:00:00"), "d MMM yyyy", { locale: it })}
+                          {hasBia && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="secondary" className="text-[9px] px-1 py-0 gap-0.5">
+                                    <FileText className="h-2.5 w-2.5" />
+                                    BIA
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Dati InBody registrati</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {log.weight != null ? `${log.weight} kg` : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {log.calories != null ? `${log.calories} kcal` : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {(log as any).steps != null ? (log as any).steps.toLocaleString("it-IT") : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleEdit(log)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteId(log.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
