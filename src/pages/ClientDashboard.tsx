@@ -195,8 +195,8 @@ const ClientDashboard = () => {
       });
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, steps?: number | null) => {
-    setEditTrigger({ logDate, weight, calories, steps });
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, steps?: number | null, smm?: number | null, bfm?: number | null, pbf?: number | null, vfa?: number | null, bmr_inbody?: number | null) => {
+    setEditTrigger({ logDate, weight, calories, steps, smm, bfm, pbf, vfa, bmr_inbody });
     setTimeout(() => {
       logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
