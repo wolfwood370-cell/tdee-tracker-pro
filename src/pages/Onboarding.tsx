@@ -19,6 +19,12 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Activity,
   ArrowRight,
   ArrowLeft,
@@ -26,6 +32,7 @@ import {
   Lightbulb,
   Settings,
   ShieldCheck,
+  FileText,
 } from "lucide-react";
 
 const STEPS = [
@@ -182,6 +189,13 @@ export default function Onboarding() {
   const [deficitDuration, setDeficitDuration] = useState("");
   const [weekendStruggle, setWeekendStruggle] = useState("");
 
+  // BIA InBody (optional, step 0)
+  const [biaSmm, setBiaSmm] = useState("");
+  const [biaBfm, setBiaBfm] = useState("");
+  const [biaPbf, setBiaPbf] = useState("");
+  const [biaVfa, setBiaVfa] = useState("");
+  const [biaBmr, setBiaBmr] = useState("");
+
   // Step 5 — Disclaimer
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
@@ -258,16 +272,19 @@ export default function Onboarding() {
 
       if (error) throw error;
 
-      // Log initial weight
+      // Log initial weight + optional BIA data
       if (currentWeight) {
-        await supabase.from("daily_metrics").upsert(
-          {
-            user_id: user.id,
-            log_date: new Date().toISOString().slice(0, 10),
-            weight: parseFloat(currentWeight),
-          },
-          { onConflict: "user_id,log_date" }
-        );
+        const metricsRow: any = {
+          user_id: user.id,
+          log_date: new Date().toISOString().slice(0, 10),
+          weight: parseFloat(currentWeight),
+        };
+        if (biaSmm) metricsRow.smm = parseFloat(biaSmm);
+        if (biaBfm) metricsRow.bfm = parseFloat(biaBfm);
+        if (biaPbf) metricsRow.pbf = parseFloat(biaPbf);
+        if (biaVfa) metricsRow.vfa = parseFloat(biaVfa);
+        if (biaBmr) metricsRow.bmr_inbody = parseInt(biaBmr);
+        await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
       }
 
       setProfile(data);
@@ -419,6 +436,42 @@ export default function Onboarding() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Optional InBody BIA */}
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="inbody" className="border-border">
+                    <AccordionTrigger className="text-sm py-2 hover:no-underline">
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-primary" />
+                        Hai un referto BIA InBody? (Opzionale)
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Massa Muscolare Scheletrica (kg)</Label>
+                          <Input type="number" step="0.1" min="0" placeholder="es. 32.5" value={biaSmm} onChange={(e) => setBiaSmm(e.target.value)} className="border-border" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Massa Grassa (kg)</Label>
+                          <Input type="number" step="0.1" min="0" placeholder="es. 15.2" value={biaBfm} onChange={(e) => setBiaBfm(e.target.value)} className="border-border" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">% Massa Grassa</Label>
+                          <Input type="number" step="0.1" min="0" max="100" placeholder="es. 18.5" value={biaPbf} onChange={(e) => setBiaPbf(e.target.value)} className="border-border" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Grasso Viscerale</Label>
+                          <Input type="number" step="1" min="0" placeholder="es. 8" value={biaVfa} onChange={(e) => setBiaVfa(e.target.value)} className="border-border" />
+                        </div>
+                        <div className="col-span-2 space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Metabolismo Basale InBody (kcal)</Label>
+                          <Input type="number" step="1" min="0" placeholder="es. 1650" value={biaBmr} onChange={(e) => setBiaBmr(e.target.value)} className="border-border" />
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </>
             )}
 

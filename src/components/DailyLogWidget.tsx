@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame, Footprints } from "lucide-react";
+import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface DailyLogWidgetProps {
-  editTrigger?: { logDate: string; weight: number | null; calories: number | null; steps?: number | null } | null;
+  editTrigger?: { logDate: string; weight: number | null; calories: number | null; steps?: number | null; smm?: number | null; bfm?: number | null; pbf?: number | null; vfa?: number | null; bmr_inbody?: number | null } | null;
   onEditConsumed?: () => void;
 }
 
@@ -31,10 +37,14 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
   const [steps, setSteps] = useState("");
+  const [smm, setSmm] = useState("");
+  const [bfm, setBfm] = useState("");
+  const [pbf, setPbf] = useState("");
+  const [vfa, setVfa] = useState("");
+  const [bmrInbody, setBmrInbody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
-  // Auto-populate from existing log when date or dailyLogs change
   const logDate = format(date, "yyyy-MM-dd");
   const existingLog = dailyLogs.find(
     (l) => l.log_date === logDate && l.user_id === user?.id
@@ -42,7 +52,6 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const isEditing = !!existingLog;
 
-  // Sync fields when date changes or logs are loaded (skip if triggered by external edit)
   useEffect(() => {
     if (isExternalEdit) {
       setIsExternalEdit(false);
@@ -52,14 +61,23 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setWeight(existingLog.weight?.toString() ?? "");
       setCalories(existingLog.calories?.toString() ?? "");
       setSteps((existingLog as any).steps?.toString() ?? "");
+      setSmm((existingLog as any).smm?.toString() ?? "");
+      setBfm((existingLog as any).bfm?.toString() ?? "");
+      setPbf((existingLog as any).pbf?.toString() ?? "");
+      setVfa((existingLog as any).vfa?.toString() ?? "");
+      setBmrInbody((existingLog as any).bmr_inbody?.toString() ?? "");
     } else {
       setWeight("");
       setCalories("");
       setSteps("");
+      setSmm("");
+      setBfm("");
+      setPbf("");
+      setVfa("");
+      setBmrInbody("");
     }
   }, [logDate, existingLog?.id]);
 
-  // Handle external edit trigger
   useEffect(() => {
     if (editTrigger) {
       setIsExternalEdit(true);
@@ -68,6 +86,11 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setWeight(editTrigger.weight?.toString() ?? "");
       setCalories(editTrigger.calories?.toString() ?? "");
       setSteps(editTrigger.steps?.toString() ?? "");
+      setSmm(editTrigger.smm?.toString() ?? "");
+      setBfm(editTrigger.bfm?.toString() ?? "");
+      setPbf(editTrigger.pbf?.toString() ?? "");
+      setVfa(editTrigger.vfa?.toString() ?? "");
+      setBmrInbody(editTrigger.bmr_inbody?.toString() ?? "");
       onEditConsumed?.();
     }
   }, [editTrigger]);
@@ -96,7 +119,12 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             weight: weight ? parseFloat(weight) : null,
             calories: calories ? parseInt(calories, 10) : null,
             steps: steps ? parseInt(steps, 10) : null,
-          },
+            smm: smm ? parseFloat(smm) : null,
+            bfm: bfm ? parseFloat(bfm) : null,
+            pbf: pbf ? parseFloat(pbf) : null,
+            vfa: vfa ? parseFloat(vfa) : null,
+            bmr_inbody: bmrInbody ? parseInt(bmrInbody, 10) : null,
+          } as any,
           { onConflict: "user_id,log_date" }
         )
         .select()
@@ -104,7 +132,6 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
       if (error) throw error;
 
-      // Update Zustand store
       const existingEntry = dailyLogs.find(
         (l) => l.log_date === submitDate && l.user_id === user.id
       );
@@ -214,6 +241,42 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             />
           </div>
         </div>
+
+        {/* InBody BIA Accordion */}
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="inbody" className="border-border">
+            <AccordionTrigger className="text-sm py-2 hover:no-underline">
+              <span className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-primary" />
+                Aggiungi dati InBody (Opzionale)
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Massa Muscolare (kg)</Label>
+                  <Input type="number" step="0.1" min="0" placeholder="es. 32.5" value={smm} onChange={(e) => setSmm(e.target.value)} className="border-border" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Massa Grassa (kg)</Label>
+                  <Input type="number" step="0.1" min="0" placeholder="es. 15.2" value={bfm} onChange={(e) => setBfm(e.target.value)} className="border-border" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">% Massa Grassa</Label>
+                  <Input type="number" step="0.1" min="0" max="100" placeholder="es. 18.5" value={pbf} onChange={(e) => setPbf(e.target.value)} className="border-border" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Grasso Viscerale</Label>
+                  <Input type="number" step="1" min="0" placeholder="es. 8" value={vfa} onChange={(e) => setVfa(e.target.value)} className="border-border" />
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Metabolismo Basale InBody (kcal)</Label>
+                  <Input type="number" step="1" min="0" placeholder="es. 1650" value={bmrInbody} onChange={(e) => setBmrInbody(e.target.value)} className="border-border" />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         {/* Submit */}
         <Button

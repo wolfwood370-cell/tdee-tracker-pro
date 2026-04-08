@@ -60,33 +60,48 @@ export type Database = {
       }
       daily_metrics: {
         Row: {
+          bfm: number | null
+          bmr_inbody: number | null
           calories: number | null
           id: string
           is_interpolated: boolean
           log_date: string
           notes: string | null
+          pbf: number | null
+          smm: number | null
           steps: number | null
           user_id: string
+          vfa: number | null
           weight: number | null
         }
         Insert: {
+          bfm?: number | null
+          bmr_inbody?: number | null
           calories?: number | null
           id?: string
           is_interpolated?: boolean
           log_date: string
           notes?: string | null
+          pbf?: number | null
+          smm?: number | null
           steps?: number | null
           user_id: string
+          vfa?: number | null
           weight?: number | null
         }
         Update: {
+          bfm?: number | null
+          bmr_inbody?: number | null
           calories?: number | null
           id?: string
           is_interpolated?: boolean
           log_date?: string
           notes?: string | null
+          pbf?: number | null
+          smm?: number | null
           steps?: number | null
           user_id?: string
+          vfa?: number | null
           weight?: number | null
         }
         Relationships: [
