@@ -276,17 +276,17 @@ export default function Onboarding() {
 
       // Log initial weight + optional BIA data
       if (currentWeight) {
-        const metricsRow: Record<string, string | number> = {
+        const metricsRow = {
           user_id: user.id,
           log_date: new Date().toISOString().slice(0, 10),
           weight: parseFloat(currentWeight),
+          smm: biaSmm ? parseFloat(biaSmm) : null,
+          bfm: biaBfm ? parseFloat(biaBfm) : null,
+          pbf: biaPbf ? parseFloat(biaPbf) : null,
+          vfa: biaVfa ? parseFloat(biaVfa) : null,
+          bmr_inbody: biaBmr ? parseInt(biaBmr) : null,
+          ...segmentalToPayload(biaSegmental),
         };
-        if (biaSmm) metricsRow.smm = parseFloat(biaSmm);
-        if (biaBfm) metricsRow.bfm = parseFloat(biaBfm);
-        if (biaPbf) metricsRow.pbf = parseFloat(biaPbf);
-        if (biaVfa) metricsRow.vfa = parseFloat(biaVfa);
-        if (biaBmr) metricsRow.bmr_inbody = parseInt(biaBmr);
-        Object.assign(metricsRow, segmentalToPayload(biaSegmental));
         await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
       }
 
