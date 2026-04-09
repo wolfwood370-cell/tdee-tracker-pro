@@ -163,7 +163,7 @@ function generateTrainingSchedule(days: number): boolean[] {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, setProfile } = useAppStore();
+  const { user, setProfile, addLog } = useAppStore();
 
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -287,7 +287,15 @@ export default function Onboarding() {
           bmr_inbody: biaBmr ? parseInt(biaBmr) : null,
           ...segmentalToPayload(biaSegmental),
         };
-        await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
+        const { data: logData } = await supabase
+          .from("daily_metrics")
+          .upsert(metricsRow, { onConflict: "user_id,log_date" })
+          .select()
+          .single();
+
+        if (logData) {
+          addLog(logData);
+        }
       }
 
       setProfile(data);
