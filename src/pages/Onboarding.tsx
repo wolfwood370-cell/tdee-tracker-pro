@@ -287,7 +287,15 @@ export default function Onboarding() {
           bmr_inbody: biaBmr ? parseInt(biaBmr) : null,
           ...segmentalToPayload(biaSegmental),
         };
-        await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
+        const { data: logData } = await supabase
+          .from("daily_metrics")
+          .upsert(metricsRow, { onConflict: "user_id,log_date" })
+          .select()
+          .single();
+
+        if (logData) {
+          addLog(logData);
+        }
       }
 
       setProfile(data);
