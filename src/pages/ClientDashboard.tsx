@@ -217,6 +217,11 @@ const ClientDashboard = () => {
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
 
+  const microTargets = useMemo(() => {
+    const activityLevel = profile?.activity_level ?? 1.55;
+    return calculateMicronutrients(calories, typeof activityLevel === 'number' ? activityLevel : parseFloat(String(activityLevel)));
+  }, [calories, profile?.activity_level]);
+
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);
     const weekAgo = new Date();
