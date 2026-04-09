@@ -1,0 +1,23 @@
+
+ALTER TABLE public.daily_metrics
+  ADD COLUMN tbw numeric NULL,
+  ADD COLUMN lean_ra_kg numeric NULL,
+  ADD COLUMN lean_ra_pct numeric NULL,
+  ADD COLUMN lean_la_kg numeric NULL,
+  ADD COLUMN lean_la_pct numeric NULL,
+  ADD COLUMN lean_tr_kg numeric NULL,
+  ADD COLUMN lean_tr_pct numeric NULL,
+  ADD COLUMN lean_rl_kg numeric NULL,
+  ADD COLUMN lean_rl_pct numeric NULL,
+  ADD COLUMN lean_ll_kg numeric NULL,
+  ADD COLUMN lean_ll_pct numeric NULL,
+  ADD COLUMN fat_ra_kg numeric NULL,
+  ADD COLUMN fat_ra_pct numeric NULL,
+  ADD COLUMN fat_la_kg numeric NULL,
+  ADD COLUMN fat_la_pct numeric NULL,
+  ADD COLUMN fat_tr_kg numeric NULL,
+  ADD COLUMN fat_tr_pct numeric NULL,
+  ADD COLUMN fat_rl_kg numeric NULL,
+  ADD COLUMN fat_rl_pct numeric NULL,
+  ADD COLUMN fat_ll_kg numeric NULL,
+  ADD COLUMN fat_ll_pct numeric NULL;

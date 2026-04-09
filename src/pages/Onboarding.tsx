@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
+import { InBodySegmentalInputs, emptySegmentalFields, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -195,6 +196,7 @@ export default function Onboarding() {
   const [biaPbf, setBiaPbf] = useState("");
   const [biaVfa, setBiaVfa] = useState("");
   const [biaBmr, setBiaBmr] = useState("");
+  const [biaSegmental, setBiaSegmental] = useState<SegmentalFields>(emptySegmentalFields);
 
   // Step 5 — Disclaimer
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
@@ -284,6 +286,7 @@ export default function Onboarding() {
         if (biaPbf) metricsRow.pbf = parseFloat(biaPbf);
         if (biaVfa) metricsRow.vfa = parseFloat(biaVfa);
         if (biaBmr) metricsRow.bmr_inbody = parseInt(biaBmr);
+        Object.assign(metricsRow, segmentalToPayload(biaSegmental));
         await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
       }
 
@@ -469,6 +472,9 @@ export default function Onboarding() {
                           <Input type="number" step="1" min="0" placeholder="es. 1650" value={biaBmr} onChange={(e) => setBiaBmr(e.target.value)} className="border-border" />
                         </div>
                       </div>
+
+                      {/* Segmental Analysis */}
+                      <InBodySegmentalInputs fields={biaSegmental} onChange={setBiaSegmental} />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>

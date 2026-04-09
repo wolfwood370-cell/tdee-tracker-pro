@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface LogHistoryTableProps {
-  onEditLog?: (logDate: string, weight: number | null, calories: number | null, steps?: number | null, smm?: number | null, bfm?: number | null, pbf?: number | null, vfa?: number | null, bmr_inbody?: number | null) => void;
+  onEditLog?: (logDate: string, weight: number | null, calories: number | null, extra?: Record<string, any>) => void;
 }
 
 export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
@@ -71,7 +71,8 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
 
   const handleEdit = (log: typeof sorted[0]) => {
     const l = log as any;
-    onEditLog?.(log.log_date, log.weight, log.calories, l.steps, l.smm, l.bfm, l.pbf, l.vfa, l.bmr_inbody);
+    const { id, user_id, log_date, weight, calories, is_interpolated, notes, ...extra } = l;
+    onEditLog?.(log.log_date, log.weight, log.calories, extra);
   };
 
   if (sorted.length === 0) return null;
