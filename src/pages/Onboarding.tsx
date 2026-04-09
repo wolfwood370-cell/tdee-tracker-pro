@@ -286,6 +286,7 @@ export default function Onboarding() {
         if (biaPbf) metricsRow.pbf = parseFloat(biaPbf);
         if (biaVfa) metricsRow.vfa = parseFloat(biaVfa);
         if (biaBmr) metricsRow.bmr_inbody = parseInt(biaBmr);
+        Object.assign(metricsRow, segmentalToPayload(biaSegmental));
         await supabase.from("daily_metrics").upsert(metricsRow, { onConflict: "user_id,log_date" });
       }
 
