@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -57,7 +57,7 @@ const GOAL_TYPES = [
   { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
   { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
   { value: "maintenance", label: "Mantenimento" },
-  { value: "weight_gain", label: "Aumento di peso" },
+  { value: "weight_gain", label: "Aumento di massa magra" },
 ];
 
 const DIET_TYPES = [
@@ -68,10 +68,10 @@ const DIET_TYPES = [
 ];
 
 const PROTEIN_PREFS = [
-  { value: "low", label: "Basso (1.6 g/kg)" },
-  { value: "moderate", label: "Moderato (2.0 g/kg)" },
-  { value: "high", label: "Alto (2.2 g/kg)" },
-  { value: "very_high", label: "Molto alto (2.6 g/kg)" },
+  { value: "low", label: "Basso" },
+  { value: "moderate", label: "Moderato" },
+  { value: "high", label: "Alto" },
+  { value: "very_high", label: "Molto alto" },
 ];
 
 const DEFICIT_DURATIONS = [
@@ -168,6 +168,16 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
+  // Track whether the user manually changed smart-default fields
+  const userTouchedDistribution = useRef(false);
+  const userTouchedProtein = useRef(false);
+  const userTouchedDiet = useRef(false);
+  const [smartDefaultApplied, setSmartDefaultApplied] = useState({
+    distribution: false,
+    protein: false,
+    diet: false,
+  });
+
   // Step 0 — Biometrics
   const [sex, setSex] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -206,6 +216,31 @@ export default function Onboarding() {
     deficitDuration,
     weekendStruggle === "yes"
   );
+
+  // ─── Smart Defaults Engine ───
+  useEffect(() => {
+    // Step 2 → auto-set calorie distribution
+    if (step === 2 && !userTouchedDistribution.current) {
+      const days = parseInt(trainingDays) || 4;
+      const recommended = days >= 3 ? "polarized" : "stable";
+      setCalorieDistribution(recommended);
+      setSmartDefaultApplied((prev) => ({ ...prev, distribution: true }));
+    }
+    // Step 3 → auto-set protein & diet type
+    if (step === 3) {
+      if (!userTouchedProtein.current) {
+        let recommended = "moderate";
+        if (goalType === "aggressive_minicut") recommended = "very_high";
+        else if (goalType === "sustainable_loss") recommended = "high";
+        setProteinPref(recommended);
+        setSmartDefaultApplied((prev) => ({ ...prev, protein: true }));
+      }
+      if (!userTouchedDiet.current) {
+        setDietType("balanced");
+        setSmartDefaultApplied((prev) => ({ ...prev, diet: true }));
+      }
+    }
+  }, [step, trainingDays, goalType]);
 
   const canNext = () => {
     switch (step) {
@@ -537,7 +572,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={calorieDistribution}
-                    onValueChange={setCalorieDistribution}
+                    onValueChange={(v) => { userTouchedDistribution.current = true; setSmartDefaultApplied((p) => ({ ...p, distribution: false })); setCalorieDistribution(v); }}
                     className="grid grid-cols-2 gap-3"
                   >
                     <label
@@ -571,6 +606,9 @@ export default function Onboarding() {
                       </span>
                     </label>
                   </RadioGroup>
+                  {smartDefaultApplied.distribution && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
               </>
             )}
@@ -584,7 +622,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={dietType}
-                    onValueChange={setDietType}
+                    onValueChange={(v) => { userTouchedDiet.current = true; setSmartDefaultApplied((p) => ({ ...p, diet: false })); setDietType(v); }}
                     className="space-y-2"
                   >
                     {DIET_TYPES.map((d) => (
@@ -603,6 +641,9 @@ export default function Onboarding() {
                       </label>
                     ))}
                   </RadioGroup>
+                  {smartDefaultApplied.diet && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm text-foreground font-medium">
@@ -610,7 +651,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={proteinPref}
-                    onValueChange={setProteinPref}
+                    onValueChange={(v) => { userTouchedProtein.current = true; setSmartDefaultApplied((p) => ({ ...p, protein: false })); setProteinPref(v); }}
                     className="grid grid-cols-2 gap-3"
                   >
                     {PROTEIN_PREFS.map((p) => (
@@ -629,6 +670,9 @@ export default function Onboarding() {
                       </label>
                     ))}
                   </RadioGroup>
+                  {smartDefaultApplied.protein && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
               </>
             )}

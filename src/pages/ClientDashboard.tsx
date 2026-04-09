@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -15,6 +15,7 @@ import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
+import { calculateMicronutrients } from "@/lib/algorithms";
 
 interface MacroCardProps {
   title: string;
@@ -216,6 +217,11 @@ const ClientDashboard = () => {
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
 
+  const microTargets = useMemo(() => {
+    const activityLevel = profile?.activity_level ?? 1.55;
+    return calculateMicronutrients(calories, typeof activityLevel === 'number' ? activityLevel : parseFloat(String(activityLevel)));
+  }, [calories, profile?.activity_level]);
+
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);
     const weekAgo = new Date();
@@ -343,6 +349,20 @@ const ClientDashboard = () => {
               ))}
             </div>
           )}
+
+          {/* Micronutrient Targets */}
+          <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
+            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+              <Leaf className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">Fibre Consigliate:</span>
+              <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+              <Droplets className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">Sodio Consigliato:</span>
+              <span className="text-xs font-semibold text-foreground">{microTargets.sodiumRange}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
