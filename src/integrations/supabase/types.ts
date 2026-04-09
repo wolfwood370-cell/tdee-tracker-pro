@@ -63,13 +63,34 @@ export type Database = {
           bfm: number | null
           bmr_inbody: number | null
           calories: number | null
+          fat_la_kg: number | null
+          fat_la_pct: number | null
+          fat_ll_kg: number | null
+          fat_ll_pct: number | null
+          fat_ra_kg: number | null
+          fat_ra_pct: number | null
+          fat_rl_kg: number | null
+          fat_rl_pct: number | null
+          fat_tr_kg: number | null
+          fat_tr_pct: number | null
           id: string
           is_interpolated: boolean
+          lean_la_kg: number | null
+          lean_la_pct: number | null
+          lean_ll_kg: number | null
+          lean_ll_pct: number | null
+          lean_ra_kg: number | null
+          lean_ra_pct: number | null
+          lean_rl_kg: number | null
+          lean_rl_pct: number | null
+          lean_tr_kg: number | null
+          lean_tr_pct: number | null
           log_date: string
           notes: string | null
           pbf: number | null
           smm: number | null
           steps: number | null
+          tbw: number | null
           user_id: string
           vfa: number | null
           weight: number | null
@@ -78,13 +99,34 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          fat_la_kg?: number | null
+          fat_la_pct?: number | null
+          fat_ll_kg?: number | null
+          fat_ll_pct?: number | null
+          fat_ra_kg?: number | null
+          fat_ra_pct?: number | null
+          fat_rl_kg?: number | null
+          fat_rl_pct?: number | null
+          fat_tr_kg?: number | null
+          fat_tr_pct?: number | null
           id?: string
           is_interpolated?: boolean
+          lean_la_kg?: number | null
+          lean_la_pct?: number | null
+          lean_ll_kg?: number | null
+          lean_ll_pct?: number | null
+          lean_ra_kg?: number | null
+          lean_ra_pct?: number | null
+          lean_rl_kg?: number | null
+          lean_rl_pct?: number | null
+          lean_tr_kg?: number | null
+          lean_tr_pct?: number | null
           log_date: string
           notes?: string | null
           pbf?: number | null
           smm?: number | null
           steps?: number | null
+          tbw?: number | null
           user_id: string
           vfa?: number | null
           weight?: number | null
@@ -93,13 +135,34 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          fat_la_kg?: number | null
+          fat_la_pct?: number | null
+          fat_ll_kg?: number | null
+          fat_ll_pct?: number | null
+          fat_ra_kg?: number | null
+          fat_ra_pct?: number | null
+          fat_rl_kg?: number | null
+          fat_rl_pct?: number | null
+          fat_tr_kg?: number | null
+          fat_tr_pct?: number | null
           id?: string
           is_interpolated?: boolean
+          lean_la_kg?: number | null
+          lean_la_pct?: number | null
+          lean_ll_kg?: number | null
+          lean_ll_pct?: number | null
+          lean_ra_kg?: number | null
+          lean_ra_pct?: number | null
+          lean_rl_kg?: number | null
+          lean_rl_pct?: number | null
+          lean_tr_kg?: number | null
+          lean_tr_pct?: number | null
           log_date?: string
           notes?: string | null
           pbf?: number | null
           smm?: number | null
           steps?: number | null
+          tbw?: number | null
           user_id?: string
           vfa?: number | null
           weight?: number | null
