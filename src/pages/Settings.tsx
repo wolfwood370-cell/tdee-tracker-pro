@@ -89,12 +89,12 @@ export default function Settings() {
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
-      setGoalType((profile as any).goal_type ?? "sustainable_loss");
-      setDietType((profile as any).diet_type ?? "balanced");
-      setProteinPref((profile as any).protein_pref ?? "moderate");
-      setCalorieDistribution((profile as any).calorie_distribution ?? "stable");
-      setTrainingDays(((profile as any).training_days_per_week ?? 4).toString());
-      setDietStrategy((profile as any).diet_strategy ?? "linear");
+      setGoalType(profile.goal_type ?? "sustainable_loss");
+      setDietType(profile.diet_type ?? "balanced");
+      setProteinPref(profile.protein_pref ?? "moderate");
+      setCalorieDistribution(profile.calorie_distribution ?? "stable");
+      setTrainingDays((profile.training_days_per_week ?? 4).toString());
+      setDietStrategy(profile.diet_strategy ?? "linear");
     }
   }, [profile]);
 
@@ -107,11 +107,11 @@ export default function Settings() {
       
       // Sync training_schedule when training_days_per_week changes
       const currentSchedule: boolean[] =
-        ((profile as any)?.training_schedule as boolean[] | null) ??
+        (profile?.training_schedule as boolean[] | null) ??
         [true, false, true, false, true, false, false];
       
       const currentCount = currentSchedule.filter(Boolean).length;
-      let newSchedule = [...currentSchedule];
+      const newSchedule = [...currentSchedule];
       
       if (currentCount > newTrainingDays) {
         // Too many active days — deactivate from the end
@@ -139,7 +139,7 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
-        } as any)
+        })
         .eq("id", user.id)
         .select()
         .single();
@@ -149,9 +149,9 @@ export default function Settings() {
       setProfile(data);
       recalculateMetrics();
       toast({ title: "Impostazioni salvate ✓", description: "I tuoi target sono stati aggiornati." });
-    } catch (e: any) {
+    } catch (e) {
       console.error("Settings save error:", e);
-      toast({ title: "Errore", description: e.message ?? "Riprova.", variant: "destructive" });
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -456,9 +456,9 @@ export default function Settings() {
                       
                       await supabase.auth.signOut();
                       toast({ title: "Account eliminato", description: "Il tuo account è stato eliminato con successo." });
-                    } catch (e: any) {
+                    } catch (e) {
                       console.error("Delete account error:", e);
-                      toast({ title: "Errore", description: e.message ?? "Impossibile eliminare l'account.", variant: "destructive" });
+                      toast({ title: "Errore", description: e instanceof Error ? e.message : "Impossibile eliminare l'account.", variant: "destructive" });
                       setDeleting(false);
                     }
                   }}

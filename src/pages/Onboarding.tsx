@@ -267,7 +267,7 @@ export default function Onboarding() {
           protein_pref: proteinPref,
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
-        } as any)
+        })
         .eq("id", user.id)
         .select()
         .single();
@@ -276,7 +276,7 @@ export default function Onboarding() {
 
       // Log initial weight + optional BIA data
       if (currentWeight) {
-        const metricsRow: any = {
+        const metricsRow: Record<string, string | number> = {
           user_id: user.id,
           log_date: new Date().toISOString().slice(0, 10),
           weight: parseFloat(currentWeight),
@@ -296,11 +296,11 @@ export default function Onboarding() {
         description: "Benvenuto nella tua dashboard.",
       });
       navigate("/client-dashboard", { replace: true });
-    } catch (e: any) {
+    } catch (e) {
       console.error("Onboarding error:", e);
       toast({
         title: "Errore",
-        description: e.message ?? "Riprova.",
+        description: e instanceof Error ? e.message : "Riprova.",
         variant: "destructive",
       });
     } finally {

@@ -157,7 +157,7 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: any } | null>(null);
+  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -194,9 +194,10 @@ const ClientDashboard = () => {
       .then(({ data }) => {
         if (!data) setNeedsCheckin(true);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, extra?: Record<string, any>) => {
+  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, extra?: Record<string, unknown>) => {
     setEditTrigger({ logDate, weight, calories, ...extra });
     setTimeout(() => {
       logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
