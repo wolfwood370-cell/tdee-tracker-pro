@@ -82,11 +82,21 @@ export function BodyCompositionChart() {
                 tickLine={false}
               />
               <YAxis
+                yAxisId="kg"
                 domain={[minV, maxV]}
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 unit=" kg"
+              />
+              <YAxis
+                yAxisId="pct"
+                orientation="right"
+                domain={[minPbf, maxPbf]}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                unit="%"
               />
               <Tooltip
                 contentStyle={{
@@ -100,11 +110,12 @@ export function BodyCompositionChart() {
                   format(parseISO(v as string), "d MMMM yyyy", { locale: it })
                 }
                 formatter={(value: number, name: string) => [
-                  `${value.toFixed(1)} kg`,
-                  name === "smm" ? "Massa Muscolare" : "Massa Grassa",
+                  name === "pbf" ? `${value.toFixed(1)}%` : `${value.toFixed(1)} kg`,
+                  name === "smm" ? "Massa Muscolare" : name === "bfm" ? "Massa Grassa" : "% Grasso Corporeo",
                 ]}
               />
               <Line
+                yAxisId="kg"
                 type="monotone"
                 dataKey="smm"
                 stroke="hsl(var(--primary))"
@@ -114,12 +125,24 @@ export function BodyCompositionChart() {
                 connectNulls
               />
               <Line
+                yAxisId="kg"
                 type="monotone"
                 dataKey="bfm"
                 stroke="hsl(var(--destructive))"
                 strokeWidth={2.5}
                 dot={{ r: 3, fill: "hsl(var(--destructive))" }}
                 name="bfm"
+                connectNulls
+              />
+              <Line
+                yAxisId="pct"
+                type="monotone"
+                dataKey="pbf"
+                stroke="hsl(var(--accent-foreground))"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={{ r: 3, fill: "hsl(var(--accent-foreground))" }}
+                name="pbf"
                 connectNulls
               />
             </LineChart>
@@ -133,6 +156,11 @@ export function BodyCompositionChart() {
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3 w-5 rounded-sm bg-destructive" />
             Massa Grassa (BFM)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-5 rounded-sm bg-accent-foreground border border-dashed border-accent-foreground" />
+            % Grasso (PBF)
+          </span>
           </span>
         </div>
       </CardContent>
