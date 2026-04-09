@@ -155,6 +155,8 @@ const ClientDashboard = () => {
     dailyLogs,
     weeklyPlan,
     usingBIAData,
+    tefDelta,
+    userAge,
     setLogs,
   } = useAppStore();
 
@@ -310,6 +312,16 @@ const ClientDashboard = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            )}
+            {tefDelta > 0 && (
+              <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                🔥 TEF: +{tefDelta} kcal
+              </Badge>
+            )}
+            {userAge != null && userAge >= 45 && (
+              <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
+                🛡️ Over-45
+              </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">
               {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}

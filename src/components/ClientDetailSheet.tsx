@@ -180,7 +180,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const targetCal = tdee ? calculateTargetCalories(tdee, dynamicRate) : null;
   const targetMac =
     targetCal && latestTrend
-      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType, lbm)
+      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType, lbm).macros
       : null;
 
   // Catabolism risk
