@@ -153,6 +153,7 @@ const ClientDashboard = () => {
     smoothedLogs,
     dailyLogs,
     weeklyPlan,
+    usingBIAData,
     setLogs,
   } = useAppStore();
 
