@@ -47,7 +47,7 @@ interface DailyLogWidgetProps {
 }
 
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
-  const { user, addLog, updateLog, dailyLogs } = useAppStore();
+  const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
@@ -59,6 +59,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [vfa, setVfa] = useState("");
   const [bmrInbody, setBmrInbody] = useState("");
   const [segmental, setSegmental] = useState<SegmentalFields>(emptySegmentalFields);
+  const [menstrualPhase, setMenstrualPhase] = useState<string>("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
@@ -84,6 +85,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa(existingLog.vfa?.toString() ?? "");
       setBmrInbody(existingLog.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(existingLog));
+      setMenstrualPhase((existingLog as Record<string, unknown>).menstrual_phase as string ?? "none");
     } else {
       setWeight("");
       setCalories("");
@@ -94,6 +96,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa("");
       setBmrInbody("");
       setSegmental(emptySegmentalFields);
+      setMenstrualPhase("none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logDate, existingLog?.id]);
