@@ -19,29 +19,35 @@ interface CompositionPoint {
   date: string;
   smm?: number;
   bfm?: number;
+  pbf?: number;
 }
 
 export function BodyCompositionChart() {
   const { dailyLogs } = useAppStore();
 
   const chartData: CompositionPoint[] = dailyLogs
-    .filter((l) => l.smm != null || l.bfm != null)
+    .filter((l) => l.smm != null || l.bfm != null || l.pbf != null)
     .sort((a, b) => a.log_date.localeCompare(b.log_date))
     .map((l) => ({
       date: l.log_date,
       smm: l.smm != null ? Number(l.smm) : undefined,
       bfm: l.bfm != null ? Number(l.bfm) : undefined,
+      pbf: l.pbf != null ? Number(l.pbf) : undefined,
     }));
 
   if (chartData.length === 0) {
     return null;
   }
 
-  const allVals = chartData.flatMap((d) =>
+  const kgVals = chartData.flatMap((d) =>
     [d.smm, d.bfm].filter((v): v is number => v != null)
   );
-  const minV = Math.floor(Math.min(...allVals) - 1);
-  const maxV = Math.ceil(Math.max(...allVals) + 1);
+  const minV = kgVals.length ? Math.floor(Math.min(...kgVals) - 1) : 0;
+  const maxV = kgVals.length ? Math.ceil(Math.max(...kgVals) + 1) : 50;
+
+  const pbfVals = chartData.map((d) => d.pbf).filter((v): v is number => v != null);
+  const minPbf = pbfVals.length ? Math.floor(Math.min(...pbfVals) - 2) : 0;
+  const maxPbf = pbfVals.length ? Math.ceil(Math.max(...pbfVals) + 2) : 40;
 
   return (
     <Card className="glass-card border-border">
