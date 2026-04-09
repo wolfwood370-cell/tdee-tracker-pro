@@ -161,7 +161,6 @@ export function BodyCompositionChart() {
             <span className="inline-block h-3 w-5 rounded-sm bg-accent-foreground border border-dashed border-accent-foreground" />
             % Grasso (PBF)
           </span>
-          </span>
         </div>
       </CardContent>
     </Card>
