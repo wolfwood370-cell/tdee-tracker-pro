@@ -426,7 +426,7 @@ export function calculateWeeklyPlan(opts: {
       );
       // Start from the linear deficit target and add 75 kcal per week, capped at TDEE
       const reverseCal = Math.min(Math.round(tdee), linearDailyCal + 75 * weeksSinceStart);
-      const reverseMacros = calculateTargetMacros(reverseCal, bodyWeightKg, proteinPref, dietType);
+      const reverseMacros = calculateTargetMacros(reverseCal, bodyWeightKg, proteinPref, dietType, lbmKg);
 
       return {
         strategy,
