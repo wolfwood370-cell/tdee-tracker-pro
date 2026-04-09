@@ -140,7 +140,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
       </CardContent>
     </Card>
   );
-});
+}
 
 const ClientDashboard = () => {
   const {

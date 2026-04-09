@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
@@ -31,7 +31,7 @@ interface BiofeedbackCheckinProps {
   onComplete: () => void;
 }
 
-export const BiofeedbackCheckin = React.forwardRef<HTMLDivElement, BiofeedbackCheckinProps>(function BiofeedbackCheckin({ onComplete }, ref) {
+export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
   const { user, profile, setProfile, recalculateMetrics } = useAppStore();
   const [scores, setScores] = useState({ hunger: 3, energy: 3, sleep: 3, performance: 3 });
   const [notes, setNotes] = useState("");
