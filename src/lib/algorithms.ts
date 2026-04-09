@@ -350,58 +350,58 @@ export function calculateTargetMacros(
   dietType: DietType = 'balanced',
   lbmKg?: number | null
 ): TargetMacros {
-  // If LBM is available, use LBM-based multipliers for protein
+  // Step 1: Calculate Protein
   let protein = lbmKg != null && lbmKg > 0
     ? Math.round(lbmKg * LBM_PROTEIN_MULTIPLIERS[proteinPref])
     : Math.round(bodyWeightKg * PROTEIN_MULTIPLIERS[proteinPref]);
 
   const proteinCal = protein * 4;
-  const remainingCal = Math.max(0, targetCalories - proteinCal);
 
+  // Step 2: Calculate Fats & Carbs based on diet type
   let fats: number;
   let carbs: number;
 
+  const fatFloorStd = Math.round(bodyWeightKg * 0.6);
+  const fatFloorKeto = Math.round(bodyWeightKg * 1.0);
+
   switch (dietType) {
-    case 'balanced': {
-      const fatCal = remainingCal * 0.5;
-      fats = Math.round(fatCal / 9);
-      carbs = Math.max(0, Math.round((remainingCal - fatCal) / 4));
-      break;
-    }
     case 'low_fat': {
-      fats = Math.round(bodyWeightKg * 0.6);
+      // Fats locked at strict minimum, carbs get everything else
+      fats = fatFloorStd;
       const fatCal = fats * 9;
-      carbs = Math.max(0, Math.round((remainingCal - fatCal) / 4));
+      const remainingCal = targetCalories - proteinCal - fatCal;
+      carbs = Math.max(0, Math.round(remainingCal / 4));
       break;
     }
     case 'low_carb': {
       carbs = Math.round(bodyWeightKg * 1.0);
       const carbCal = carbs * 4;
-      fats = Math.max(0, Math.round((remainingCal - carbCal) / 9));
+      const remainingCal = targetCalories - proteinCal - carbCal;
+      fats = Math.max(fatFloorStd, Math.round(remainingCal / 9));
       break;
     }
     case 'keto': {
       carbs = 30;
       const carbCal = carbs * 4;
-      fats = Math.max(0, Math.round((remainingCal - carbCal) / 9));
+      const remainingCal = targetCalories - proteinCal - carbCal;
+      fats = Math.max(fatFloorKeto, Math.round(remainingCal / 9));
       break;
     }
+    case 'balanced':
     default: {
-      fats = Math.round((remainingCal * 0.5) / 9);
-      carbs = Math.max(0, Math.round((remainingCal * 0.5) / 4));
+      const remainingCal = Math.max(0, targetCalories - proteinCal);
+      fats = Math.max(fatFloorStd, Math.round((remainingCal * 0.4) / 9));
+      const fatCal = fats * 9;
+      carbs = Math.max(0, Math.round((remainingCal - fatCal) / 4));
+      break;
     }
   }
 
-  // ── Clinical Fat Floor Clamping ──────────────────────────
-  const fatFloor = dietType === 'keto'
-    ? Math.round(bodyWeightKg * 1.0)
-    : Math.round(bodyWeightKg * 0.6);
-
-  if (fats < fatFloor) {
-    const deficitCal = (fatFloor - fats) * 9;
-    fats = fatFloor;
-    // Subtract deficit from protein to maintain caloric balance
-    const proteinReduction = Math.ceil(deficitCal / 4);
+  // Step 3: Safety clamp — if macro total exceeds target, reduce protein
+  const generatedCal = protein * 4 + fats * 9 + carbs * 4;
+  if (generatedCal > targetCalories) {
+    const excessCal = generatedCal - targetCalories;
+    const proteinReduction = Math.ceil(excessCal / 4);
     protein = Math.max(Math.round(bodyWeightKg * 1.2), protein - proteinReduction);
   }
 
