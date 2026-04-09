@@ -230,9 +230,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           useBIA ? lbm : undefined
         );
 
-        // Catabolism risk check
-        const fatMass = bia?.bfm ?? (bia?.pbf != null && latestWeight ? latestWeight * bia.pbf / 100 : null);
-        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, fatMass);
+        // Catabolism risk check (reuse bfmKg computed above)
+        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg);
 
         // Polarized distribution
         if (calorieDistribution === 'polarized') {
