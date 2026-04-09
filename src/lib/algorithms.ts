@@ -351,7 +351,7 @@ export function calculateTargetMacros(
   lbmKg?: number | null
 ): TargetMacros {
   // If LBM is available, use LBM-based multipliers for protein
-  const protein = lbmKg != null && lbmKg > 0
+  let protein = lbmKg != null && lbmKg > 0
     ? Math.round(lbmKg * LBM_PROTEIN_MULTIPLIERS[proteinPref])
     : Math.round(bodyWeightKg * PROTEIN_MULTIPLIERS[proteinPref]);
 
