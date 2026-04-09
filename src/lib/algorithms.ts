@@ -443,16 +443,23 @@ export function calculateTargetMacros(
     }
   }
 
-  // Step 3: Safety clamp — if macro total exceeds target, reduce protein
-  const generatedCal = protein * 4 + fats * 9 + carbs * 4;
-  if (generatedCal > targetCalories) {
+  // Step 3: Safety clamp — ensure P*4 + C*4 + F*9 ≈ targetCalories (±5 kcal)
+  const minProtein = Math.round(bodyWeightKg * 1.2);
+  let generatedCal = protein * 4 + fats * 9 + carbs * 4;
+  if (generatedCal > targetCalories + 5) {
     const excessCal = generatedCal - targetCalories;
     const proteinReduction = Math.ceil(excessCal / 4);
-    protein = Math.max(Math.round(bodyWeightKg * 1.2), protein - proteinReduction);
+    protein = Math.max(minProtein, protein - proteinReduction);
+    // Recompute in case protein hit the floor
+    generatedCal = protein * 4 + fats * 9 + carbs * 4;
+    if (generatedCal > targetCalories + 5) {
+      // Still over: trim carbs as last resort
+      const stillOver = generatedCal - targetCalories;
+      carbs = Math.max(0, carbs - Math.ceil(stillOver / 4));
+    }
   }
 
   // Step 4: Dynamic TEF Reward
-  // Standard assumption: 10% of total calories. Dynamic: per-macro TEF rates.
   const standardTef = targetCalories * 0.10;
   const dynamicTef = (protein * 4 * 0.25) + (carbs * 4 * 0.08) + (fats * 9 * 0.02);
   const tefDelta = Math.round(dynamicTef - standardTef);
