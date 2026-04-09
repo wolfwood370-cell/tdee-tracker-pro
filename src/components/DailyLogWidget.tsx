@@ -115,8 +115,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa(editTrigger.vfa?.toString() ?? "");
       setBmrInbody(editTrigger.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(editTrigger));
+      setMenstrualPhase(editTrigger.menstrual_phase?.toString() ?? "none");
       onEditConsumed?.();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editTrigger]);
 
