@@ -300,11 +300,15 @@ export function checkCatabolismRisk(
 export interface MicronutrientTargets {
   fiberG: number;
   sodiumRange: string;
+  waterL: number;
 }
 
 export function calculateMicronutrients(
   targetCalories: number,
-  activityLevel: number
+  activityLevel: number,
+  weightKg?: number | null,
+  tbw?: number | null,
+  isTrainingDay?: boolean
 ): MicronutrientTargets {
   const fiberG = Math.max(25, Math.round((targetCalories / 1000) * 14));
 
@@ -317,7 +321,25 @@ export function calculateMicronutrients(
     sodiumRange = "3500 – 4500+ mg";
   }
 
-  return { fiberG, sodiumRange };
+  // Hydration engine
+  let waterL = weightKg != null && weightKg > 0 ? weightKg * 0.035 : 2.5;
+
+  // BIA adjustment: if TBW ratio is sub-optimal
+  if (tbw != null && weightKg != null && weightKg > 0) {
+    const hydrationRatio = tbw / weightKg;
+    if (hydrationRatio < 0.55) {
+      waterL += 0.5;
+    }
+  }
+
+  // Activity / training day adjustment
+  if (isTrainingDay || activityLevel >= 1.725) {
+    waterL += 0.5;
+  }
+
+  waterL = Math.round(waterL * 10) / 10;
+
+  return { fiberG, sodiumRange, waterL };
 }
 
 // ─── Macro Split ─────────────────────────────────────────────
@@ -368,6 +390,19 @@ export function calculateTargetMacros(
       fats = Math.round((remainingCal * 0.5) / 9);
       carbs = Math.max(0, Math.round((remainingCal * 0.5) / 4));
     }
+  }
+
+  // ── Clinical Fat Floor Clamping ──────────────────────────
+  const fatFloor = dietType === 'keto'
+    ? Math.round(bodyWeightKg * 1.0)
+    : Math.round(bodyWeightKg * 0.6);
+
+  if (fats < fatFloor) {
+    const deficitCal = (fatFloor - fats) * 9;
+    fats = fatFloor;
+    // Subtract deficit from protein to maintain caloric balance
+    const proteinReduction = Math.ceil(deficitCal / 4);
+    protein = Math.max(Math.round(bodyWeightKg * 1.2), protein - proteinReduction);
   }
 
   return { protein, carbs, fats };
