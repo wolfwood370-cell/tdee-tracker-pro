@@ -229,10 +229,24 @@ export const useAppStore = create<AppState>((set, get) => ({
         const useBIA = lbm != null && lbm > 0;
         updates.usingBIAData = useBIA;
 
-        updates.targetMacros = calculateTargetMacros(
+        // Calculate age from birth_date
+        let age: number | null = null;
+        if (profile?.birth_date) {
+          const bd = new Date(profile.birth_date);
+          const now = new Date();
+          age = now.getFullYear() - bd.getFullYear();
+          if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
+            age--;
+          }
+        }
+        updates.userAge = age;
+
+        const macroResult = calculateTargetMacros(
           targetCal, latestWeight, proteinPref, dietType,
-          useBIA ? lbm : undefined
+          useBIA ? lbm : undefined, age
         );
+        updates.targetMacros = macroResult.macros;
+        updates.tefDelta = macroResult.tefDelta;
 
         // Catabolism risk check (reuse bfmKg computed above)
         updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg);
@@ -243,11 +257,11 @@ export const useAppStore = create<AppState>((set, get) => ({
           updates.polarizedTargets = {
             trainingDay: {
               calories: trainingDayCal,
-              macros: calculateTargetMacros(trainingDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined),
+              macros: calculateTargetMacros(trainingDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined, age).macros,
             },
             restDay: {
               calories: restDayCal,
-              macros: calculateTargetMacros(restDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined),
+              macros: calculateTargetMacros(restDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined, age).macros,
             },
           };
         } else {
