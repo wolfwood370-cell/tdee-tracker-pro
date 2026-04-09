@@ -290,9 +290,7 @@ export default function Onboarding() {
     const schedule = generateTrainingSchedule(parseInt(trainingDays));
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
+      const updatePayload: Record<string, unknown> = {
           sex,
           birth_date: birthDate,
           height_cm: parseFloat(heightCm),
@@ -305,7 +303,11 @@ export default function Onboarding() {
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
           track_menstrual_cycle: trackMenstrualCycle,
-        } as Record<string, unknown>)
+      };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(updatePayload as any)
         .eq("id", user.id)
         .select()
         .single();

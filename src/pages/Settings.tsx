@@ -127,9 +127,7 @@ export default function Settings() {
         }
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
+      const updatePayload: Record<string, unknown> = {
           full_name: fullName || null,
           sex: sex === "not_set" ? null : sex,
           birth_date: birthDate || null,
@@ -143,7 +141,11 @@ export default function Settings() {
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
           track_menstrual_cycle: trackMenstrualCycle,
-        } as Record<string, unknown>)
+      };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(updatePayload as any)
         .eq("id", user.id)
         .select()
         .single();
