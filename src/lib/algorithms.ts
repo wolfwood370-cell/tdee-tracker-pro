@@ -21,6 +21,7 @@ export interface PolarizedTargets {
 
 export type GoalType = 'sustainable_loss' | 'aggressive_minicut' | 'maintenance' | 'weight_gain';
 export type DietType = 'balanced' | 'low_fat' | 'low_carb' | 'keto';
+export type MenstrualPhase = 'menstruation' | 'follicular' | 'ovulation' | 'luteal';
 export type ProteinPref = 'low' | 'moderate' | 'high' | 'very_high';
 export type CalorieDistribution = 'stable' | 'polarized';
 export type DietStrategy = 'linear' | 'refeed_1_day' | 'refeed_2_days' | 'matador_break' | 'reverse_diet';
@@ -116,6 +117,14 @@ export function calculateAdaptiveTDEE(
     }
   }
 
+  // Menstrual cycle water weight dampening: during luteal/menstruation phases,
+  // sudden weight gains are likely fluid retention — dampen them severely.
+  const latestLog = window[window.length - 1];
+  const menstrualPhase = (latestLog as DailyMetric & { menstrual_phase?: string | null }).menstrual_phase;
+  if (deltaWeight > 0 && (menstrualPhase === 'luteal' || menstrualPhase === 'menstruation')) {
+    dampening = Math.min(dampening, 0.3);
+  }
+
   const dampenedDelta = deltaWeight * dampening;
   const dailyEnergyDelta = (dampenedDelta * KCAL_PER_KG) / elapsedDays;
   const tdee = avgCalories - dailyEnergyDelta;
@@ -180,10 +189,13 @@ export function calculateDynamicGoalRate(
 // ─── Target Calories ─────────────────────────────────────────
 export function calculateTargetCalories(
   tdee: number,
-  goalRateKgPerWeek: number
+  goalRateKgPerWeek: number,
+  menstrualPhase?: MenstrualPhase | null
 ): number {
+  // Luteal phase BMR compensation: +150 kcal to TDEE
+  const adjustedTDEE = menstrualPhase === 'luteal' ? tdee + 150 : tdee;
   const dailyDelta = (goalRateKgPerWeek * KCAL_PER_KG) / 7;
-  return Math.round(tdee + dailyDelta);
+  return Math.round(adjustedTDEE + dailyDelta);
 }
 
 // ─── Polarized Distribution ──────────────────────────────────
