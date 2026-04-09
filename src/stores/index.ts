@@ -190,7 +190,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // 1. Smooth weights via EMA
     const smoothed = calculateSmoothedWeight(dailyLogs);
-    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null };
+    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null, activeMenstrualPhase: null };
 
     // Extract BIA data from latest log
     const bia = extractLatestBIA(dailyLogs);
@@ -225,7 +225,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       updates.dynamicGoalRate = dynamicRate;
 
-      const targetCal = calculateTargetCalories(tdee, dynamicRate);
+      // Determine active menstrual phase from latest log
+      const latestLogSorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+      const trackCycle = (profile as Record<string, unknown>)?.track_menstrual_cycle === true;
+      const currentMenstrualPhase: MenstrualPhase | null = trackCycle
+        ? ((latestLogSorted[0] as Record<string, unknown>)?.menstrual_phase as MenstrualPhase | null) ?? null
+        : null;
+      updates.activeMenstrualPhase = currentMenstrualPhase;
+
+      const targetCal = calculateTargetCalories(tdee, dynamicRate, currentMenstrualPhase);
       updates.targetCalories = targetCal;
 
       if (latestWeight != null) {
