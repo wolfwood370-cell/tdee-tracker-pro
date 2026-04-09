@@ -296,6 +296,30 @@ export function checkCatabolismRisk(
   };
 }
 
+// ─── Micronutrient Targets ────────────────────────────────────
+export interface MicronutrientTargets {
+  fiberG: number;
+  sodiumRange: string;
+}
+
+export function calculateMicronutrients(
+  targetCalories: number,
+  activityLevel: number
+): MicronutrientTargets {
+  const fiberG = Math.max(25, Math.round((targetCalories / 1000) * 14));
+
+  let sodiumRange: string;
+  if (activityLevel <= 1.375) {
+    sodiumRange = "2000 – 2500 mg";
+  } else if (activityLevel <= 1.55) {
+    sodiumRange = "2500 – 3500 mg";
+  } else {
+    sodiumRange = "3500 – 4500+ mg";
+  }
+
+  return { fiberG, sodiumRange };
+}
+
 // ─── Macro Split ─────────────────────────────────────────────
 export function calculateTargetMacros(
   targetCalories: number,

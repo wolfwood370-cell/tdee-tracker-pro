@@ -45,10 +45,10 @@ const DIET_STRATEGIES = [
 ];
 
 const GOAL_TYPES = [
-  { value: "sustainable_loss", label: "Dimagrimento sostenibile (-0.5% BW/sett)" },
-  { value: "aggressive_minicut", label: "Mini-cut aggressivo (-1% BW/sett)" },
+  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
+  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
   { value: "maintenance", label: "Mantenimento" },
-  { value: "weight_gain", label: "Aumento massa (+0.3% BW/sett)" },
+  { value: "weight_gain", label: "Aumento di massa magra" },
 ];
 
 const DIET_TYPES = [

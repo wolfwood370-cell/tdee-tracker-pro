@@ -57,7 +57,7 @@ const GOAL_TYPES = [
   { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
   { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
   { value: "maintenance", label: "Mantenimento" },
-  { value: "weight_gain", label: "Aumento di peso" },
+  { value: "weight_gain", label: "Aumento di massa magra" },
 ];
 
 const DIET_TYPES = [
@@ -68,10 +68,10 @@ const DIET_TYPES = [
 ];
 
 const PROTEIN_PREFS = [
-  { value: "low", label: "Basso (1.6 g/kg)" },
-  { value: "moderate", label: "Moderato (2.0 g/kg)" },
-  { value: "high", label: "Alto (2.2 g/kg)" },
-  { value: "very_high", label: "Molto alto (2.6 g/kg)" },
+  { value: "low", label: "Basso" },
+  { value: "moderate", label: "Moderato" },
+  { value: "high", label: "Alto" },
+  { value: "very_high", label: "Molto alto" },
 ];
 
 const DEFICIT_DURATIONS = [
