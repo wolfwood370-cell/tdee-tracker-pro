@@ -178,6 +178,13 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
       ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType)
       : null;
 
+  // BIA-driven catabolism risk
+  const bia = extractLatestBIA(logs);
+  const fatMass = bia?.bfm ?? (bia?.pbf != null && latestTrend ? latestTrend * bia.pbf / 100 : null);
+  const catabolismRisk = tdee && targetCal
+    ? checkCatabolismRisk(tdee, targetCal, fatMass)
+    : null;
+
   // Build preview weekly plan for the selected strategy
   const previewPlan =
     tdee && latestTrend
