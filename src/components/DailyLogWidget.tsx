@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
+import { InBodySegmentalInputs, emptySegmentalFields, segmentalFromLog, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,21 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+interface EditTriggerData {
+  logDate: string;
+  weight: number | null;
+  calories: number | null;
+  steps?: number | null;
+  smm?: number | null;
+  bfm?: number | null;
+  pbf?: number | null;
+  vfa?: number | null;
+  bmr_inbody?: number | null;
+  [key: string]: any; // segmental fields
+}
+
 interface DailyLogWidgetProps {
-  editTrigger?: { logDate: string; weight: number | null; calories: number | null; steps?: number | null; smm?: number | null; bfm?: number | null; pbf?: number | null; vfa?: number | null; bmr_inbody?: number | null } | null;
+  editTrigger?: EditTriggerData | null;
   onEditConsumed?: () => void;
 }
 
@@ -42,6 +56,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [pbf, setPbf] = useState("");
   const [vfa, setVfa] = useState("");
   const [bmrInbody, setBmrInbody] = useState("");
+  const [segmental, setSegmental] = useState<SegmentalFields>(emptySegmentalFields);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
@@ -66,6 +81,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setPbf((existingLog as any).pbf?.toString() ?? "");
       setVfa((existingLog as any).vfa?.toString() ?? "");
       setBmrInbody((existingLog as any).bmr_inbody?.toString() ?? "");
+      setSegmental(segmentalFromLog(existingLog));
     } else {
       setWeight("");
       setCalories("");
@@ -75,6 +91,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setPbf("");
       setVfa("");
       setBmrInbody("");
+      setSegmental(emptySegmentalFields);
     }
   }, [logDate, existingLog?.id]);
 
@@ -91,6 +108,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setPbf(editTrigger.pbf?.toString() ?? "");
       setVfa(editTrigger.vfa?.toString() ?? "");
       setBmrInbody(editTrigger.bmr_inbody?.toString() ?? "");
+      setSegmental(segmentalFromLog(editTrigger));
       onEditConsumed?.();
     }
   }, [editTrigger]);
@@ -124,6 +142,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             pbf: pbf ? parseFloat(pbf) : null,
             vfa: vfa ? parseFloat(vfa) : null,
             bmr_inbody: bmrInbody ? parseInt(bmrInbody, 10) : null,
+            ...segmentalToPayload(segmental),
           } as any,
           { onConflict: "user_id,log_date" }
         )
@@ -274,6 +293,9 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
                   <Input type="number" step="1" min="0" placeholder="es. 1650" value={bmrInbody} onChange={(e) => setBmrInbody(e.target.value)} className="border-border" />
                 </div>
               </div>
+
+              {/* Segmental Analysis */}
+              <InBodySegmentalInputs fields={segmental} onChange={setSegmental} />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
