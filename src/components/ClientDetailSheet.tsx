@@ -155,8 +155,8 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     }
     const s = calculateSmoothedWeight(logs);
     setSmoothed(s);
-    setTdee(calculateAdaptiveTDEE(s, 14));
-  }, [logs]);
+    setTdee(calculateAdaptiveTDEE(s, 14, client?.profile?.created_at));
+  }, [logs, client?.profile?.created_at]);
 
   if (!client) return null;
 
@@ -177,10 +177,28 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm)
     : (client.profile.goal_rate ?? -0.25);
 
-  const targetCal = tdee ? calculateTargetCalories(tdee, dynamicRate) : null;
+  // Menstrual phase from latest log
+  const latestLogSorted = [...logs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+  const clientTrackCycle = (client.profile as Record<string, unknown>)?.track_menstrual_cycle === true;
+  const clientMenstrualPhase = clientTrackCycle
+    ? ((latestLogSorted[0] as Record<string, unknown>)?.menstrual_phase as string | null) ?? null
+    : null;
+
+  // Age calculation
+  let clientAge: number | null = null;
+  if (client.profile.birth_date) {
+    const bd = new Date(client.profile.birth_date);
+    const now = new Date();
+    clientAge = now.getFullYear() - bd.getFullYear();
+    if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
+      clientAge--;
+    }
+  }
+
+  const targetCal = tdee ? calculateTargetCalories(tdee, dynamicRate, clientMenstrualPhase as import('@/lib/algorithms').MenstrualPhase | null) : null;
   const targetMac =
     targetCal && latestTrend
-      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType, lbm).macros
+      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType, lbm, clientAge).macros
       : null;
 
   // Catabolism risk

@@ -198,7 +198,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     const lbm = bia ? calculateLBM(bia) : null;
 
     // 2. TDEE: prefer adaptive (more accurate over time), BIA baseline as seed
-    const adaptiveTDEE = calculateAdaptiveTDEE(smoothed, 14);
+    const phaseStart = profile?.created_at ?? null;
+    const adaptiveTDEE = calculateAdaptiveTDEE(smoothed, 14, phaseStart);
     const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier);
     const tdee = adaptiveTDEE ?? baselineTDEE;
 
