@@ -21,6 +21,7 @@ import {
   type PolarizedTargets,
   type WeeklyPlan,
   type CatabolismRiskResult,
+  type MenstrualPhase,
 } from '@/lib/algorithms';
 
 // Re-export useful types
@@ -79,6 +80,7 @@ interface CalculationSlice {
   catabolismRisk: CatabolismRiskResult | null;
   tefDelta: number;
   userAge: number | null;
+  activeMenstrualPhase: MenstrualPhase | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -110,6 +112,7 @@ const initialState = {
   catabolismRisk: null,
   tefDelta: 0,
   userAge: null,
+  activeMenstrualPhase: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
