@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface LogHistoryTableProps {
-  onEditLog?: (logDate: string, weight: number | null, calories: number | null, extra?: Record<string, any>) => void;
+  onEditLog?: (logDate: string, weight: number | null, calories: number | null, extra?: Record<string, unknown>) => void;
 }
 
 export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
@@ -70,8 +70,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
   };
 
   const handleEdit = (log: typeof sorted[0]) => {
-    const l = log as any;
-    const { id, user_id, log_date, weight, calories, is_interpolated, notes, ...extra } = l;
+    const { id, user_id, log_date, weight, calories, is_interpolated, notes, ...extra } = log;
     onEditLog?.(log.log_date, log.weight, log.calories, extra);
   };
 
@@ -98,7 +97,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
               </TableHeader>
               <TableBody>
                 {sorted.map((log) => {
-                  const hasBia = (log as any).pbf != null;
+                  const hasBia = log.pbf != null;
                   return (
                     <TableRow key={log.id}>
                       <TableCell className="text-sm">
@@ -128,7 +127,7 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
                         {log.calories != null ? `${log.calories} kcal` : "—"}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {(log as any).steps != null ? (log as any).steps.toLocaleString("it-IT") : "—"}
+                        {log.steps != null ? log.steps.toLocaleString("it-IT") : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

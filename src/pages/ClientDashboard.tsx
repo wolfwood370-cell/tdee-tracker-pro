@@ -73,7 +73,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
 
   const schedule: boolean[] =
-    ((profile as any)?.training_schedule as boolean[] | null) ??
+    (profile?.training_schedule as boolean[] | null) ??
     [true, false, true, false, true, false, false];
 
   // Determine per-day calorie target based on training schedule
@@ -246,12 +246,12 @@ const ClientDashboard = () => {
       </div>
 
       {/* Coach Note */}
-      {(profile as any)?.coach_note && String((profile as any).coach_note).trim() !== "" && (
+      {profile?.coach_note && String(profile.coach_note).trim() !== "" && (
         <Alert className="border-primary/50 bg-primary/5">
           <MessageSquare className="h-4 w-4 text-primary" />
           <AlertTitle className="font-display text-foreground">Messaggio dal tuo Coach:</AlertTitle>
           <AlertDescription className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">
-            {(profile as any).coach_note}
+            {profile.coach_note}
           </AlertDescription>
         </Alert>
       )}
@@ -262,7 +262,7 @@ const ClientDashboard = () => {
           <div className="flex items-center gap-2 mb-1">
             <Activity className="h-5 w-5 text-primary" />
             <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
-            {(profile as any)?.manual_override_active && (
+            {profile?.manual_override_active && (
               <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
                 Override Manuale
               </Badge>

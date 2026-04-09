@@ -30,7 +30,7 @@ interface EditTriggerData {
   logDate: string;
   weight: number | null;
   calories: number | null;
-  [key: string]: any;
+  [key: string]: string | number | null | undefined;
 }
 
 interface DailyLogWidgetProps {
@@ -69,12 +69,12 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     if (existingLog) {
       setWeight(existingLog.weight?.toString() ?? "");
       setCalories(existingLog.calories?.toString() ?? "");
-      setSteps((existingLog as any).steps?.toString() ?? "");
-      setSmm((existingLog as any).smm?.toString() ?? "");
-      setBfm((existingLog as any).bfm?.toString() ?? "");
-      setPbf((existingLog as any).pbf?.toString() ?? "");
-      setVfa((existingLog as any).vfa?.toString() ?? "");
-      setBmrInbody((existingLog as any).bmr_inbody?.toString() ?? "");
+      setSteps(existingLog.steps?.toString() ?? "");
+      setSmm(existingLog.smm?.toString() ?? "");
+      setBfm(existingLog.bfm?.toString() ?? "");
+      setPbf(existingLog.pbf?.toString() ?? "");
+      setVfa(existingLog.vfa?.toString() ?? "");
+      setBmrInbody(existingLog.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(existingLog));
     } else {
       setWeight("");
@@ -87,6 +87,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setBmrInbody("");
       setSegmental(emptySegmentalFields);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logDate, existingLog?.id]);
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setSegmental(segmentalFromLog(editTrigger));
       onEditConsumed?.();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editTrigger]);
 
   const handleDateChange = (d: Date) => {
@@ -137,7 +139,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             vfa: vfa ? parseFloat(vfa) : null,
             bmr_inbody: bmrInbody ? parseInt(bmrInbody, 10) : null,
             ...segmentalToPayload(segmental),
-          } as any,
+          },
           { onConflict: "user_id,log_date" }
         )
         .select()
