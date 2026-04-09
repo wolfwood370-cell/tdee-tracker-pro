@@ -30,13 +30,7 @@ interface EditTriggerData {
   logDate: string;
   weight: number | null;
   calories: number | null;
-  steps?: number | null;
-  smm?: number | null;
-  bfm?: number | null;
-  pbf?: number | null;
-  vfa?: number | null;
-  bmr_inbody?: number | null;
-  [key: string]: any; // segmental fields
+  [key: string]: any;
 }
 
 interface DailyLogWidgetProps {
