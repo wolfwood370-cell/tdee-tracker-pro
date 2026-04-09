@@ -210,8 +210,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         : profile?.training_days_per_week ?? 4;
       const dietStrategy = (profile?.diet_strategy as DietStrategy) ?? 'linear';
 
+      const bfmKg = bia?.bfm ?? (bia?.pbf != null && latestWeight ? latestWeight * bia.pbf / 100 : null);
+
       const dynamicRate = latestWeight != null
-        ? calculateDynamicGoalRate(goalType, latestWeight)
+        ? calculateDynamicGoalRate(goalType, latestWeight, bfmKg, lbm)
         : (profile?.goal_rate ?? -0.25);
 
       updates.dynamicGoalRate = dynamicRate;
