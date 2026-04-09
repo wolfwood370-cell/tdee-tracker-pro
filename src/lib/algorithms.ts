@@ -155,14 +155,125 @@ const PROTEIN_MULTIPLIERS: Record<ProteinPref, number> = {
   very_high: 2.6,
 };
 
+// LBM-based protein multipliers (higher because based on lean mass only)
+const LBM_PROTEIN_MULTIPLIERS: Record<ProteinPref, number> = {
+  low: 2.2,
+  moderate: 2.5,
+  high: 2.8,
+  very_high: 3.1,
+};
+
+// ─── BIA-Driven Utilities ────────────────────────────────────
+
+export interface BIAData {
+  bmr_inbody?: number | null;
+  bfm?: number | null;
+  pbf?: number | null;
+  smm?: number | null;
+  weight?: number | null;
+}
+
+/**
+ * Extract the most recent log that contains BIA data.
+ */
+export function extractLatestBIA(logs: DailyMetric[]): BIAData | null {
+  const sorted = [...logs].sort(
+    (a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime()
+  );
+  const biaLog = sorted.find(
+    (l) => l.bmr_inbody != null || l.bfm != null || l.pbf != null
+  );
+  if (!biaLog) return null;
+  return {
+    bmr_inbody: biaLog.bmr_inbody,
+    bfm: biaLog.bfm,
+    pbf: biaLog.pbf,
+    smm: biaLog.smm,
+    weight: biaLog.weight,
+  };
+}
+
+/**
+ * Calculate Lean Body Mass from BIA data.
+ * Priority: weight - bfm, or weight * (1 - pbf/100)
+ */
+export function calculateLBM(bia: BIAData, fallbackWeight?: number): number | null {
+  const w = bia.weight ?? fallbackWeight;
+  if (w == null) return null;
+  if (bia.bfm != null) return w - bia.bfm;
+  if (bia.pbf != null) return w * (1 - bia.pbf / 100);
+  return null;
+}
+
+/**
+ * BIA-enhanced baseline TDEE calculation.
+ * 1. bmr_inbody * activity → if available
+ * 2. Katch-McArdle (370 + 21.6 * LBM) * activity → if LBM available
+ * 3. null → fallback to adaptive TDEE
+ */
+export function calculateBaselineTDEE(
+  bia: BIAData | null,
+  activityMultiplier: number,
+  fallbackWeight?: number
+): number | null {
+  if (!bia) return null;
+
+  // Priority 1: InBody BMR
+  if (bia.bmr_inbody != null && bia.bmr_inbody > 0) {
+    return Math.round(bia.bmr_inbody * activityMultiplier);
+  }
+
+  // Priority 2: Katch-McArdle
+  const lbm = calculateLBM(bia, fallbackWeight);
+  if (lbm != null && lbm > 0) {
+    const bmr = 370 + 21.6 * lbm;
+    return Math.round(bmr * activityMultiplier);
+  }
+
+  return null;
+}
+
+// ─── Catabolism Risk (Alpert's Rule) ─────────────────────────
+export interface CatabolismRiskResult {
+  isAtRisk: boolean;
+  maxSafeDeficit: number;
+  currentDeficit: number;
+}
+
+/**
+ * Check catabolism risk using Alpert's fat transfer rule.
+ * Max safe deficit = fatMassKg * 69 kcal/day.
+ */
+export function checkCatabolismRisk(
+  currentTDEE: number,
+  targetCalories: number,
+  fatMassKg: number | null
+): CatabolismRiskResult {
+  if (fatMassKg == null || fatMassKg <= 0) {
+    return { isAtRisk: false, maxSafeDeficit: 0, currentDeficit: 0 };
+  }
+  const maxSafeDeficit = fatMassKg * 69;
+  const currentDeficit = currentTDEE - targetCalories;
+  return {
+    isAtRisk: currentDeficit > maxSafeDeficit,
+    maxSafeDeficit: Math.round(maxSafeDeficit),
+    currentDeficit: Math.round(currentDeficit),
+  };
+}
+
 // ─── Macro Split ─────────────────────────────────────────────
 export function calculateTargetMacros(
   targetCalories: number,
   bodyWeightKg: number,
   proteinPref: ProteinPref = 'moderate',
-  dietType: DietType = 'balanced'
+  dietType: DietType = 'balanced',
+  lbmKg?: number | null
 ): TargetMacros {
-  const protein = Math.round(bodyWeightKg * PROTEIN_MULTIPLIERS[proteinPref]);
+  // If LBM is available, use LBM-based multipliers for protein
+  const protein = lbmKg != null && lbmKg > 0
+    ? Math.round(lbmKg * LBM_PROTEIN_MULTIPLIERS[proteinPref])
+    : Math.round(bodyWeightKg * PROTEIN_MULTIPLIERS[proteinPref]);
+
   const proteinCal = protein * 4;
   const remainingCal = Math.max(0, targetCalories - proteinCal);
 
