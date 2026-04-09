@@ -342,20 +342,20 @@ const ClientDashboard = () => {
       <WeightTrendChart />
       <BodyCompositionChart />
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div ref={logWidgetRef}>
-          <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
-        </div>
+      <div ref={logWidgetRef}>
+        <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
+      </div>
 
-        <Card className="glass-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              Obiettivi Settimanali
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">Obiettivi algoritmici per questa settimana</p>
-          </CardHeader>
-          <CardContent className="space-y-3">
+      <Card className="glass-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-display flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" />
+            Obiettivi Settimanali
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Obiettivi algoritmici per questa settimana</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               {
                 label: "Peso Trend Attuale",
@@ -378,17 +378,15 @@ const ClientDashboard = () => {
                 sub: `${last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length}/7 giorni registrati`,
               },
             ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                <div>
-                  <p className="text-sm text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.sub}</p>
-                </div>
-                <p className="text-sm font-display font-semibold text-foreground">{item.value}</p>
+              <div key={item.label} className="bg-secondary/50 rounded-lg p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-lg font-display font-bold text-foreground">{item.value}</p>
+                <p className="text-xs text-muted-foreground">{item.sub}</p>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Log History */}
       <LogHistoryTable onEditLog={handleEditLog} />
