@@ -163,7 +163,7 @@ function generateTrainingSchedule(days: number): boolean[] {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, setProfile } = useAppStore();
+  const { user, setProfile, addLog } = useAppStore();
 
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
