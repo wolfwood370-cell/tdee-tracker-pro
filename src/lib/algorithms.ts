@@ -365,18 +365,30 @@ export function calculateMicronutrients(
   return { fiberG, sodiumMg, potassiumMg, waterL };
 }
 
+// ─── Macro Split Result (includes TEF delta) ────────────────
+export interface MacroResult {
+  macros: TargetMacros;
+  tefDelta: number;
+}
+
 // ─── Macro Split ─────────────────────────────────────────────
 export function calculateTargetMacros(
   targetCalories: number,
   bodyWeightKg: number,
   proteinPref: ProteinPref = 'moderate',
   dietType: DietType = 'balanced',
-  lbmKg?: number | null
-): TargetMacros {
+  lbmKg?: number | null,
+  age?: number | null
+): MacroResult {
   // Step 1: Calculate Protein
   let protein = lbmKg != null && lbmKg > 0
     ? Math.round(lbmKg * LBM_PROTEIN_MULTIPLIERS[proteinPref])
     : Math.round(bodyWeightKg * PROTEIN_MULTIPLIERS[proteinPref]);
+
+  // Age-related Anabolic Resistance: +15% protein for age >= 45
+  if (age != null && age >= 45) {
+    protein = Math.round(protein * 1.15);
+  }
 
   const proteinCal = protein * 4;
 
@@ -389,7 +401,6 @@ export function calculateTargetMacros(
 
   switch (dietType) {
     case 'low_fat': {
-      // Fats locked at strict minimum, carbs get everything else
       fats = fatFloorStd;
       const fatCal = fats * 9;
       const remainingCal = targetCalories - proteinCal - fatCal;
@@ -428,7 +439,18 @@ export function calculateTargetMacros(
     protein = Math.max(Math.round(bodyWeightKg * 1.2), protein - proteinReduction);
   }
 
-  return { protein, carbs, fats };
+  // Step 4: Dynamic TEF Reward
+  // Standard assumption: 10% of total calories. Dynamic: per-macro TEF rates.
+  const standardTef = targetCalories * 0.10;
+  const dynamicTef = (protein * 4 * 0.25) + (carbs * 4 * 0.08) + (fats * 9 * 0.02);
+  const tefDelta = Math.round(dynamicTef - standardTef);
+
+  // If TEF delta is positive, add bonus calories to carbs
+  if (tefDelta > 0) {
+    carbs += Math.round(tefDelta / 4);
+  }
+
+  return { macros: { protein, carbs, fats }, tefDelta: Math.max(0, tefDelta) };
 }
 
 // ─── Refeed Day Macros ───────────────────────────────────────
