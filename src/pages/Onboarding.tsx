@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -167,6 +167,16 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+
+  // Track whether the user manually changed smart-default fields
+  const userTouchedDistribution = useRef(false);
+  const userTouchedProtein = useRef(false);
+  const userTouchedDiet = useRef(false);
+  const [smartDefaultApplied, setSmartDefaultApplied] = useState({
+    distribution: false,
+    protein: false,
+    diet: false,
+  });
 
   // Step 0 — Biometrics
   const [sex, setSex] = useState("");
