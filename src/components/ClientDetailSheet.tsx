@@ -74,7 +74,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
-  const [biofeedbackLogs, setBiofeedbackLogs] = useState<any[]>([]);
+  const [biofeedbackLogs, setBiofeedbackLogs] = useState<Tables<"biofeedback_logs">[]>([]);
   
   // Manual Override state
   const [overrideActive, setOverrideActive] = useState(false);
@@ -101,22 +101,22 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   useEffect(() => {
     if (!client || !open) return;
     setLoading(true);
-    setSelectedStrategy(((client.profile as any)?.diet_strategy as DietStrategy) ?? "linear");
-    setOverrideActive((client.profile as any)?.manual_override_active ?? false);
-    setManualCalories((client.profile as any)?.manual_calories?.toString() ?? "");
-    setManualProtein((client.profile as any)?.manual_protein?.toString() ?? "");
-    setManualFats((client.profile as any)?.manual_fats?.toString() ?? "");
-    setManualCarbs((client.profile as any)?.manual_carbs?.toString() ?? "");
+    setSelectedStrategy((client.profile.diet_strategy as DietStrategy) ?? "linear");
+    setOverrideActive(client.profile.manual_override_active ?? false);
+    setManualCalories(client.profile.manual_calories?.toString() ?? "");
+    setManualProtein(client.profile.manual_protein?.toString() ?? "");
+    setManualFats(client.profile.manual_fats?.toString() ?? "");
+    setManualCarbs(client.profile.manual_carbs?.toString() ?? "");
 
     // Strategy editor pre-population
     setEditGoalType(client.profile.goal_type ?? "sustainable_loss");
-    setEditDietStrategy((client.profile as any)?.diet_strategy ?? "linear");
+    setEditDietStrategy(client.profile.diet_strategy ?? "linear");
     setEditDietType(client.profile.diet_type ?? "balanced");
     setEditProteinPref(client.profile.protein_pref ?? "moderate");
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
-    setCoachNote((client.profile as any)?.coach_note ?? "");
+    setCoachNote(client.profile.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
     Promise.all([
@@ -156,9 +156,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
   if (!client) return null;
 
-  const goalType = ((client.profile as any)?.goal_type as GoalType) ?? "sustainable_loss";
-  const proteinPref = ((client.profile as any)?.protein_pref as ProteinPref) ?? "moderate";
-  const dietType = ((client.profile as any)?.diet_type as DietType) ?? "balanced";
+  const goalType = (client.profile.goal_type as GoalType) ?? "sustainable_loss";
+  const proteinPref = (client.profile.protein_pref as ProteinPref) ?? "moderate";
+  const dietType = (client.profile.diet_type as DietType) ?? "balanced";
 
   const latestTrend = [...smoothed]
     .reverse()
@@ -220,12 +220,12 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ diet_strategy: selectedStrategy } as any)
+        .update({ diet_strategy: selectedStrategy })
         .eq("id", client.id);
       if (error) throw error;
       toast({ title: "Strategia assegnata ✓", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
-    } catch (e: any) {
-      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
       setSavingStrategy(false);
     }
@@ -243,12 +243,12 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           manual_protein: overrideActive && manualProtein ? parseInt(manualProtein) : null,
           manual_fats: overrideActive && manualFats ? parseInt(manualFats) : null,
           manual_carbs: overrideActive && manualCarbs ? parseInt(manualCarbs) : null,
-        } as any)
+        })
         .eq("id", client.id);
       if (error) throw error;
       toast({ title: "Override salvato ✓", description: overrideActive ? "Target manuali attivi per il cliente." : "Override disattivato, target algoritmici ripristinati." });
-    } catch (e: any) {
-      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
       setSavingOverride(false);
     }
@@ -283,8 +283,8 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
       });
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
-    } catch (e: any) {
-      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
       setSavingConfig(false);
     }
@@ -296,13 +296,13 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ coach_note: coachNote || null } as any)
+        .update({ coach_note: coachNote || null })
         .eq("id", client.id);
       if (error) throw error;
       Object.assign(client.profile, { coach_note: coachNote || null });
       toast({ title: "Nota salvata con successo ✓" });
-    } catch (e: any) {
-      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
       setSavingNote(false);
     }
@@ -571,13 +571,13 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                     Modifica le impostazioni fondamentali del cliente
                   </p>
                   {(() => {
-                    const latestBia = [...logs].reverse().find((l: any) => l.bmr_inbody != null);
+                    const latestBia = [...logs].reverse().find((l) => l.bmr_inbody != null);
                     if (!latestBia) return null;
                     return (
                       <div className="mt-2 flex items-center gap-2 bg-secondary/50 rounded-md px-3 py-1.5">
                         <Zap className="h-3.5 w-3.5 text-primary" />
                         <span className="text-xs text-muted-foreground">BMR InBody:</span>
-                        <span className="text-xs font-semibold text-foreground">{(latestBia as any).bmr_inbody} kcal</span>
+                        <span className="text-xs font-semibold text-foreground">{latestBia.bmr_inbody} kcal</span>
                       </div>
                     );
                   })()}
@@ -689,7 +689,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {biofeedbackLogs.slice(0, 6).map((log: any) => {
+                      {biofeedbackLogs.slice(0, 6).map((log) => {
                         const hasAlert = log.energy_score <= 2 || log.performance_score <= 2;
                         return (
                           <div
@@ -827,7 +827,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
               {/* InBody BIA History */}
               {(() => {
-                const biaLogs = logs.filter((l: any) => l.pbf != null).slice(-10).reverse();
+                const biaLogs = logs.filter((l) => l.pbf != null).slice(-10).reverse();
                 if (biaLogs.length === 0) return null;
                 return (
                   <Card className="glass-card border-border">
@@ -851,7 +851,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                             </tr>
                           </thead>
                           <tbody>
-                            {biaLogs.map((l: any) => (
+                            {biaLogs.map((l) => (
                               <tr key={l.id} className="border-b border-border last:border-0">
                                 <td className="py-1.5">{format(parseISO(l.log_date), "d MMM", { locale: it })}</td>
                                 <td className="text-right">{l.smm != null ? `${l.smm} kg` : "—"}</td>
