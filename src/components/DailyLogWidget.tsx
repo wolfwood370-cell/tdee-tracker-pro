@@ -207,7 +207,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
         </div>
 
         {/* Weight, Calories & Steps */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
               <Scale className="h-3 w-3" /> Peso (kg)
@@ -238,7 +238,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
               className="border-border"
             />
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="col-span-2 md:col-span-1 space-y-1.5">
             <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
               <Footprints className="h-3 w-3" /> Passi Giornalieri
             </Label>
