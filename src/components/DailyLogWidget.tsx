@@ -269,6 +269,25 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
           </div>
         </div>
 
+        {/* Menstrual Cycle Phase (female only) */}
+        {(profile as Record<string, unknown>)?.track_menstrual_cycle === true && (
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">🌸 Fase del Ciclo</Label>
+            <Select value={menstrualPhase} onValueChange={setMenstrualPhase}>
+              <SelectTrigger className="border-border">
+                <SelectValue placeholder="Nessuna specifica" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nessuna specifica</SelectItem>
+                <SelectItem value="menstruation">Mestruazioni</SelectItem>
+                <SelectItem value="follicular">Follicolare</SelectItem>
+                <SelectItem value="ovulation">Ovulazione</SelectItem>
+                <SelectItem value="luteal">Luteale / Pre-ciclo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* InBody BIA Accordion */}
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="inbody" className="border-border">
