@@ -77,6 +77,8 @@ interface CalculationSlice {
   weeklyAnalytics: WeeklyAnalytic[];
   usingBIAData: boolean;
   catabolismRisk: CatabolismRiskResult | null;
+  tefDelta: number;
+  userAge: number | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -106,6 +108,8 @@ const initialState = {
   weeklyAnalytics: [],
   usingBIAData: false,
   catabolismRisk: null,
+  tefDelta: 0,
+  userAge: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
