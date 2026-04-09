@@ -107,10 +107,45 @@ export function calculateAdaptiveTDEE(
 }
 
 // ─── Dynamic Goal Rate ───────────────────────────────────────
+/**
+ * Calculate weekly weight change target (kg/week).
+ *
+ * IF BIA data is available (bfm & lbm):
+ *   - max daily deficit = bfm * 69 (Alpert's rule)
+ *   - max weekly loss   = (max_daily_deficit * 7) / 7700
+ *   - aggressive_minicut: 100% of Alpert's limit
+ *   - sustainable_loss:    55% of Alpert's limit
+ *   - weight_gain:        +0.3% of LBM per week
+ *
+ * FALLBACK (no BIA): standard bodyweight percentages.
+ */
 export function calculateDynamicGoalRate(
   goalType: GoalType,
-  trendWeight: number
+  trendWeight: number,
+  bfmKg?: number | null,
+  lbmKg?: number | null,
 ): number {
+  const hasBIA = bfmKg != null && bfmKg > 0 && lbmKg != null && lbmKg > 0;
+
+  if (hasBIA) {
+    const maxDailyDeficit = bfmKg * 69;
+    const maxLossKgPerWeek = (maxDailyDeficit * 7) / KCAL_PER_KG;
+
+    switch (goalType) {
+      case 'sustainable_loss':
+        return -(maxLossKgPerWeek * 0.55);
+      case 'aggressive_minicut':
+        return -maxLossKgPerWeek;
+      case 'maintenance':
+        return 0;
+      case 'weight_gain':
+        return lbmKg * 0.003;
+      default:
+        return 0;
+    }
+  }
+
+  // Fallback: bodyweight-based
   switch (goalType) {
     case 'sustainable_loss':
       return trendWeight * -0.005;
