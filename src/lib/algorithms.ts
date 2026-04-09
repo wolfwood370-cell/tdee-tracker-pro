@@ -69,7 +69,8 @@ export function calculateSmoothedWeight(
 // ─── Adaptive TDEE ───────────────────────────────────────────
 export function calculateAdaptiveTDEE(
   smoothedLogs: SmoothedLog[],
-  days = 14
+  days = 14,
+  phaseStartDate?: string | null
 ): number | null {
   if (smoothedLogs.length < 2) return null;
 
@@ -100,7 +101,23 @@ export function calculateAdaptiveTDEE(
     (lastDate - firstDate) / (1000 * 60 * 60 * 24)
   );
 
-  const dailyEnergyDelta = (deltaWeight * KCAL_PER_KG) / elapsedDays;
+  // ── Glycogen Dampening Factor ──────────────────────────
+  // During the first 14 days of a diet phase, initial weight loss
+  // is primarily water & glycogen (~3g water per 1g glycogen).
+  // We dampen the weight-delta contribution to avoid TDEE spikes.
+  // Multiplier scales linearly from 0.3 (day 1) to 1.0 (day 15).
+  let dampening = 1.0;
+  if (phaseStartDate) {
+    const phaseStart = new Date(phaseStartDate).getTime();
+    const now = new Date(window[window.length - 1].log_date).getTime();
+    const daysSinceStart = Math.max(0, (now - phaseStart) / (1000 * 60 * 60 * 24));
+    if (daysSinceStart <= 14) {
+      dampening = 0.3 + (0.7 * daysSinceStart) / 14;
+    }
+  }
+
+  const dampenedDelta = deltaWeight * dampening;
+  const dailyEnergyDelta = (dampenedDelta * KCAL_PER_KG) / elapsedDays;
   const tdee = avgCalories - dailyEnergyDelta;
 
   return Math.round(tdee);
@@ -299,7 +316,8 @@ export function checkCatabolismRisk(
 // ─── Micronutrient Targets ────────────────────────────────────
 export interface MicronutrientTargets {
   fiberG: number;
-  sodiumRange: string;
+  sodiumMg: string;
+  potassiumMg: string;
   waterL: number;
 }
 
@@ -312,19 +330,25 @@ export function calculateMicronutrients(
 ): MicronutrientTargets {
   const fiberG = Math.max(25, Math.round((targetCalories / 1000) * 14));
 
-  let sodiumRange: string;
+  // Sodium target (midpoint of range)
+  let sodiumMid: number;
   if (activityLevel <= 1.375) {
-    sodiumRange = "2000 – 2500 mg";
+    sodiumMid = 2250;
   } else if (activityLevel <= 1.55) {
-    sodiumRange = "2500 – 3500 mg";
+    sodiumMid = 3000;
   } else {
-    sodiumRange = "3500 – 4500+ mg";
+    sodiumMid = 4000;
   }
+
+  // Potassium: clinical 1:2 Na:K ratio
+  const potassiumMid = sodiumMid * 2;
+
+  const sodiumMg = `${sodiumMid}`;
+  const potassiumMg = `${potassiumMid}`;
 
   // Hydration engine
   let waterL = weightKg != null && weightKg > 0 ? weightKg * 0.035 : 2.5;
 
-  // BIA adjustment: if TBW ratio is sub-optimal
   if (tbw != null && weightKg != null && weightKg > 0) {
     const hydrationRatio = tbw / weightKg;
     if (hydrationRatio < 0.55) {
@@ -332,14 +356,13 @@ export function calculateMicronutrients(
     }
   }
 
-  // Activity / training day adjustment
   if (isTrainingDay || activityLevel >= 1.725) {
     waterL += 0.5;
   }
 
   waterL = Math.round(waterL * 10) / 10;
 
-  return { fiberG, sodiumRange, waterL };
+  return { fiberG, sodiumMg, potassiumMg, waterL };
 }
 
 // ─── Macro Split ─────────────────────────────────────────────
