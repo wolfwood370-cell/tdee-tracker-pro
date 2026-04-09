@@ -41,11 +41,15 @@ import {
   calculateTargetMacros,
   calculateDynamicGoalRate,
   calculateWeeklyPlan,
+  extractLatestBIA,
+  calculateLBM,
+  checkCatabolismRisk,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
   type DietType,
 } from "@/lib/algorithms";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { Tables } from "@/integrations/supabase/types";
 import type { SmoothedLog } from "@/lib/algorithms";
 
