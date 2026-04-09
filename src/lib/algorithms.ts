@@ -340,15 +340,16 @@ export function calculateWeeklyPlan(opts: {
   bodyWeightKg: number;
   proteinPref: ProteinPref;
   dietType: DietType;
-  profileCreatedAt?: string; // ISO date for reverse diet week calc
+  profileCreatedAt?: string;
+  lbmKg?: number | null;
 }): WeeklyPlan {
   const {
     strategy, tdee, goalRateKgPerWeek, bodyWeightKg,
-    proteinPref, dietType, profileCreatedAt,
+    proteinPref, dietType, profileCreatedAt, lbmKg,
   } = opts;
 
   const linearDailyCal = calculateTargetCalories(tdee, goalRateKgPerWeek);
-  const linearMacros = calculateTargetMacros(linearDailyCal, bodyWeightKg, proteinPref, dietType);
+  const linearMacros = calculateTargetMacros(linearDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg);
 
   // Helper to create a uniform week
   const uniformWeek = (cal: number, macros: TargetMacros, label?: string): DayPlan[] =>
@@ -365,7 +366,7 @@ export function calculateWeeklyPlan(opts: {
       const deficitDayCal = Math.round((tdee * 7 + weeklyDeficit - tdee * refeedCount) / deficitDays);
       const refeedDayCal = Math.round(tdee);
 
-      const deficitMacros = calculateTargetMacros(deficitDayCal, bodyWeightKg, proteinPref, dietType);
+      const deficitMacros = calculateTargetMacros(deficitDayCal, bodyWeightKg, proteinPref, dietType, lbmKg);
       const refeedMacros = calculateRefeedMacros(refeedDayCal, deficitMacros);
 
       // Place refeed on last days of the week (Sat, Sun)
@@ -398,7 +399,7 @@ export function calculateWeeklyPlan(opts: {
       const isMaintenancePhase = cycleWeek >= 2;
 
       if (isMaintenancePhase) {
-        const maintMacros = calculateTargetMacros(Math.round(tdee), bodyWeightKg, proteinPref, dietType);
+        const maintMacros = calculateTargetMacros(Math.round(tdee), bodyWeightKg, proteinPref, dietType, lbmKg);
         return {
           strategy,
           days: uniformWeek(Math.round(tdee), maintMacros),
