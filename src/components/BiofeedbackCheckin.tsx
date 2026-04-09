@@ -91,7 +91,7 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
 
         const result = evaluateBiofeedbackTrigger(
           currentLog,
-          (prevLogs ?? []) as Array<Record<string, unknown>>,
+          prevLogs ?? [],
           {
             goal_type: profile.goal_type ?? "sustainable_loss",
             diet_strategy: profile.diet_strategy ?? "linear",
@@ -117,9 +117,9 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
 
       toast({ title: "Check-in completato ✓", description: "Grazie per il feedback settimanale!" });
       onComplete();
-    } catch (e: unknown) {
+    } catch (e) {
       console.error("Biofeedback submit error:", e);
-      toast({ title: "Errore", description: e.message ?? "Riprova.", variant: "destructive" });
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
