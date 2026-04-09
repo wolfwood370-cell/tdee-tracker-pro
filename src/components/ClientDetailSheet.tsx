@@ -268,7 +268,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           calorie_distribution: editCalorieDist,
           training_days_per_week: parseInt(editTrainingDays),
           activity_level: parseFloat(editActivityLevel),
-        } as any)
+        })
         .eq("id", client.id);
       if (error) throw error;
       // Update local client profile for immediate reactivity
