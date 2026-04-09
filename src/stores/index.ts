@@ -8,6 +8,10 @@ import {
   calculateDynamicGoalRate,
   calculatePolarizedCalories,
   calculateWeeklyPlan,
+  extractLatestBIA,
+  calculateLBM,
+  calculateBaselineTDEE,
+  checkCatabolismRisk,
   type SmoothedLog,
   type GoalType,
   type DietType,
@@ -16,6 +20,7 @@ import {
   type DietStrategy,
   type PolarizedTargets,
   type WeeklyPlan,
+  type CatabolismRiskResult,
 } from '@/lib/algorithms';
 
 // Re-export useful types
@@ -70,6 +75,8 @@ interface CalculationSlice {
   dynamicGoalRate: number | null;
   weeklyPlan: WeeklyPlan | null;
   weeklyAnalytics: WeeklyAnalytic[];
+  usingBIAData: boolean;
+  catabolismRisk: CatabolismRiskResult | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -97,6 +104,8 @@ const initialState = {
   dynamicGoalRate: null,
   weeklyPlan: null,
   weeklyAnalytics: [],
+  usingBIAData: false,
+  catabolismRisk: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -145,13 +154,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { dailyLogs, profile } = get();
 
     // --- Manual Override: bypass all calculations ---
-     if (profile?.manual_override_active) {
+    if (profile?.manual_override_active) {
       const manualCal = profile.manual_calories;
       const manualP = profile.manual_protein;
       const manualF = profile.manual_fats;
       const manualC = profile.manual_carbs;
 
-      // Still compute smoothed weights for chart
       const smoothed = calculateSmoothedWeight(dailyLogs);
       const tdee = calculateAdaptiveTDEE(smoothed, 14);
 
@@ -167,23 +175,31 @@ export const useAppStore = create<AppState>((set, get) => ({
         polarizedTargets: null,
         dynamicGoalRate: null,
         weeklyPlan: null,
+        usingBIAData: false,
+        catabolismRisk: null,
       });
       return;
     }
 
     // 1. Smooth weights via EMA
     const smoothed = calculateSmoothedWeight(dailyLogs);
-    const updates: Partial<AppState> = { smoothedLogs: smoothed };
+    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null };
 
-    // 2. Adaptive TDEE (need ≥2 data points)
-    const tdee = calculateAdaptiveTDEE(smoothed, 14);
+    // Extract BIA data from latest log
+    const bia = extractLatestBIA(dailyLogs);
+    const activityMultiplier = profile?.activity_level ?? 1.2;
+    const lbm = bia ? calculateLBM(bia) : null;
+
+    // 2. TDEE: prefer adaptive (more accurate over time), BIA baseline as seed
+    const adaptiveTDEE = calculateAdaptiveTDEE(smoothed, 14);
+    const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier);
+    const tdee = adaptiveTDEE ?? baselineTDEE;
+
     if (tdee != null) {
       updates.currentTDEE = tdee;
 
-      // Get latest trend weight
       const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
 
-      // 3. Dynamic goal rate based on goal_type and trend weight
       const goalType = (profile?.goal_type as GoalType) ?? 'sustainable_loss';
       const proteinPref = (profile?.protein_pref as ProteinPref) ?? 'moderate';
       const dietType = (profile?.diet_type as DietType) ?? 'balanced';
@@ -203,28 +219,37 @@ export const useAppStore = create<AppState>((set, get) => ({
       const targetCal = calculateTargetCalories(tdee, dynamicRate);
       updates.targetCalories = targetCal;
 
-      // 4. Macros
       if (latestWeight != null) {
-        updates.targetMacros = calculateTargetMacros(targetCal, latestWeight, proteinPref, dietType);
+        const useBIA = lbm != null && lbm > 0;
+        updates.usingBIAData = useBIA;
 
-        // 5. Polarized distribution
+        updates.targetMacros = calculateTargetMacros(
+          targetCal, latestWeight, proteinPref, dietType,
+          useBIA ? lbm : undefined
+        );
+
+        // Catabolism risk check
+        const fatMass = bia?.bfm ?? (bia?.pbf != null && latestWeight ? latestWeight * bia.pbf / 100 : null);
+        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, fatMass);
+
+        // Polarized distribution
         if (calorieDistribution === 'polarized') {
           const { trainingDayCal, restDayCal } = calculatePolarizedCalories(targetCal, trainingDays);
           updates.polarizedTargets = {
             trainingDay: {
               calories: trainingDayCal,
-              macros: calculateTargetMacros(trainingDayCal, latestWeight, proteinPref, dietType),
+              macros: calculateTargetMacros(trainingDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined),
             },
             restDay: {
               calories: restDayCal,
-              macros: calculateTargetMacros(restDayCal, latestWeight, proteinPref, dietType),
+              macros: calculateTargetMacros(restDayCal, latestWeight, proteinPref, dietType, useBIA ? lbm : undefined),
             },
           };
         } else {
           updates.polarizedTargets = null;
         }
 
-        // 6. Non-linear weekly plan
+        // Non-linear weekly plan
         updates.weeklyPlan = calculateWeeklyPlan({
           strategy: dietStrategy,
           tdee,
@@ -233,6 +258,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           proteinPref,
           dietType,
           profileCreatedAt: profile?.created_at,
+          lbmKg: useBIA ? lbm : undefined,
         });
       }
     }

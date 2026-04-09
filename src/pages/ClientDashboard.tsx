@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -152,6 +153,7 @@ const ClientDashboard = () => {
     smoothedLogs,
     dailyLogs,
     weeklyPlan,
+    usingBIAData,
     setLogs,
   } = useAppStore();
 
@@ -267,6 +269,21 @@ const ClientDashboard = () => {
               <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
                 Override Manuale
               </Badge>
+            )}
+            {usingBIAData && !profile?.manual_override_active && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground border-accent/30 cursor-help">
+                      <Microscope className="h-3 w-3 mr-1" />
+                      InBody
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">🎯 Ottimizzato con dati clinici InBody</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             <span className="ml-auto text-xs text-muted-foreground">
               {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
