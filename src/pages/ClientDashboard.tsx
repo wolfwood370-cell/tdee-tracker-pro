@@ -155,6 +155,8 @@ const ClientDashboard = () => {
     dailyLogs,
     weeklyPlan,
     usingBIAData,
+    tefDelta,
+    userAge,
     setLogs,
   } = useAppStore();
 
