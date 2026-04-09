@@ -370,6 +370,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
             </div>
           ) : (
             <>
+              {/* Catabolism Risk Alert */}
+              {catabolismRisk?.isAtRisk && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold">⚠️ Rischio Catabolico Elevato</AlertTitle>
+                  <AlertDescription className="text-sm mt-1">
+                    Il deficit calorico impostato ({catabolismRisk.currentDeficit} kcal/giorno) supera la capacità massima di ossidazione lipidica del cliente (Regola di Alpert: max {catabolismRisk.maxSafeDeficit} kcal/giorno per {fatMass?.toFixed(1)} kg di massa grassa). Il corpo smonterà tessuto muscolare per compensare la mancanza di energia. Si consiglia di ridurre il deficit o assegnare un Diet Break.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Targets Hero */}
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
