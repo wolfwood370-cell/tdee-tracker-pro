@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -210,6 +211,7 @@ export default function Onboarding() {
 
   // Step 5 — Disclaimer
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
 
   // Recommendation (computed when reaching step 5)
   const recommendation = computeRecommendation(
@@ -288,9 +290,7 @@ export default function Onboarding() {
     const schedule = generateTrainingSchedule(parseInt(trainingDays));
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
+      const updatePayload: Record<string, unknown> = {
           sex,
           birth_date: birthDate,
           height_cm: parseFloat(heightCm),
@@ -302,7 +302,12 @@ export default function Onboarding() {
           protein_pref: proteinPref,
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
-        })
+          track_menstrual_cycle: trackMenstrualCycle,
+      };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(updatePayload as any)
         .eq("id", user.id)
         .select()
         .single();
@@ -482,6 +487,17 @@ export default function Onboarding() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Menstrual Cycle Toggle (female only) */}
+                {sex === 'F' && (
+                  <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm text-foreground">Traccia Ciclo Mestruale</Label>
+                      <p className="text-xs text-muted-foreground">Ottimizza il TDEE e ignora gli sbalzi di peso dovuti alla ritenzione idrica.</p>
+                    </div>
+                    <Switch checked={trackMenstrualCycle} onCheckedChange={setTrackMenstrualCycle} />
+                  </div>
+                )}
 
                 {/* Optional InBody BIA */}
                 <Accordion type="single" collapsible className="w-full">

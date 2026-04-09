@@ -157,6 +157,7 @@ const ClientDashboard = () => {
     usingBIAData,
     tefDelta,
     userAge,
+    activeMenstrualPhase,
     setLogs,
   } = useAppStore();
 
@@ -321,6 +322,11 @@ const ClientDashboard = () => {
             {userAge != null && userAge >= 45 && (
               <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
                 🛡️ Over-45
+              </Badge>
+            )}
+            {activeMenstrualPhase === 'luteal' && (
+              <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
+                🌸 Fase Luteale: +150 kcal
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">

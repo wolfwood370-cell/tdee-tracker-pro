@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
@@ -81,6 +82,7 @@ export default function Settings() {
   const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -95,6 +97,7 @@ export default function Settings() {
       setCalorieDistribution(profile.calorie_distribution ?? "stable");
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
+      setTrackMenstrualCycle((profile as Record<string, unknown>).track_menstrual_cycle === true);
     }
   }, [profile]);
 
@@ -124,9 +127,7 @@ export default function Settings() {
         }
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
+      const updatePayload: Record<string, unknown> = {
           full_name: fullName || null,
           sex: sex === "not_set" ? null : sex,
           birth_date: birthDate || null,
@@ -139,7 +140,12 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
-        })
+          track_menstrual_cycle: trackMenstrualCycle,
+      };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(updatePayload as any)
         .eq("id", user.id)
         .select()
         .single();
@@ -239,6 +245,17 @@ export default function Settings() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Menstrual Cycle Toggle (female only) */}
+          {sex === 'F' && (
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div className="space-y-0.5">
+                <Label className="text-sm text-foreground">Traccia Ciclo Mestruale</Label>
+                <p className="text-xs text-muted-foreground">Ottimizza il TDEE e ignora gli sbalzi di peso dovuti alla ritenzione idrica.</p>
+              </div>
+              <Switch checked={trackMenstrualCycle} onCheckedChange={setTrackMenstrualCycle} />
+            </div>
+          )}
         </CardContent>
       </Card>
 

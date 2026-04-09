@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalFromLog, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
+import type { MenstrualPhase } from "@/lib/algorithms";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
@@ -39,7 +47,7 @@ interface DailyLogWidgetProps {
 }
 
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
-  const { user, addLog, updateLog, dailyLogs } = useAppStore();
+  const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
@@ -51,6 +59,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   const [vfa, setVfa] = useState("");
   const [bmrInbody, setBmrInbody] = useState("");
   const [segmental, setSegmental] = useState<SegmentalFields>(emptySegmentalFields);
+  const [menstrualPhase, setMenstrualPhase] = useState<string>("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExternalEdit, setIsExternalEdit] = useState(false);
 
@@ -76,6 +85,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa(existingLog.vfa?.toString() ?? "");
       setBmrInbody(existingLog.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(existingLog));
+      setMenstrualPhase((existingLog as Record<string, unknown>).menstrual_phase as string ?? "none");
     } else {
       setWeight("");
       setCalories("");
@@ -86,6 +96,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa("");
       setBmrInbody("");
       setSegmental(emptySegmentalFields);
+      setMenstrualPhase("none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logDate, existingLog?.id]);
@@ -104,6 +115,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa(editTrigger.vfa?.toString() ?? "");
       setBmrInbody(editTrigger.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(editTrigger));
+      setMenstrualPhase(editTrigger.menstrual_phase?.toString() ?? "none");
       onEditConsumed?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,10 +136,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase
-        .from("daily_metrics")
-        .upsert(
-          {
+      const upsertPayload: Record<string, unknown> = {
             user_id: user.id,
             log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
@@ -138,10 +147,13 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             pbf: pbf ? parseFloat(pbf) : null,
             vfa: vfa ? parseFloat(vfa) : null,
             bmr_inbody: bmrInbody ? parseInt(bmrInbody, 10) : null,
+            menstrual_phase: menstrualPhase === "none" ? null : menstrualPhase,
             ...segmentalToPayload(segmental),
-          },
-          { onConflict: "user_id,log_date" }
-        )
+      };
+      const { data, error } = await supabase
+        .from("daily_metrics")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
         .select()
         .single();
 
@@ -256,6 +268,25 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             />
           </div>
         </div>
+
+        {/* Menstrual Cycle Phase (female only) */}
+        {(profile as Record<string, unknown>)?.track_menstrual_cycle === true && (
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">🌸 Fase del Ciclo</Label>
+            <Select value={menstrualPhase} onValueChange={setMenstrualPhase}>
+              <SelectTrigger className="border-border">
+                <SelectValue placeholder="Nessuna specifica" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nessuna specifica</SelectItem>
+                <SelectItem value="menstruation">Mestruazioni</SelectItem>
+                <SelectItem value="follicular">Follicolare</SelectItem>
+                <SelectItem value="ovulation">Ovulazione</SelectItem>
+                <SelectItem value="luteal">Luteale / Pre-ciclo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* InBody BIA Accordion */}
         <Accordion type="single" collapsible className="w-full">

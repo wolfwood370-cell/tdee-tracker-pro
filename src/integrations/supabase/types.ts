@@ -86,6 +86,7 @@ export type Database = {
           lean_tr_kg: number | null
           lean_tr_pct: number | null
           log_date: string
+          menstrual_phase: string | null
           notes: string | null
           pbf: number | null
           smm: number | null
@@ -122,6 +123,7 @@ export type Database = {
           lean_tr_kg?: number | null
           lean_tr_pct?: number | null
           log_date: string
+          menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
           smm?: number | null
@@ -158,6 +160,7 @@ export type Database = {
           lean_tr_kg?: number | null
           lean_tr_pct?: number | null
           log_date?: string
+          menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
           smm?: number | null
@@ -198,6 +201,7 @@ export type Database = {
           manual_protein: number | null
           protein_pref: string
           sex: string | null
+          track_menstrual_cycle: boolean
           training_days_per_week: number
           training_schedule: Json
         }
@@ -221,6 +225,7 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
         }
@@ -244,6 +249,7 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
         }
