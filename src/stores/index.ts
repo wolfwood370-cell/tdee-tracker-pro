@@ -145,11 +145,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { dailyLogs, profile } = get();
 
     // --- Manual Override: bypass all calculations ---
-    if ((profile as any)?.manual_override_active) {
-      const manualCal = (profile as any)?.manual_calories as number | null;
-      const manualP = (profile as any)?.manual_protein as number | null;
-      const manualF = (profile as any)?.manual_fats as number | null;
-      const manualC = (profile as any)?.manual_carbs as number | null;
+     if (profile?.manual_override_active) {
+      const manualCal = profile.manual_calories;
+      const manualP = profile.manual_protein;
+      const manualF = profile.manual_fats;
+      const manualC = profile.manual_carbs;
 
       // Still compute smoothed weights for chart
       const smoothed = calculateSmoothedWeight(dailyLogs);
@@ -167,7 +167,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         polarizedTargets: null,
         dynamicGoalRate: null,
         weeklyPlan: null,
-      } as any);
+      });
       return;
     }
 
@@ -184,15 +184,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
 
       // 3. Dynamic goal rate based on goal_type and trend weight
-      const goalType = ((profile as any)?.goal_type as GoalType) ?? 'sustainable_loss';
-      const proteinPref = ((profile as any)?.protein_pref as ProteinPref) ?? 'moderate';
-      const dietType = ((profile as any)?.diet_type as DietType) ?? 'balanced';
-      const calorieDistribution = ((profile as any)?.calorie_distribution as CalorieDistribution) ?? 'stable';
-      const trainingSchedule = ((profile as any)?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
+      const goalType = (profile?.goal_type as GoalType) ?? 'sustainable_loss';
+      const proteinPref = (profile?.protein_pref as ProteinPref) ?? 'moderate';
+      const dietType = (profile?.diet_type as DietType) ?? 'balanced';
+      const calorieDistribution = (profile?.calorie_distribution as CalorieDistribution) ?? 'stable';
+      const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
       const trainingDays = calorieDistribution === 'polarized'
         ? trainingSchedule.filter(Boolean).length
-        : ((profile as any)?.training_days_per_week as number) ?? 4;
-      const dietStrategy = ((profile as any)?.diet_strategy as DietStrategy) ?? 'linear';
+        : profile?.training_days_per_week ?? 4;
+      const dietStrategy = (profile?.diet_strategy as DietStrategy) ?? 'linear';
 
       const dynamicRate = latestWeight != null
         ? calculateDynamicGoalRate(goalType, latestWeight)
@@ -237,7 +237,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     }
 
-    set(updates as any);
+    set(updates);
   },
 
   // Full reset on logout

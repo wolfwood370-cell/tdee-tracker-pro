@@ -49,8 +49,8 @@ export function segmentalToPayload(f: SegmentalFields): Record<string, number | 
   return out;
 }
 
-/** Populate SegmentalFields from a log record (any). */
-export function segmentalFromLog(log: any): SegmentalFields {
+/** Populate SegmentalFields from a log record. */
+export function segmentalFromLog(log: Record<string, unknown>): SegmentalFields {
   const f = { ...emptySegmentalFields };
   for (const key of Object.keys(f) as (keyof SegmentalFields)[]) {
     if (log[key] != null) f[key] = String(log[key]);

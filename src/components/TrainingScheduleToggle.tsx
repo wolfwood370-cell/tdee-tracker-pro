@@ -9,10 +9,10 @@ export function TrainingScheduleToggle() {
   const { user, profile, setProfile } = useAppStore();
 
   const schedule: boolean[] =
-    ((profile as any)?.training_schedule as boolean[] | null) ??
+    (profile?.training_schedule as boolean[] | null) ??
     [true, false, true, false, true, false, false];
 
-  const maxDays = ((profile as any)?.training_days_per_week as number) ?? 4;
+  const maxDays = profile?.training_days_per_week ?? 4;
   const trainingCount = schedule.filter(Boolean).length;
 
   const handleToggle = async (index: number) => {
@@ -34,15 +34,15 @@ export function TrainingScheduleToggle() {
     newSchedule[index] = turningOn;
 
     // Optimistic update
-    setProfile({ ...profile, training_schedule: newSchedule } as any);
+    setProfile({ ...profile, training_schedule: newSchedule });
 
     const { error } = await supabase
       .from("profiles")
-      .update({ training_schedule: newSchedule } as any)
+      .update({ training_schedule: newSchedule })
       .eq("id", user.id);
 
     if (error) {
-      setProfile({ ...profile, training_schedule: schedule } as any);
+      setProfile({ ...profile, training_schedule: schedule });
       toast({ title: "Errore", description: "Impossibile aggiornare il programma.", variant: "destructive" });
     }
 

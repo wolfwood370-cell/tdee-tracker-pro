@@ -72,7 +72,7 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
       if (error) throw error;
 
       // --- Auto-Regulation Check (skip if manual override is active) ---
-      if (profile && !(profile as any).manual_override_active) {
+      if (profile && !profile.manual_override_active) {
         // Fetch previous biofeedback logs
         const { data: prevLogs } = await supabase
           .from("biofeedback_logs")
@@ -91,10 +91,10 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
 
         const result = evaluateBiofeedbackTrigger(
           currentLog,
-          (prevLogs ?? []) as any[],
+          prevLogs ?? [],
           {
-            goal_type: (profile as any).goal_type ?? "sustainable_loss",
-            diet_strategy: (profile as any).diet_strategy ?? "linear",
+            goal_type: profile.goal_type ?? "sustainable_loss",
+            diet_strategy: profile.diet_strategy ?? "linear",
           }
         );
 
@@ -102,11 +102,10 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
           // Update profile in DB
           await supabase
             .from("profiles")
-            .update({ diet_strategy: result.newStrategy } as any)
+            .update({ diet_strategy: result.newStrategy })
             .eq("id", user.id);
 
-          // Update local state
-          setProfile({ ...profile, diet_strategy: result.newStrategy } as any);
+          setProfile({ ...profile, diet_strategy: result.newStrategy });
           recalculateMetrics();
 
           // Show modal instead of completing immediately
@@ -118,9 +117,9 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
 
       toast({ title: "Check-in completato ✓", description: "Grazie per il feedback settimanale!" });
       onComplete();
-    } catch (e: any) {
+    } catch (e) {
       console.error("Biofeedback submit error:", e);
-      toast({ title: "Errore", description: e.message ?? "Riprova.", variant: "destructive" });
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
