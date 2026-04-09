@@ -168,19 +168,22 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     .reverse()
     .find((l) => l.trendWeight != null)?.trendWeight;
 
+  // BIA-driven calculations
+  const bia = extractLatestBIA(logs);
+  const lbm = bia ? calculateLBM(bia, latestTrend ?? undefined) : null;
+  const fatMass = bia?.bfm ?? (bia?.pbf != null && latestTrend ? latestTrend * bia.pbf / 100 : null);
+
   const dynamicRate = latestTrend != null
-    ? calculateDynamicGoalRate(goalType, latestTrend)
+    ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm)
     : (client.profile.goal_rate ?? -0.25);
 
   const targetCal = tdee ? calculateTargetCalories(tdee, dynamicRate) : null;
   const targetMac =
     targetCal && latestTrend
-      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType)
+      ? calculateTargetMacros(targetCal, latestTrend, proteinPref, dietType, lbm)
       : null;
 
-  // BIA-driven catabolism risk
-  const bia = extractLatestBIA(logs);
-  const fatMass = bia?.bfm ?? (bia?.pbf != null && latestTrend ? latestTrend * bia.pbf / 100 : null);
+  // Catabolism risk
   const catabolismRisk = tdee && targetCal
     ? checkCatabolismRisk(tdee, targetCal, fatMass)
     : null;
@@ -196,6 +199,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           proteinPref,
           dietType,
           profileCreatedAt: client.profile.created_at,
+          lbmKg: lbm,
         })
       : null;
 
