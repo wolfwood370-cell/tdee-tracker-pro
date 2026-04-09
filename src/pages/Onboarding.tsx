@@ -651,7 +651,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={proteinPref}
-                    onValueChange={setProteinPref}
+                    onValueChange={(v) => { userTouchedProtein.current = true; setSmartDefaultApplied((p) => ({ ...p, protein: false })); setProteinPref(v); }}
                     className="grid grid-cols-2 gap-3"
                   >
                     {PROTEIN_PREFS.map((p) => (
@@ -670,6 +670,9 @@ export default function Onboarding() {
                       </label>
                     ))}
                   </RadioGroup>
+                  {smartDefaultApplied.protein && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
               </>
             )}
