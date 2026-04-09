@@ -123,7 +123,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   // Profile actions
-  setProfile: (profile) => set({ profile, isLoadingProfile: false }),
+  setProfile: (profile) => {
+    set({ profile, isLoadingProfile: false });
+    // Trigger recalculation whenever profile changes (e.g. goal_type, diet_type)
+    get().recalculateMetrics();
+  },
   clearProfile: () => set({ profile: null }),
   updateGoalRate: (newRate) =>
     set((state) => ({
