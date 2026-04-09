@@ -217,7 +217,32 @@ export default function Onboarding() {
     weekendStruggle === "yes"
   );
 
-  const canNext = () => {
+  // ─── Smart Defaults Engine ───
+  useEffect(() => {
+    // Step 2 → auto-set calorie distribution
+    if (step === 2 && !userTouchedDistribution.current) {
+      const days = parseInt(trainingDays) || 4;
+      const recommended = days >= 3 ? "polarized" : "stable";
+      setCalorieDistribution(recommended);
+      setSmartDefaultApplied((prev) => ({ ...prev, distribution: true }));
+    }
+    // Step 3 → auto-set protein & diet type
+    if (step === 3) {
+      if (!userTouchedProtein.current) {
+        let recommended = "moderate";
+        if (goalType === "aggressive_minicut") recommended = "very_high";
+        else if (goalType === "sustainable_loss") recommended = "high";
+        setProteinPref(recommended);
+        setSmartDefaultApplied((prev) => ({ ...prev, protein: true }));
+      }
+      if (!userTouchedDiet.current) {
+        setDietType("balanced");
+        setSmartDefaultApplied((prev) => ({ ...prev, diet: true }));
+      }
+    }
+  }, [step, trainingDays, goalType]);
+
+
     switch (step) {
       case 0:
         return (
