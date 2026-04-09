@@ -270,6 +270,21 @@ const ClientDashboard = () => {
                 Override Manuale
               </Badge>
             )}
+            {usingBIAData && !profile?.manual_override_active && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground border-accent/30 cursor-help">
+                      <Microscope className="h-3 w-3 mr-1" />
+                      InBody
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">🎯 Ottimizzato con dati clinici InBody</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <span className="ml-auto text-xs text-muted-foreground">
               {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
             </span>
