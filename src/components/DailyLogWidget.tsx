@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalFromLog, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
+import type { MenstrualPhase } from "@/lib/algorithms";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,

@@ -245,6 +245,17 @@ export default function Settings() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Menstrual Cycle Toggle (female only) */}
+          {sex === 'F' && (
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div className="space-y-0.5">
+                <Label className="text-sm text-foreground">Traccia Ciclo Mestruale</Label>
+                <p className="text-xs text-muted-foreground">Ottimizza il TDEE e ignora gli sbalzi di peso dovuti alla ritenzione idrica.</p>
+              </div>
+              <Switch checked={trackMenstrualCycle} onCheckedChange={setTrackMenstrualCycle} />
+            </div>
+          )}
         </CardContent>
       </Card>
 
