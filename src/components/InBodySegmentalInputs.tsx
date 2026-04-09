@@ -93,86 +93,52 @@ export function InBodySegmentalInputs({ fields, onChange }: Props) {
 
       <Separator />
 
-      {/* Lean Mass */}
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Magra</Label>
-        <div className="rounded-lg border border-border p-3 space-y-2">
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
-            <span>Segmento</span>
-            <span className="text-center">Kg</span>
-            <span className="text-center">%</span>
+      {/* Lean & Fat Mass side by side on md+ */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Lean Mass */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Magra</Label>
+          <div className="rounded-lg border border-border p-3 space-y-2">
+            <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
+              <span>Segmento</span>
+              <span className="text-center">Kg</span>
+              <span className="text-center">%</span>
+            </div>
+            {SEGMENTS.map((seg) => {
+              const kgKey = `lean_${seg.kgKey}` as keyof SegmentalFields;
+              const pctKey = `lean_${seg.pctKey}` as keyof SegmentalFields;
+              return (
+                <div key={seg.label + "_lean"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
+                  <span className="text-xs text-muted-foreground">{seg.label}</span>
+                  <Input type="number" step="0.01" min="0" placeholder="Kg" value={fields[kgKey]} onChange={(e) => set(kgKey, e.target.value)} className="border-border h-8 text-xs" />
+                  <Input type="number" step="0.1" min="0" max="100" placeholder="%" value={fields[pctKey]} onChange={(e) => set(pctKey, e.target.value)} className="border-border h-8 text-xs" />
+                </div>
+              );
+            })}
           </div>
-          {SEGMENTS.map((seg) => {
-            const kgKey = `lean_${seg.kgKey}` as keyof SegmentalFields;
-            const pctKey = `lean_${seg.pctKey}` as keyof SegmentalFields;
-            return (
-              <div key={seg.label + "_lean"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
-                <span className="text-xs text-muted-foreground">{seg.label}</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Kg"
-                  value={fields[kgKey]}
-                  onChange={(e) => set(kgKey, e.target.value)}
-                  className="border-border h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  placeholder="%"
-                  value={fields[pctKey]}
-                  onChange={(e) => set(pctKey, e.target.value)}
-                  className="border-border h-8 text-xs"
-                />
-              </div>
-            );
-          })}
         </div>
-      </div>
 
-      <Separator />
-
-      {/* Fat Mass */}
-      <div className="space-y-2">
-        <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Grassa</Label>
-        <div className="rounded-lg border border-border p-3 space-y-2">
-          <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
-            <span>Segmento</span>
-            <span className="text-center">Kg</span>
-            <span className="text-center">%</span>
+        {/* Fat Mass */}
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Grassa</Label>
+          <div className="rounded-lg border border-border p-3 space-y-2">
+            <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
+              <span>Segmento</span>
+              <span className="text-center">Kg</span>
+              <span className="text-center">%</span>
+            </div>
+            {SEGMENTS.map((seg) => {
+              const kgKey = `fat_${seg.kgKey}` as keyof SegmentalFields;
+              const pctKey = `fat_${seg.pctKey}` as keyof SegmentalFields;
+              return (
+                <div key={seg.label + "_fat"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
+                  <span className="text-xs text-muted-foreground">{seg.label}</span>
+                  <Input type="number" step="0.01" min="0" placeholder="Kg" value={fields[kgKey]} onChange={(e) => set(kgKey, e.target.value)} className="border-border h-8 text-xs" />
+                  <Input type="number" step="0.1" min="0" max="100" placeholder="%" value={fields[pctKey]} onChange={(e) => set(pctKey, e.target.value)} className="border-border h-8 text-xs" />
+                </div>
+              );
+            })}
           </div>
-          {SEGMENTS.map((seg) => {
-            const kgKey = `fat_${seg.kgKey}` as keyof SegmentalFields;
-            const pctKey = `fat_${seg.pctKey}` as keyof SegmentalFields;
-            return (
-              <div key={seg.label + "_fat"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
-                <span className="text-xs text-muted-foreground">{seg.label}</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Kg"
-                  value={fields[kgKey]}
-                  onChange={(e) => set(kgKey, e.target.value)}
-                  className="border-border h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  placeholder="%"
-                  value={fields[pctKey]}
-                  onChange={(e) => set(pctKey, e.target.value)}
-                  className="border-border h-8 text-xs"
-                />
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>
