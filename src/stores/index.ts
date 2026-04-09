@@ -8,6 +8,10 @@ import {
   calculateDynamicGoalRate,
   calculatePolarizedCalories,
   calculateWeeklyPlan,
+  extractLatestBIA,
+  calculateLBM,
+  calculateBaselineTDEE,
+  checkCatabolismRisk,
   type SmoothedLog,
   type GoalType,
   type DietType,
@@ -16,6 +20,7 @@ import {
   type DietStrategy,
   type PolarizedTargets,
   type WeeklyPlan,
+  type CatabolismRiskResult,
 } from '@/lib/algorithms';
 
 // Re-export useful types
@@ -70,6 +75,8 @@ interface CalculationSlice {
   dynamicGoalRate: number | null;
   weeklyPlan: WeeklyPlan | null;
   weeklyAnalytics: WeeklyAnalytic[];
+  usingBIAData: boolean;
+  catabolismRisk: CatabolismRiskResult | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -97,6 +104,8 @@ const initialState = {
   dynamicGoalRate: null,
   weeklyPlan: null,
   weeklyAnalytics: [],
+  usingBIAData: false,
+  catabolismRisk: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
