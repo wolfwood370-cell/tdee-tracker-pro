@@ -242,7 +242,7 @@ export default function Onboarding() {
     }
   }, [step, trainingDays, goalType]);
 
-
+  const canNext = () => {
     switch (step) {
       case 0:
         return (
