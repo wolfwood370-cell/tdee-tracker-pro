@@ -157,9 +157,9 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       }
 
       toast({ title: "Dati salvati ✓", description: `Log del ${format(date, "d MMMM yyyy", { locale: it })} registrato.` });
-    } catch (e: any) {
+    } catch (e) {
       console.error("Upsert error:", e);
-      toast({ title: "Errore nel salvataggio", description: e.message ?? "Riprova più tardi.", variant: "destructive" });
+      toast({ title: "Errore nel salvataggio", description: e instanceof Error ? e.message : "Riprova più tardi.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
