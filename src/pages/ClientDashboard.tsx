@@ -349,6 +349,20 @@ const ClientDashboard = () => {
               ))}
             </div>
           )}
+
+          {/* Micronutrient Targets */}
+          <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
+            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+              <Leaf className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">Fibre Consigliate:</span>
+              <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+              <Droplets className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">Sodio Consigliato:</span>
+              <span className="text-xs font-semibold text-foreground">{microTargets.sodiumRange}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
