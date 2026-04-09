@@ -606,6 +606,9 @@ export default function Onboarding() {
                       </span>
                     </label>
                   </RadioGroup>
+                  {smartDefaultApplied.distribution && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
               </>
             )}
@@ -619,7 +622,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={dietType}
-                    onValueChange={setDietType}
+                    onValueChange={(v) => { userTouchedDiet.current = true; setSmartDefaultApplied((p) => ({ ...p, diet: false })); setDietType(v); }}
                     className="space-y-2"
                   >
                     {DIET_TYPES.map((d) => (
@@ -638,6 +641,9 @@ export default function Onboarding() {
                       </label>
                     ))}
                   </RadioGroup>
+                  {smartDefaultApplied.diet && (
+                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm text-foreground font-medium">
