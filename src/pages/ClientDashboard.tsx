@@ -10,6 +10,7 @@ import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
+import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
@@ -337,8 +338,9 @@ const ClientDashboard = () => {
         <WeeklyPlanBar plan={weeklyPlan} />
       )}
 
-      {/* Chart */}
+      {/* Charts */}
       <WeightTrendChart />
+      <BodyCompositionChart />
 
       <div className="grid md:grid-cols-2 gap-6">
         <div ref={logWidgetRef}>
