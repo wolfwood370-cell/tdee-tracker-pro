@@ -200,4 +200,4 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
       <AutoRegulationModal open={showAIModal} onConfirm={handleAIModalConfirm} />
     </>
   );
-});
+}
