@@ -572,7 +572,7 @@ export default function Onboarding() {
                   </Label>
                   <RadioGroup
                     value={calorieDistribution}
-                    onValueChange={setCalorieDistribution}
+                    onValueChange={(v) => { userTouchedDistribution.current = true; setSmartDefaultApplied((p) => ({ ...p, distribution: false })); setCalorieDistribution(v); }}
                     className="grid grid-cols-2 gap-3"
                   >
                     <label
