@@ -117,6 +117,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setSegmental(segmentalFromLog(editTrigger));
       setMenstrualPhase(editTrigger.menstrual_phase?.toString() ?? "none");
       onEditConsumed?.();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editTrigger]);
 
@@ -135,10 +136,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase
-        .from("daily_metrics")
-        .upsert(
-          {
+      const upsertPayload: Record<string, unknown> = {
             user_id: user.id,
             log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
@@ -149,10 +147,13 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             pbf: pbf ? parseFloat(pbf) : null,
             vfa: vfa ? parseFloat(vfa) : null,
             bmr_inbody: bmrInbody ? parseInt(bmrInbody, 10) : null,
+            menstrual_phase: menstrualPhase === "none" ? null : menstrualPhase,
             ...segmentalToPayload(segmental),
-          },
-          { onConflict: "user_id,log_date" }
-        )
+      };
+      const { data, error } = await supabase
+        .from("daily_metrics")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
         .select()
         .single();
 
