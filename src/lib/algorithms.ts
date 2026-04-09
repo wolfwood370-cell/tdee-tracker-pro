@@ -488,7 +488,7 @@ export function calculateWeeklyPlan(opts: {
   } = opts;
 
   const linearDailyCal = calculateTargetCalories(tdee, goalRateKgPerWeek);
-  const linearMacros = calculateTargetMacros(linearDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg);
+  const linearMacros = calculateTargetMacros(linearDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg).macros;
 
   // Helper to create a uniform week
   const uniformWeek = (cal: number, macros: TargetMacros, label?: string): DayPlan[] =>
@@ -505,7 +505,7 @@ export function calculateWeeklyPlan(opts: {
       const deficitDayCal = Math.round((tdee * 7 + weeklyDeficit - tdee * refeedCount) / deficitDays);
       const refeedDayCal = Math.round(tdee);
 
-      const deficitMacros = calculateTargetMacros(deficitDayCal, bodyWeightKg, proteinPref, dietType, lbmKg);
+      const deficitMacros = calculateTargetMacros(deficitDayCal, bodyWeightKg, proteinPref, dietType, lbmKg).macros;
       const refeedMacros = calculateRefeedMacros(refeedDayCal, deficitMacros);
 
       // Place refeed on last days of the week (Sat, Sun)
@@ -538,7 +538,7 @@ export function calculateWeeklyPlan(opts: {
       const isMaintenancePhase = cycleWeek >= 2;
 
       if (isMaintenancePhase) {
-        const maintMacros = calculateTargetMacros(Math.round(tdee), bodyWeightKg, proteinPref, dietType, lbmKg);
+        const maintMacros = calculateTargetMacros(Math.round(tdee), bodyWeightKg, proteinPref, dietType, lbmKg).macros;
         return {
           strategy,
           days: uniformWeek(Math.round(tdee), maintMacros),
@@ -565,7 +565,7 @@ export function calculateWeeklyPlan(opts: {
       );
       // Start from the linear deficit target and add 75 kcal per week, capped at TDEE
       const reverseCal = Math.min(Math.round(tdee), linearDailyCal + 75 * weeksSinceStart);
-      const reverseMacros = calculateTargetMacros(reverseCal, bodyWeightKg, proteinPref, dietType, lbmKg);
+      const reverseMacros = calculateTargetMacros(reverseCal, bodyWeightKg, proteinPref, dietType, lbmKg).macros;
 
       return {
         strategy,
