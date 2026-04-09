@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +69,7 @@ const STRATEGY_LABELS: Record<DietStrategy, string> = {
   reverse_diet: "Reverse Diet",
 };
 
-function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
+const WeeklyPlanBar = React.forwardRef<HTMLDivElement, { plan: WeeklyPlan }>(function WeeklyPlanBar({ plan }, ref) {
   const { polarizedTargets, profile } = useAppStore();
   const isPolarized = polarizedTargets != null;
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
@@ -140,7 +140,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
       </CardContent>
     </Card>
   );
-}
+});
 
 const ClientDashboard = () => {
   const {
@@ -225,7 +225,11 @@ const ClientDashboard = () => {
   // Extract latest weight and TBW for hydration calc
   const latestLog = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0];
   const latestWeight = latestLog?.weight ?? null;
-  const latestTbw = latestLog?.tbw ?? null;
+  // TBW may be in an older InBody scan, not necessarily the latest log
+  const latestTbw = useMemo(() => {
+    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+    return sorted.find((l) => l.tbw != null)?.tbw ?? null;
+  }, [dailyLogs]);
 
   const microTargets = useMemo(() => {
     const activityLevel = profile?.activity_level ?? 1.55;

@@ -52,17 +52,17 @@ const GOAL_TYPES = [
 ];
 
 const DIET_TYPES = [
-  { value: "balanced", label: "Bilanciata (50/50 carb/grassi)" },
-  { value: "low_fat", label: "Low Fat (grassi minimi 0.6g/kg)" },
-  { value: "low_carb", label: "Low Carb (carb fissi 1g/kg)" },
-  { value: "keto", label: "Keto (max 30g carb)" },
+  { value: "balanced", label: "Bilanciata" },
+  { value: "low_fat", label: "Low Fat" },
+  { value: "low_carb", label: "Low Carb" },
+  { value: "keto", label: "Keto" },
 ];
 
 const PROTEIN_PREFS = [
-  { value: "low", label: "1.6 g/kg", desc: "Basso" },
-  { value: "moderate", label: "2.0 g/kg", desc: "Moderato" },
-  { value: "high", label: "2.2 g/kg", desc: "Alto" },
-  { value: "very_high", label: "2.6 g/kg", desc: "Molto alto" },
+  { value: "low", label: "Basso", desc: "Livello base" },
+  { value: "moderate", label: "Moderato", desc: "Consigliato" },
+  { value: "high", label: "Alto", desc: "Per deficit calorico" },
+  { value: "very_high", label: "Molto alto", desc: "Per mini-cut intensi" },
 ];
 
 export default function Settings() {
