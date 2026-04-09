@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
@@ -81,6 +82,7 @@ export default function Settings() {
   const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -95,6 +97,7 @@ export default function Settings() {
       setCalorieDistribution(profile.calorie_distribution ?? "stable");
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
+      setTrackMenstrualCycle((profile as Record<string, unknown>).track_menstrual_cycle === true);
     }
   }, [profile]);
 
@@ -139,7 +142,8 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
-        })
+          track_menstrual_cycle: trackMenstrualCycle,
+        } as Record<string, unknown>)
         .eq("id", user.id)
         .select()
         .single();
