@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +69,7 @@ const STRATEGY_LABELS: Record<DietStrategy, string> = {
   reverse_diet: "Reverse Diet",
 };
 
-const WeeklyPlanBar = React.forwardRef<HTMLDivElement, { plan: WeeklyPlan }>(function WeeklyPlanBar({ plan }, ref) {
+function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
   const { polarizedTargets, profile } = useAppStore();
   const isPolarized = polarizedTargets != null;
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
@@ -140,7 +140,7 @@ const WeeklyPlanBar = React.forwardRef<HTMLDivElement, { plan: WeeklyPlan }>(fun
       </CardContent>
     </Card>
   );
-});
+}
 
 const ClientDashboard = () => {
   const {
