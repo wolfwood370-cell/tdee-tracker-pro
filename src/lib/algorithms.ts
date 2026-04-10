@@ -603,3 +603,36 @@ export function calculateWeeklyPlan(opts: {
       };
   }
 }
+
+// ─── Goal ETA Prediction ─────────────────────────────────────
+export function calculateGoalETA(
+  currentWeight: number,
+  targetWeight: number | null,
+  weeklyRateKg: number,
+  goalType: GoalType
+): string | null {
+  if (targetWeight == null || goalType === 'maintenance') return null;
+  if (weeklyRateKg === 0) return null;
+
+  const weightDelta = targetWeight - currentWeight;
+
+  // Check if goal already reached
+  const isLoss = goalType === 'sustainable_loss' || goalType === 'aggressive_minicut';
+  if (isLoss && weightDelta >= 0) return "🎉 Obiettivo Raggiunto!";
+  if (goalType === 'weight_gain' && weightDelta <= 0) return "🎉 Obiettivo Raggiunto!";
+
+  const absRate = Math.abs(weeklyRateKg);
+  if (absRate < 0.01) return null; // rate too small to estimate
+
+  const totalWeeks = Math.abs(weightDelta) / absRate;
+  const weeks = Math.floor(totalWeeks);
+  const days = Math.round((totalWeeks - weeks) * 7);
+
+  // Italian plural handling
+  const wLabel = weeks === 1 ? 'settimana' : 'settimane';
+  const dLabel = days === 1 ? 'giorno' : 'giorni';
+
+  if (weeks === 0) return `~ ${days} ${dLabel} rimanenti`;
+  if (days === 0) return `~ ${weeks} ${wLabel} rimanenti`;
+  return `~ ${weeks} ${wLabel}, ${days} ${dLabel} rimanenti`;
+}

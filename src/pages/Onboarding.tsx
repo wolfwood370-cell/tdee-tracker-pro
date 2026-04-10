@@ -188,6 +188,7 @@ export default function Onboarding() {
 
   // Step 1 — Goal
   const [goalType, setGoalType] = useState("");
+  const [targetWeight, setTargetWeight] = useState("");
 
   // Step 2 — Training
   const [trainingDays, setTrainingDays] = useState("4");
@@ -255,7 +256,7 @@ export default function Onboarding() {
           activityLevel !== ""
         );
       case 1:
-        return goalType !== "";
+        return goalType !== "" && (goalType === 'maintenance' || targetWeight !== '');
       case 2:
         return trainingDays !== "";
       case 3:
@@ -302,7 +303,8 @@ export default function Onboarding() {
           protein_pref: proteinPref,
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
-          track_menstrual_cycle: trackMenstrualCycle,
+           track_menstrual_cycle: trackMenstrualCycle,
+           target_weight: targetWeight ? parseFloat(targetWeight) : null,
       };
       const { data, error } = await supabase
         .from("profiles")
@@ -542,25 +544,42 @@ export default function Onboarding() {
 
             {/* ─── Step 1: Goal ─── */}
             {step === 1 && (
-              <RadioGroup
-                value={goalType}
-                onValueChange={setGoalType}
-                className="space-y-2"
-              >
-                {GOAL_TYPES.map((g) => (
-                  <label
-                    key={g.value}
-                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                      goalType === g.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/40"
-                    }`}
-                  >
-                    <RadioGroupItem value={g.value} />
-                    <span className="text-sm text-foreground">{g.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
+              <>
+                <RadioGroup
+                  value={goalType}
+                  onValueChange={setGoalType}
+                  className="space-y-2"
+                >
+                  {GOAL_TYPES.map((g) => (
+                    <label
+                      key={g.value}
+                      className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                        goalType === g.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <RadioGroupItem value={g.value} />
+                      <span className="text-sm text-foreground">{g.label}</span>
+                    </label>
+                  ))}
+                </RadioGroup>
+                {goalType !== 'maintenance' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Peso Obiettivo (kg)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="30"
+                      max="300"
+                      placeholder="es. 72.0"
+                      value={targetWeight}
+                      onChange={(e) => setTargetWeight(e.target.value)}
+                      className="border-border"
+                    />
+                  </div>
+                )}
+              </>
             )}
 
             {/* ─── Step 2: Training ─── */}

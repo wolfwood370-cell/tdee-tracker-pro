@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +44,7 @@ import {
   extractLatestBIA,
   calculateLBM,
   checkCatabolismRisk,
+  calculateGoalETA,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
@@ -96,6 +97,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [editCalorieDist, setEditCalorieDist] = useState<string>("stable");
   const [editTrainingDays, setEditTrainingDays] = useState<string>("4");
   const [editActivityLevel, setEditActivityLevel] = useState<string>("1.2");
+  const [editTargetWeight, setEditTargetWeight] = useState<string>("");
   const [savingConfig, setSavingConfig] = useState(false);
 
   // Coach Note state
@@ -120,6 +122,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
+    setEditTargetWeight(((client.profile as Record<string, unknown>).target_weight as number | null)?.toString() ?? "");
     setCoachNote(client.profile.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
@@ -293,6 +296,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     try {
       const { error } = await supabase
         .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({
           goal_type: editGoalType,
           diet_strategy: editDietStrategy,
@@ -301,7 +305,8 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           calorie_distribution: editCalorieDist,
           training_days_per_week: parseInt(editTrainingDays),
           activity_level: parseFloat(editActivityLevel),
-        })
+          target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
+        } as any)
         .eq("id", client.id);
       if (error) throw error;
       // Update local client profile for immediate reactivity
@@ -313,6 +318,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         calorie_distribution: editCalorieDist,
         training_days_per_week: parseInt(editTrainingDays),
         activity_level: parseFloat(editActivityLevel),
+        target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
       });
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
@@ -406,11 +412,23 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
               {/* Targets Hero */}
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <Activity className="h-4 w-4 text-primary" />
                     <h3 className="font-display font-semibold text-foreground text-sm">
                       Target Calcolati
                     </h3>
+                    {(() => {
+                      const clientTargetWeight = (client.profile as Record<string, unknown>)?.target_weight as number | null;
+                      const eta = latestTrend != null
+                        ? calculateGoalETA(latestTrend, clientTargetWeight, dynamicRate, goalType)
+                        : null;
+                      return eta ? (
+                        <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                          <Hourglass className="h-3 w-3 mr-1" />
+                          ETA: {eta}
+                        </Badge>
+                      ) : null;
+                    })()}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
@@ -640,6 +658,21 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                         </SelectContent>
                       </Select>
                     </div>
+                    {editGoalType !== 'maintenance' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Peso Obiettivo (kg)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="30"
+                          max="300"
+                          value={editTargetWeight}
+                          onChange={(e) => setEditTargetWeight(e.target.value)}
+                          placeholder="es. 72.0"
+                          className="border-border"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Strategia Dietetica</Label>
                       <Select value={editDietStrategy} onValueChange={setEditDietStrategy}>

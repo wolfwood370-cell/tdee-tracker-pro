@@ -12,6 +12,7 @@ import {
   calculateLBM,
   calculateBaselineTDEE,
   checkCatabolismRisk,
+  calculateGoalETA,
   type SmoothedLog,
   type GoalType,
   type DietType,
@@ -81,6 +82,7 @@ interface CalculationSlice {
   tefDelta: number;
   userAge: number | null;
   activeMenstrualPhase: MenstrualPhase | null;
+  goalETA: string | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -113,6 +115,7 @@ const initialState = {
   tefDelta: 0,
   userAge: null,
   activeMenstrualPhase: null,
+  goalETA: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -194,7 +197,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // 1. Smooth weights via EMA
     const smoothed = calculateSmoothedWeight(dailyLogs);
-    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null, activeMenstrualPhase: null };
+    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null, activeMenstrualPhase: null, goalETA: null };
 
     // Extract BIA data from latest log
     const bia = extractLatestBIA(dailyLogs);
@@ -229,6 +232,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         : (profile?.goal_rate ?? -0.25);
 
       updates.dynamicGoalRate = dynamicRate;
+
+      // Goal ETA
+      const profileTargetWeight = (profile as Record<string, unknown>)?.target_weight as number | null;
+      if (latestWeight != null) {
+        updates.goalETA = calculateGoalETA(latestWeight, profileTargetWeight, dynamicRate, goalType);
+      }
 
       // Determine active menstrual phase from latest log
       const latestLogSorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());

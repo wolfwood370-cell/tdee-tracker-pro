@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -158,6 +158,7 @@ const ClientDashboard = () => {
     tefDelta,
     userAge,
     activeMenstrualPhase,
+    goalETA,
     setLogs,
   } = useAppStore();
 
@@ -324,9 +325,15 @@ const ClientDashboard = () => {
                 🛡️ Over-45
               </Badge>
             )}
-            {activeMenstrualPhase === 'luteal' && (
+             {activeMenstrualPhase === 'luteal' && (
               <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
                 🌸 Fase Luteale: +150 kcal
+              </Badge>
+            )}
+            {goalETA && (
+              <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                <Hourglass className="h-3 w-3 mr-1" />
+                ETA: {goalETA}
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">
