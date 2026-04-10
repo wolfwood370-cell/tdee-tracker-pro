@@ -311,18 +311,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         } as any)
         .eq("id", client.id);
       if (error) throw error;
-      // Refetch client data to update local state immutably
-      const { data: refreshed } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", client.id)
-        .single();
-      if (refreshed) {
-        // Update via spread — do NOT mutate client.profile directly
-        Object.keys(refreshed).forEach((k) => {
-          (client.profile as Record<string, unknown>)[k] = (refreshed as Record<string, unknown>)[k];
-        });
-      }
+      // Refetch not needed — local state already drives the UI
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
     } catch (e) {
@@ -341,7 +330,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         .update({ coach_note: coachNote || null })
         .eq("id", client.id);
       if (error) throw error;
-      client.profile = { ...client.profile, coach_note: coachNote || null };
+      // Note saved to DB — no local prop mutation needed
       toast({ title: "Nota salvata con successo ✓" });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
@@ -673,7 +662,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                         <SelectTrigger className="border-border"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="sustainable_loss">Perdita di peso sostenibile</SelectItem>
-                          <SelectItem value="aggressive_loss">Mini-cut aggressivo</SelectItem>
+                          <SelectItem value="aggressive_minicut">Mini-cut aggressivo</SelectItem>
                           <SelectItem value="maintenance">Mantenimento</SelectItem>
                           <SelectItem value="weight_gain">Aumento di peso</SelectItem>
                         </SelectContent>
