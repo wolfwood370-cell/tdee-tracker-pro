@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { CoachCopilotSection } from "@/components/CoachCopilotSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ResponsiveContainer,
