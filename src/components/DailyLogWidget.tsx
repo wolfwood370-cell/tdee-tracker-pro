@@ -187,10 +187,20 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
         {/* Left: Daily Log Form */}
         <Card className="glass-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <Scale className="h-4 w-4 text-primary" />
-              {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-display flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
+              </CardTitle>
+              <Button
+                size="sm"
+                onClick={() => setAiModalOpen(true)}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1" />
+                AI Smart Log
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Stai modificando un log esistente per questa data"
