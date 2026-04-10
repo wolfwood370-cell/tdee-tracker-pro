@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sparkles, RefreshCw, ShoppingCart, Utensils, Loader2, Check } from "lucide-react";
 import { generateMealPlanWithAI, type AIMealPlan } from "@/lib/aiService";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -47,6 +48,7 @@ export function AIMealPlanModal({
       setMealPlan(result);
     } catch (e) {
       console.error("AI meal plan error:", e);
+      toast.error("Errore nella generazione del piano pasti. Riprova.");
     } finally {
       setIsLoading(false);
     }
