@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -16,6 +17,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
+import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 
 interface MacroCardProps {
   title: string;
@@ -166,6 +168,7 @@ const ClientDashboard = () => {
   const [checkinDismissed, setCheckinDismissed] = useState(false);
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
+  const [mealPlanOpen, setMealPlanOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -432,8 +435,30 @@ const ClientDashboard = () => {
               <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
             </div>
           </div>
+
+          {/* AI Meal Plan Button */}
+          <div className="mt-4 pt-3 border-t border-border">
+            <Button
+              onClick={() => setMealPlanOpen(true)}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              <Sparkles className="h-3.5 w-3.5 mr-1" />
+              Idee Pasti e Spesa AI
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <AIMealPlanModal
+        open={mealPlanOpen}
+        onOpenChange={setMealPlanOpen}
+        targetCalories={calories}
+        protein={macros.protein}
+        carbs={macros.carbs}
+        fats={macros.fats}
+        dietType={profile?.diet_type ?? "balanced"}
+      />
 
       {/* Biofeedback Check-in */}
       {needsCheckin && !checkinDismissed && (

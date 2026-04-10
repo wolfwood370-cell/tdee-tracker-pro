@@ -80,6 +80,62 @@ export async function parseMealWithAI(input: string | File): Promise<AIParsedMea
   };
 }
 
+// --- AI Meal Plan Generator ---
+
+export interface AIMealPlan {
+  dailyMeals: { name: string; description: string; estimatedMacros: string }[];
+  groceryList: string[];
+}
+
+/**
+ * Mock AI meal plan generator. Returns dummy data after a simulated delay.
+ * Will be replaced with actual Lovable AI integration.
+ */
+export async function generateMealPlanWithAI(
+  targetCalories: number,
+  protein: number,
+  carbs: number,
+  fats: number,
+  dietType: string,
+): Promise<AIMealPlan> {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  const isKeto = dietType === "keto";
+  const isLowCarb = dietType === "low_carb";
+
+  if (isKeto) {
+    return {
+      dailyMeals: [
+        { name: "🥑 Colazione: Uova e Avocado", description: "3 uova strapazzate con mezzo avocado e formaggio cremoso", estimatedMacros: `${Math.round(targetCalories * 0.3)} kcal | ${Math.round(protein * 0.3)}P | ${Math.round(carbs * 0.2)}C | ${Math.round(fats * 0.35)}F` },
+        { name: "🥩 Pranzo: Salmone e Verdure al Burro", description: "Filetto di salmone con broccoli e cavolfiore saltati nel burro", estimatedMacros: `${Math.round(targetCalories * 0.4)} kcal | ${Math.round(protein * 0.4)}P | ${Math.round(carbs * 0.3)}C | ${Math.round(fats * 0.35)}F` },
+        { name: "🥗 Cena: Insalata di Pollo con Noci", description: "Petto di pollo grigliato su insalata con noci, olio EVO e parmigiano", estimatedMacros: `${Math.round(targetCalories * 0.3)} kcal | ${Math.round(protein * 0.3)}P | ${Math.round(carbs * 0.5)}C | ${Math.round(fats * 0.3)}F` },
+      ],
+      groceryList: ["Uova (12 pz)", "Avocado (3 pz)", "Salmone fresco (400g)", "Broccoli (500g)", "Petto di pollo (500g)", "Noci (100g)", "Olio EVO", "Parmigiano Reggiano", "Burro"],
+    };
+  }
+
+  if (isLowCarb) {
+    return {
+      dailyMeals: [
+        { name: "🍳 Colazione: Frittata di Verdure", description: "Frittata con zucchine, peperoni e formaggio di capra", estimatedMacros: `${Math.round(targetCalories * 0.3)} kcal | ${Math.round(protein * 0.3)}P | ${Math.round(carbs * 0.25)}C | ${Math.round(fats * 0.3)}F` },
+        { name: "🍗 Pranzo: Pollo alla Griglia e Verdure", description: "Petto di pollo con insalata mista, pomodorini e olio EVO", estimatedMacros: `${Math.round(targetCalories * 0.4)} kcal | ${Math.round(protein * 0.4)}P | ${Math.round(carbs * 0.35)}C | ${Math.round(fats * 0.35)}F` },
+        { name: "🐟 Cena: Merluzzo con Asparagi", description: "Merluzzo al forno con asparagi e limone", estimatedMacros: `${Math.round(targetCalories * 0.3)} kcal | ${Math.round(protein * 0.3)}P | ${Math.round(carbs * 0.4)}C | ${Math.round(fats * 0.35)}F` },
+      ],
+      groceryList: ["Uova (6 pz)", "Zucchine (3 pz)", "Peperoni (2 pz)", "Petto di pollo (600g)", "Merluzzo (400g)", "Asparagi (500g)", "Limoni (3 pz)", "Olio EVO"],
+    };
+  }
+
+  // Default balanced/standard plan
+  return {
+    dailyMeals: [
+      { name: "🥣 Colazione: Avena Proteica", description: `Porridge d'avena con whey, banana e miele. Perfetto per ${Math.round(protein * 0.25)}g di proteine al mattino.`, estimatedMacros: `${Math.round(targetCalories * 0.25)} kcal | ${Math.round(protein * 0.25)}P | ${Math.round(carbs * 0.3)}C | ${Math.round(fats * 0.2)}F` },
+      { name: "🍗 Pranzo: Pollo e Riso Basmati", description: "Petto di pollo grigliato con riso basmati, zucchine grigliate e olio EVO", estimatedMacros: `${Math.round(targetCalories * 0.4)} kcal | ${Math.round(protein * 0.4)}P | ${Math.round(carbs * 0.4)}C | ${Math.round(fats * 0.3)}F` },
+      { name: "🐟 Cena: Salmone e Patate Dolci", description: "Filetto di salmone al forno con patate dolci e spinaci saltati", estimatedMacros: `${Math.round(targetCalories * 0.35)} kcal | ${Math.round(protein * 0.35)}P | ${Math.round(carbs * 0.3)}C | ${Math.round(fats * 0.5)}F` },
+    ],
+    groceryList: ["Fiocchi d'avena (500g)", "Whey protein (1 misurino)", "Banane (6 pz)", "Petto di pollo (600g)", "Riso basmati (500g)", "Salmone fresco (400g)", "Patate dolci (500g)", "Spinaci (300g)", "Olio EVO", "Zucchine (3 pz)"],
+  };
+}
+
 /**
  * Mock Coach Copilot analysis. Returns a dummy AI-generated check-in summary.
  * Will be replaced with actual Lovable AI integration.
