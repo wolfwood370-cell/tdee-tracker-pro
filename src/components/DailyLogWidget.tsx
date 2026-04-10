@@ -181,6 +181,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   return (
     <div className="space-y-0">
+      <AIFoodLoggerModal open={aiModalOpen} onOpenChange={setAiModalOpen} logDate={logDate} />
       {/* Two-column layout: Log form + InBody accordion */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left: Daily Log Form */}
