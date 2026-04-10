@@ -97,6 +97,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const [editCalorieDist, setEditCalorieDist] = useState<string>("stable");
   const [editTrainingDays, setEditTrainingDays] = useState<string>("4");
   const [editActivityLevel, setEditActivityLevel] = useState<string>("1.2");
+  const [editTargetWeight, setEditTargetWeight] = useState<string>("");
   const [savingConfig, setSavingConfig] = useState(false);
 
   // Coach Note state
@@ -121,6 +122,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
+    setEditTargetWeight(((client.profile as Record<string, unknown>).target_weight as number | null)?.toString() ?? "");
     setCoachNote(client.profile.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
