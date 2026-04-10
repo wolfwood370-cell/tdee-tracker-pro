@@ -233,6 +233,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       updates.dynamicGoalRate = dynamicRate;
 
+      // Goal ETA
+      const profileTargetWeight = (profile as Record<string, unknown>)?.target_weight as number | null;
+      if (latestWeight != null) {
+        updates.goalETA = calculateGoalETA(latestWeight, profileTargetWeight, dynamicRate, goalType);
+      }
+
       // Determine active menstrual phase from latest log
       const latestLogSorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
       const trackCycle = (profile as Record<string, unknown>)?.track_menstrual_cycle === true;
