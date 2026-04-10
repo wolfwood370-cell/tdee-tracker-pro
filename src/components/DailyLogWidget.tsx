@@ -85,7 +85,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
       setVfa(existingLog.vfa?.toString() ?? "");
       setBmrInbody(existingLog.bmr_inbody?.toString() ?? "");
       setSegmental(segmentalFromLog(existingLog));
-      setMenstrualPhase((existingLog as Record<string, unknown>).menstrual_phase as string ?? "none");
+      setMenstrualPhase(existingLog.menstrual_phase ?? "none");
     } else {
       setWeight("");
       setCalories("");
@@ -270,7 +270,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
         </div>
 
         {/* Menstrual Cycle Phase (female only) */}
-        {(profile as Record<string, unknown>)?.track_menstrual_cycle === true && (
+        {profile?.track_menstrual_cycle === true && (
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">🌸 Fase del Ciclo</Label>
             <Select value={menstrualPhase} onValueChange={setMenstrualPhase}>
