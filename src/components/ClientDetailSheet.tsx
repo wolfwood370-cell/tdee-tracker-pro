@@ -176,8 +176,10 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const lbm = bia ? calculateLBM(bia, latestTrend ?? undefined) : null;
   const fatMass = bia?.bfm ?? (bia?.pbf != null && latestTrend ? latestTrend * bia.pbf / 100 : null);
 
+  const clientSex = client.profile.sex ?? null;
+
   const dynamicRate = latestTrend != null
-    ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm)
+    ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm, clientSex)
     : (client.profile.goal_rate ?? -0.25);
 
   // Menstrual phase from latest log
@@ -206,7 +208,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
   // Catabolism risk
   const catabolismRisk = tdee && targetCal
-    ? checkCatabolismRisk(tdee, targetCal, fatMass)
+    ? checkCatabolismRisk(tdee, targetCal, fatMass, latestTrend, clientSex)
     : null;
 
   // Build preview weekly plan for the selected strategy
