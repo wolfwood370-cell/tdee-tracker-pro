@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
-
+import { isUnderweightRisk } from "@/lib/algorithms";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ import {
   Settings,
   ShieldCheck,
   FileText,
+  AlertTriangle as AlertTriangleIcon,
 } from "lucide-react";
 
 const STEPS = [
@@ -577,6 +579,15 @@ export default function Onboarding() {
                       onChange={(e) => setTargetWeight(e.target.value)}
                       className="border-border"
                     />
+                    {targetWeight && heightCm && isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
+                      <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-2">
+                        <AlertTriangleIcon className="h-4 w-4" />
+                        <AlertTitle className="font-display font-semibold text-sm">⚠️ Attenzione Clinica</AlertTitle>
+                        <AlertDescription className="text-xs mt-1">
+                          Il peso obiettivo inserito porterebbe a un Indice di Massa Corporea (BMI) inferiore a 18.5, classificato come sottopeso severo. Procedere con questo obiettivo senza supervisione medica può comportare gravi rischi per la salute.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                 )}
               </>

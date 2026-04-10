@@ -45,6 +45,7 @@ import {
   calculateLBM,
   checkCatabolismRisk,
   calculateGoalETA,
+  isUnderweightRisk,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
@@ -408,6 +409,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   <AlertTitle className="font-display font-semibold">⚠️ Limite Grasso Essenziale Raggiunto</AlertTitle>
                   <AlertDescription className="text-sm mt-1">
                     Interrompere il deficit per prevenire danni ormonali ({clientSex === 'F' ? 'Amenorrea Ipotalamica' : 'Crollo Testosterone'}). Il grasso corporeo del cliente è al di sotto o al livello del grasso essenziale ({clientSex === 'F' ? '14%' : '5%'}). Passare a mantenimento immediatamente.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Underweight BMI Alert */}
+              {client.profile.target_weight && client.profile.height_cm && isUnderweightRisk(Number(client.profile.target_weight), Number(client.profile.height_cm)) && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold text-base">🚨 ALLARME DISTURBO ALIMENTARE / SOTTOPESO</AlertTitle>
+                  <AlertDescription className="text-sm mt-1">
+                    Questo cliente ha impostato un peso obiettivo che lo porterebbe a un BMI critico (&lt; 18.5). Si consiglia un intervento immediato tramite Note del Coach o la revisione della strategia.
                   </AlertDescription>
                 </Alert>
               )}
