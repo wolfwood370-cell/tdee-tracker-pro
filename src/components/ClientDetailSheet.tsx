@@ -437,6 +437,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </Alert>
               )}
 
+              {/* Coach Copilot AI Section */}
+              <CoachCopilotSection client={client} logs={logs} />
+
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
