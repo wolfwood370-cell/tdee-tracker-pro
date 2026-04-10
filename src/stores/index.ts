@@ -12,6 +12,7 @@ import {
   calculateLBM,
   calculateBaselineTDEE,
   checkCatabolismRisk,
+  calculateGoalETA,
   type SmoothedLog,
   type GoalType,
   type DietType,
@@ -81,6 +82,7 @@ interface CalculationSlice {
   tefDelta: number;
   userAge: number | null;
   activeMenstrualPhase: MenstrualPhase | null;
+  goalETA: string | null;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -113,6 +115,7 @@ const initialState = {
   tefDelta: 0,
   userAge: null,
   activeMenstrualPhase: null,
+  goalETA: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -194,7 +197,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // 1. Smooth weights via EMA
     const smoothed = calculateSmoothedWeight(dailyLogs);
-    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null, activeMenstrualPhase: null };
+    const updates: Partial<AppState> = { smoothedLogs: smoothed, usingBIAData: false, catabolismRisk: null, activeMenstrualPhase: null, goalETA: null };
 
     // Extract BIA data from latest log
     const bia = extractLatestBIA(dailyLogs);
