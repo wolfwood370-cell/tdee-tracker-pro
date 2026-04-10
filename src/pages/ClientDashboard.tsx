@@ -15,7 +15,7 @@ import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
-import { calculateMicronutrients, isUnderweightRisk } from "@/lib/algorithms";
+import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 
 interface MacroCardProps {
   title: string;
@@ -347,6 +347,12 @@ const ClientDashboard = () => {
               <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
                 <ShieldAlert className="h-3 w-3 mr-1" />
                 🛑 Avviso Medico: Target Sottopeso
+              </Badge>
+            )}
+            {profile?.target_weight && profile?.height_cm && !isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && isObesityRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
+              <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                <ShieldAlert className="h-3 w-3 mr-1" />
+                ⚠️ Avviso Medico: Target BMI ≥ 30
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">

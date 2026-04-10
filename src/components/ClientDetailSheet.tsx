@@ -46,6 +46,7 @@ import {
   checkCatabolismRisk,
   calculateGoalETA,
   isUnderweightRisk,
+  isObesityRisk,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
@@ -420,6 +421,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   <AlertTitle className="font-display font-semibold text-base">🚨 ALLARME DISTURBO ALIMENTARE / SOTTOPESO</AlertTitle>
                   <AlertDescription className="text-sm mt-1">
                     Questo cliente ha impostato un peso obiettivo che lo porterebbe a un BMI critico (&lt; 18.5). Si consiglia un intervento immediato tramite Note del Coach o la revisione della strategia.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Obesity BMI Alert */}
+              {client.profile.target_weight && client.profile.height_cm && !isUnderweightRisk(Number(client.profile.target_weight), Number(client.profile.height_cm)) && isObesityRisk(Number(client.profile.target_weight), Number(client.profile.height_cm)) && (
+                <Alert className="border-orange-500/50 bg-orange-500/10">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="font-display font-semibold text-base text-orange-700">⚠️ ALLARME BMI ELEVATO (≥ 30)</AlertTitle>
+                  <AlertDescription className="text-sm mt-1 text-orange-700/80">
+                    Il target di questo cliente rientra nella fascia di Obesità clinica. Se non si tratta di un atleta avanzato con estrema massa muscolare (Bulk), si consiglia di rivedere l'obiettivo per evitare sindrome metabolica.
                   </AlertDescription>
                 </Alert>
               )}

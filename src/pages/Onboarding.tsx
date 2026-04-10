@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
-import { isUnderweightRisk } from "@/lib/algorithms";
+import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -585,6 +585,15 @@ export default function Onboarding() {
                         <AlertTitle className="font-display font-semibold text-sm">⚠️ Attenzione Clinica</AlertTitle>
                         <AlertDescription className="text-xs mt-1">
                           Il peso obiettivo inserito porterebbe a un Indice di Massa Corporea (BMI) inferiore a 18.5, classificato come sottopeso severo. Procedere con questo obiettivo senza supervisione medica può comportare gravi rischi per la salute.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {targetWeight && heightCm && !isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && isObesityRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
+                      <Alert className="border-orange-500/50 bg-orange-500/10 mt-2">
+                        <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
+                        <AlertTitle className="font-display font-semibold text-sm text-orange-700">⚠️ Avviso Clinico</AlertTitle>
+                        <AlertDescription className="text-xs mt-1 text-orange-700/80">
+                          Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Sebbene il BMI non distingua tra massa muscolare e grassa, superare questa soglia richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
                         </AlertDescription>
                       </Alert>
                     )}
