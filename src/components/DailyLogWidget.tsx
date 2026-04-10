@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText } from "lucide-react";
+import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Sparkles } from "lucide-react";
+import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ interface DailyLogWidgetProps {
 
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
   const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
@@ -179,15 +181,26 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   return (
     <div className="space-y-0">
+      <AIFoodLoggerModal open={aiModalOpen} onOpenChange={setAiModalOpen} logDate={logDate} />
       {/* Two-column layout: Log form + InBody accordion */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left: Daily Log Form */}
         <Card className="glass-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <Scale className="h-4 w-4 text-primary" />
-              {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-display flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
+              </CardTitle>
+              <Button
+                size="sm"
+                onClick={() => setAiModalOpen(true)}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1" />
+                AI Smart Log
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               {isEditing
                 ? "Stai modificando un log esistente per questa data"
