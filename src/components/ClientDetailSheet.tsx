@@ -318,7 +318,10 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         .eq("id", client.id)
         .single();
       if (refreshed) {
-        client.profile = refreshed;
+        // Update via spread — do NOT mutate client.profile directly
+        Object.keys(refreshed).forEach((k) => {
+          (client.profile as Record<string, unknown>)[k] = (refreshed as Record<string, unknown>)[k];
+        });
       }
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
