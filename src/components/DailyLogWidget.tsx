@@ -49,6 +49,7 @@ interface DailyLogWidgetProps {
 
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
   const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
