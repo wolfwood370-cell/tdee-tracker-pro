@@ -15,7 +15,7 @@ import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
-import { calculateMicronutrients, isUnderweightRisk } from "@/lib/algorithms";
+import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 
 interface MacroCardProps {
   title: string;

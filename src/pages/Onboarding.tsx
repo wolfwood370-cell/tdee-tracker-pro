@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
-import { isUnderweightRisk } from "@/lib/algorithms";
+import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

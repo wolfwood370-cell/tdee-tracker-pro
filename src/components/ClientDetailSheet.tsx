@@ -46,6 +46,7 @@ import {
   checkCatabolismRisk,
   calculateGoalETA,
   isUnderweightRisk,
+  isObesityRisk,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
