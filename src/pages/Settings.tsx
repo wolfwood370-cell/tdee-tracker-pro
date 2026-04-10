@@ -321,6 +321,15 @@ export default function Settings() {
                   </AlertDescription>
                 </Alert>
               )}
+              {targetWeight && heightCm && !isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && isObesityRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
+                <Alert className="border-orange-500/50 bg-orange-500/10 mt-2">
+                  <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="font-display font-semibold text-sm text-orange-700">⚠️ Avviso Clinico</AlertTitle>
+                  <AlertDescription className="text-xs mt-1 text-orange-700/80">
+                    Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Sebbene il BMI non distingua tra massa muscolare e grassa, superare questa soglia richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
 

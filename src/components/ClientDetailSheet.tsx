@@ -425,6 +425,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </Alert>
               )}
 
+              {/* Obesity BMI Alert */}
+              {client.profile.target_weight && client.profile.height_cm && !isUnderweightRisk(Number(client.profile.target_weight), Number(client.profile.height_cm)) && isObesityRisk(Number(client.profile.target_weight), Number(client.profile.height_cm)) && (
+                <Alert className="border-orange-500/50 bg-orange-500/10">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="font-display font-semibold text-base text-orange-700">⚠️ ALLARME BMI ELEVATO (≥ 30)</AlertTitle>
+                  <AlertDescription className="text-sm mt-1 text-orange-700/80">
+                    Il target di questo cliente rientra nella fascia di Obesità clinica. Se non si tratta di un atleta avanzato con estrema massa muscolare (Bulk), si consiglia di rivedere l'obiettivo per evitare sindrome metabolica.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
