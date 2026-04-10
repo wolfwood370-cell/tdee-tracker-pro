@@ -242,9 +242,10 @@ const ClientDashboard = () => {
       typeof activityLevel === 'number' ? activityLevel : parseFloat(String(activityLevel)),
       latestWeight,
       latestTbw,
-      isTodayTraining
+      isTodayTraining,
+      profile?.sex ?? null,
     );
-  }, [calories, profile?.activity_level, latestWeight, latestTbw, isTodayTraining]);
+  }, [calories, profile?.activity_level, profile?.sex, latestWeight, latestTbw, isTodayTraining]);
 
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);

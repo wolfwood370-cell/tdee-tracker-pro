@@ -219,14 +219,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     // 2. TDEE: prefer adaptive (more accurate over time), BIA baseline as seed, Mifflin-St Jeor as last resort
     const phaseStart = profile?.created_at ?? null;
     const adaptiveTDEE = calculateAdaptiveTDEE(smoothed, 14, phaseStart);
-    const latestWeightForBaseline = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
-    const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier, latestWeightForBaseline ?? undefined, profileSex, profile?.height_cm ?? null, age);
+    const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+    const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier, latestWeight ?? undefined, profileSex, profile?.height_cm ?? null, age);
     const tdee = adaptiveTDEE ?? baselineTDEE;
 
     if (tdee != null) {
       updates.currentTDEE = tdee;
-
-      const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
 
       const goalType = (profile?.goal_type as GoalType) ?? 'sustainable_loss';
       const proteinPref = (profile?.protein_pref as ProteinPref) ?? 'moderate';
