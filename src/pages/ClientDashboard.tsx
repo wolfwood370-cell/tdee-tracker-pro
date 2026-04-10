@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -15,7 +15,7 @@ import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
-import { calculateMicronutrients } from "@/lib/algorithms";
+import { calculateMicronutrients, isUnderweightRisk } from "@/lib/algorithms";
 
 interface MacroCardProps {
   title: string;
@@ -341,6 +341,12 @@ const ClientDashboard = () => {
               >
                 <Hourglass className="h-3 w-3 mr-1" />
                 {goalETA.startsWith("Blocco Clinico") ? `⚠️ ${goalETA}` : `ETA: ${goalETA}`}
+              </Badge>
+            )}
+            {profile?.target_weight && profile?.height_cm && isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
+              <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
+                <ShieldAlert className="h-3 w-3 mr-1" />
+                🛑 Avviso Medico: Target Sottopeso
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">
