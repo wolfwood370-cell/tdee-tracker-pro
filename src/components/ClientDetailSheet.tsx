@@ -122,7 +122,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     setEditCalorieDist(client.profile.calorie_distribution ?? "stable");
     setEditTrainingDays(String(client.profile.training_days_per_week ?? 4));
     setEditActivityLevel(String(client.profile.activity_level ?? 1.2));
-    setEditTargetWeight(((client.profile as Record<string, unknown>).target_weight as number | null)?.toString() ?? "");
+    setEditTargetWeight(client.profile.target_weight?.toString() ?? "");
     setCoachNote(client.profile.coach_note ?? "");
 
     // Fetch daily metrics and biofeedback in parallel
@@ -182,9 +182,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
   // Menstrual phase from latest log
   const latestLogSorted = [...logs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
-  const clientTrackCycle = (client.profile as Record<string, unknown>)?.track_menstrual_cycle === true;
+  const clientTrackCycle = client.profile.track_menstrual_cycle === true;
   const clientMenstrualPhase = clientTrackCycle
-    ? ((latestLogSorted[0] as Record<string, unknown>)?.menstrual_phase as string | null) ?? null
+    ? (latestLogSorted[0]?.menstrual_phase ?? null)
     : null;
 
   // Age calculation
@@ -309,17 +309,15 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         } as any)
         .eq("id", client.id);
       if (error) throw error;
-      // Update local client profile for immediate reactivity
-      Object.assign(client.profile, {
-        goal_type: editGoalType,
-        diet_strategy: editDietStrategy,
-        diet_type: editDietType,
-        protein_pref: editProteinPref,
-        calorie_distribution: editCalorieDist,
-        training_days_per_week: parseInt(editTrainingDays),
-        activity_level: parseFloat(editActivityLevel),
-        target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
-      });
+      // Refetch client data to update local state immutably
+      const { data: refreshed } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", client.id)
+        .single();
+      if (refreshed) {
+        client.profile = refreshed;
+      }
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
     } catch (e) {
@@ -338,7 +336,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         .update({ coach_note: coachNote || null })
         .eq("id", client.id);
       if (error) throw error;
-      Object.assign(client.profile, { coach_note: coachNote || null });
+      client.profile = { ...client.profile, coach_note: coachNote || null };
       toast({ title: "Nota salvata con successo ✓" });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
@@ -418,7 +416,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                       Target Calcolati
                     </h3>
                     {(() => {
-                      const clientTargetWeight = (client.profile as Record<string, unknown>)?.target_weight as number | null;
+                      const clientTargetWeight = client.profile.target_weight ?? null;
                       const eta = latestTrend != null
                         ? calculateGoalETA(latestTrend, clientTargetWeight, dynamicRate, goalType)
                         : null;

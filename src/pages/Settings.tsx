@@ -67,7 +67,7 @@ const PROTEIN_PREFS = [
 ];
 
 export default function Settings() {
-  const { user, profile, setProfile, recalculateMetrics } = useAppStore();
+  const { user, profile, setProfile } = useAppStore();
 
   const [fullName, setFullName] = useState("");
   const [sex, setSex] = useState("not_set");
@@ -98,8 +98,8 @@ export default function Settings() {
       setCalorieDistribution(profile.calorie_distribution ?? "stable");
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
-      setTrackMenstrualCycle((profile as Record<string, unknown>).track_menstrual_cycle === true);
-      setTargetWeight((profile as Record<string, unknown>).target_weight?.toString() ?? "");
+      setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
+      setTargetWeight(profile.target_weight?.toString() ?? "");
     }
   }, [profile]);
 
@@ -156,7 +156,6 @@ export default function Settings() {
       if (error) throw error;
 
       setProfile(data);
-      recalculateMetrics();
       toast({ title: "Impostazioni salvate ✓", description: "I tuoi target sono stati aggiornati." });
     } catch (e) {
       console.error("Settings save error:", e);

@@ -61,8 +61,6 @@ export function useAuth() {
 
         if (profileData) {
           store.setProfile(profileData);
-          // Trigger recalculation after profile is loaded
-          useAppStore.getState().recalculateMetrics();
         }
       } catch (e) {
         console.error("Error loading session data:", e);
