@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bot, Sparkles, Copy, CheckCircle, AlertTriangle, TrendingUp, Meh, Flame } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { analyzeClientCheckIn, type AICheckInSummary } from "@/lib/aiService";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -22,7 +22,7 @@ const SENTIMENT_CONFIG = {
   positive: {
     label: "Positivo",
     icon: TrendingUp,
-    className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+    className: "bg-primary/10 text-primary border-primary/30",
   },
   neutral: {
     label: "Neutro",
@@ -32,7 +32,7 @@ const SENTIMENT_CONFIG = {
   negative: {
     label: "Negativo",
     icon: AlertTriangle,
-    className: "bg-orange-500/10 text-orange-600 border-orange-500/30",
+    className: "bg-destructive/10 text-destructive border-destructive/30",
   },
   burnout_risk: {
     label: "Rischio Burnout",
@@ -61,12 +61,8 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
       const result = await analyzeClientCheckIn(client.profile, last7);
       setAnalysis(result);
       setEditedReply(result.magicReplyDraft);
-    } catch {
-      toast({
-        title: "Errore AI",
-        description: "Impossibile analizzare i dati del cliente.",
-        variant: "destructive",
-      });
+    } catch (e) {
+      toast.error("Impossibile analizzare i dati del cliente. " + (e instanceof Error ? e.message : ""));
     } finally {
       setLoading(false);
     }
@@ -76,10 +72,10 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
     try {
       await navigator.clipboard.writeText(editedReply);
       setCopied(true);
-      toast({ title: "Messaggio copiato ✓" });
+      toast.success("Messaggio copiato ✓");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: "Errore", description: "Impossibile copiare.", variant: "destructive" });
+      toast.error("Impossibile copiare il messaggio.");
     }
   };
 
@@ -163,7 +159,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
                 >
                   {copied ? (
                     <>
-                      <CheckCircle className="h-3 w-3 text-emerald-500" />
+                      <CheckCircle className="h-3 w-3 text-primary" />
                       Copiato!
                     </>
                   ) : (

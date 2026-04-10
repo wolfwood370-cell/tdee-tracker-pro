@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,9 +38,10 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     setPhase("input");
     setTextInput("");
     setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setResult(null);
-  }, []);
+  }, [previewUrl]);
 
   const handleClose = (val: boolean) => {
     if (!val) resetState();
@@ -47,6 +49,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   };
 
   const handleFileSelect = (file: File) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -125,6 +128,9 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
             <Sparkles className="h-5 w-5 text-primary" />
             AI Smart Log
           </DialogTitle>
+          <DialogDescription className="text-xs">
+            Scansiona un piatto o descrivi cosa hai mangiato per calcolare i macronutrienti con l'AI
+          </DialogDescription>
         </DialogHeader>
 
         {phase === "input" && (
@@ -241,15 +247,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">kcal</p>
                 </div>
                 <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-blue-500">{result.protein}g</p>
+                  <p className="text-lg font-bold text-primary">{result.protein}g</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Proteine</p>
                 </div>
                 <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-amber-500">{result.carbs}g</p>
+                  <p className="text-lg font-bold text-accent-foreground">{result.carbs}g</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Carbs</p>
                 </div>
                 <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-rose-500">{result.fats}g</p>
+                  <p className="text-lg font-bold text-destructive">{result.fats}g</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Grassi</p>
                 </div>
               </div>
