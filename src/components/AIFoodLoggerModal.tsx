@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,9 +38,10 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     setPhase("input");
     setTextInput("");
     setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setResult(null);
-  }, []);
+  }, [previewUrl]);
 
   const handleClose = (val: boolean) => {
     if (!val) resetState();
@@ -47,6 +49,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   };
 
   const handleFileSelect = (file: File) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -125,6 +128,9 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
             <Sparkles className="h-5 w-5 text-primary" />
             AI Smart Log
           </DialogTitle>
+          <DialogDescription className="text-xs">
+            Scansiona un piatto o descrivi cosa hai mangiato per calcolare i macronutrienti con l'AI
+          </DialogDescription>
         </DialogHeader>
 
         {phase === "input" && (
