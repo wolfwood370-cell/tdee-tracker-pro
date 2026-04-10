@@ -658,6 +658,21 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                         </SelectContent>
                       </Select>
                     </div>
+                    {editGoalType !== 'maintenance' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Peso Obiettivo (kg)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="30"
+                          max="300"
+                          value={editTargetWeight}
+                          onChange={(e) => setEditTargetWeight(e.target.value)}
+                          placeholder="es. 72.0"
+                          className="border-border"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Strategia Dietetica</Label>
                       <Select value={editDietStrategy} onValueChange={setEditDietStrategy}>
