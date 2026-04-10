@@ -674,6 +674,9 @@ export function calculateGoalETA(
   if (isLoss && absRate < 0.05) return "Blocco Clinico (Grasso Essenziale Raggiunto)";
   if (absRate < 0.01) return null; // rate too small to estimate
 
+  // For weight_gain, ensure rate is positive
+  if (goalType === 'weight_gain' && weeklyRateKg <= 0) return null;
+
   const totalWeeks = Math.abs(weightDelta) / absRate;
   const weeks = Math.floor(totalWeeks);
   const days = Math.round((totalWeeks - weeks) * 7);
