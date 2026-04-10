@@ -22,7 +22,7 @@ const SENTIMENT_CONFIG = {
   positive: {
     label: "Positivo",
     icon: TrendingUp,
-    className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+    className: "bg-primary/10 text-primary border-primary/30",
   },
   neutral: {
     label: "Neutro",
@@ -32,7 +32,7 @@ const SENTIMENT_CONFIG = {
   negative: {
     label: "Negativo",
     icon: AlertTriangle,
-    className: "bg-orange-500/10 text-orange-600 border-orange-500/30",
+    className: "bg-destructive/10 text-destructive border-destructive/30",
   },
   burnout_risk: {
     label: "Rischio Burnout",
@@ -159,7 +159,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
                 >
                   {copied ? (
                     <>
-                      <CheckCircle className="h-3 w-3 text-emerald-500" />
+                      <CheckCircle className="h-3 w-3 text-primary" />
                       Copiato!
                     </>
                   ) : (
