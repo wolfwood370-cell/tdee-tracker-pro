@@ -15,8 +15,9 @@ interface AutoRegulationModalProps {
 }
 
 export function AutoRegulationModal({ open, onConfirm }: AutoRegulationModalProps) {
+  if (!open) return null;
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open onOpenChange={() => {}}>
       <DialogContent
         className="sm:max-w-md [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
