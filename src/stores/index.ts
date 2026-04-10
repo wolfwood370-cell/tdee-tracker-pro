@@ -203,11 +203,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     const bia = extractLatestBIA(dailyLogs);
     const activityMultiplier = profile?.activity_level ?? 1.2;
     const lbm = bia ? calculateLBM(bia) : null;
+    const profileSex = profile?.sex ?? null;
 
-    // 2. TDEE: prefer adaptive (more accurate over time), BIA baseline as seed
+    // Calculate age from birth_date (needed for Mifflin-St Jeor fallback)
+    let age: number | null = null;
+    if (profile?.birth_date) {
+      const bd = new Date(profile.birth_date);
+      const now = new Date();
+      age = now.getFullYear() - bd.getFullYear();
+      if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
+        age--;
+      }
+    }
+
+    // 2. TDEE: prefer adaptive (more accurate over time), BIA baseline as seed, Mifflin-St Jeor as last resort
     const phaseStart = profile?.created_at ?? null;
     const adaptiveTDEE = calculateAdaptiveTDEE(smoothed, 14, phaseStart);
-    const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier);
+    const latestWeightForBaseline = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+    const baselineTDEE = calculateBaselineTDEE(bia, activityMultiplier, latestWeightForBaseline ?? undefined, profileSex, profile?.height_cm ?? null, age);
     const tdee = adaptiveTDEE ?? baselineTDEE;
 
     if (tdee != null) {
@@ -228,7 +241,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const bfmKg = bia?.bfm ?? (bia?.pbf != null && latestWeight ? latestWeight * bia.pbf / 100 : null);
 
       const dynamicRate = latestWeight != null
-        ? calculateDynamicGoalRate(goalType, latestWeight, bfmKg, lbm)
+        ? calculateDynamicGoalRate(goalType, latestWeight, bfmKg, lbm, profileSex)
         : (profile?.goal_rate ?? -0.25);
 
       updates.dynamicGoalRate = dynamicRate;
@@ -254,16 +267,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         const useBIA = lbm != null && lbm > 0;
         updates.usingBIAData = useBIA;
 
-        // Calculate age from birth_date
-        let age: number | null = null;
-        if (profile?.birth_date) {
-          const bd = new Date(profile.birth_date);
-          const now = new Date();
-          age = now.getFullYear() - bd.getFullYear();
-          if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
-            age--;
-          }
-        }
         updates.userAge = age;
 
         const macroResult = calculateTargetMacros(
@@ -274,7 +277,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         updates.tefDelta = macroResult.tefDelta;
 
         // Catabolism risk check (reuse bfmKg computed above)
-        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg);
+        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg, latestWeight, profileSex);
 
         // Polarized distribution
         if (calorieDistribution === 'polarized') {

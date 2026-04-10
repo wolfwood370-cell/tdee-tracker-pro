@@ -176,8 +176,10 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   const lbm = bia ? calculateLBM(bia, latestTrend ?? undefined) : null;
   const fatMass = bia?.bfm ?? (bia?.pbf != null && latestTrend ? latestTrend * bia.pbf / 100 : null);
 
+  const clientSex = client.profile.sex ?? null;
+
   const dynamicRate = latestTrend != null
-    ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm)
+    ? calculateDynamicGoalRate(goalType, latestTrend, fatMass, lbm, clientSex)
     : (client.profile.goal_rate ?? -0.25);
 
   // Menstrual phase from latest log
@@ -206,7 +208,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
 
   // Catabolism risk
   const catabolismRisk = tdee && targetCal
-    ? checkCatabolismRisk(tdee, targetCal, fatMass)
+    ? checkCatabolismRisk(tdee, targetCal, fatMass, latestTrend, clientSex)
     : null;
 
   // Build preview weekly plan for the selected strategy
@@ -407,7 +409,17 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                 </Alert>
               )}
 
-              {/* Targets Hero */}
+              {/* Essential Fat Limit Alert */}
+              {catabolismRisk?.essentialFatReached && goalType !== 'maintenance' && goalType !== 'weight_gain' && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold">⚠️ Limite Grasso Essenziale Raggiunto</AlertTitle>
+                  <AlertDescription className="text-sm mt-1">
+                    Interrompere il deficit per prevenire danni ormonali ({clientSex === 'F' ? 'Amenorrea Ipotalamica' : 'Crollo Testosterone'}). Il grasso corporeo del cliente è al di sotto o al livello del grasso essenziale ({clientSex === 'F' ? '14%' : '5%'}). Passare a mantenimento immediatamente.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">

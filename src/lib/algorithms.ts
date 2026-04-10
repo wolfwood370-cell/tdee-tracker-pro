@@ -132,16 +132,18 @@ export function calculateAdaptiveTDEE(
   return Math.round(tdee);
 }
 
+// ─── Essential Fat Constants ─────────────────────────────────
+const ESSENTIAL_BF_MALE = 0.05;   // 5%
+const ESSENTIAL_BF_FEMALE = 0.14; // 14% — prevents Hypothalamic Amenorrhea
+
 // ─── Dynamic Goal Rate ───────────────────────────────────────
 /**
  * Calculate weekly weight change target (kg/week).
  *
  * IF BIA data is available (bfm & lbm):
- *   - max daily deficit = bfm * 69 (Alpert's rule)
+ *   - Subtract essential fat mass before applying Alpert's rule
+ *   - max daily deficit = disposable_fat_kg * 69
  *   - max weekly loss   = (max_daily_deficit * 7) / 7700
- *   - aggressive_minicut: 100% of Alpert's limit
- *   - sustainable_loss:    55% of Alpert's limit
- *   - weight_gain:        +0.3% of LBM per week
  *
  * FALLBACK (no BIA): standard bodyweight percentages.
  */
@@ -150,11 +152,17 @@ export function calculateDynamicGoalRate(
   trendWeight: number,
   bfmKg?: number | null,
   lbmKg?: number | null,
+  sex?: string | null,
 ): number {
   const hasBIA = bfmKg != null && bfmKg > 0 && lbmKg != null && lbmKg > 0;
 
   if (hasBIA) {
-    const maxDailyDeficit = bfmKg * 69;
+    // Subtract essential fat from disposable fat
+    const essentialPct = sex === 'F' ? ESSENTIAL_BF_FEMALE : ESSENTIAL_BF_MALE;
+    const essentialFatKg = trendWeight * essentialPct;
+    const disposableFatKg = Math.max(0, bfmKg - essentialFatKg);
+
+    const maxDailyDeficit = disposableFatKg * 69;
     const maxLossKgPerWeek = (maxDailyDeficit * 7) / KCAL_PER_KG;
 
     switch (goalType) {
@@ -273,24 +281,36 @@ export function calculateLBM(bia: BIAData, fallbackWeight?: number): number | nu
  * BIA-enhanced baseline TDEE calculation.
  * 1. bmr_inbody * activity → if available
  * 2. Katch-McArdle (370 + 21.6 * LBM) * activity → if LBM available
- * 3. null → fallback to adaptive TDEE
+ * 3. Mifflin-St Jeor (gender-specific) * activity → if weight/height/age available
+ * 4. null → fallback to adaptive TDEE
  */
 export function calculateBaselineTDEE(
   bia: BIAData | null,
   activityMultiplier: number,
-  fallbackWeight?: number
+  fallbackWeight?: number,
+  sex?: string | null,
+  heightCm?: number | null,
+  age?: number | null,
 ): number | null {
-  if (!bia) return null;
+  if (bia) {
+    // Priority 1: InBody BMR
+    if (bia.bmr_inbody != null && bia.bmr_inbody > 0) {
+      return Math.round(bia.bmr_inbody * activityMultiplier);
+    }
 
-  // Priority 1: InBody BMR
-  if (bia.bmr_inbody != null && bia.bmr_inbody > 0) {
-    return Math.round(bia.bmr_inbody * activityMultiplier);
+    // Priority 2: Katch-McArdle
+    const lbm = calculateLBM(bia, fallbackWeight);
+    if (lbm != null && lbm > 0) {
+      const bmr = 370 + 21.6 * lbm;
+      return Math.round(bmr * activityMultiplier);
+    }
   }
 
-  // Priority 2: Katch-McArdle
-  const lbm = calculateLBM(bia, fallbackWeight);
-  if (lbm != null && lbm > 0) {
-    const bmr = 370 + 21.6 * lbm;
+  // Priority 3: Mifflin-St Jeor (gender-specific)
+  const w = bia?.weight ?? fallbackWeight;
+  if (w != null && w > 0 && heightCm != null && heightCm > 0 && age != null && age > 0) {
+    const sexOffset = sex === 'F' ? -161 : 5;
+    const bmr = (10 * w) + (6.25 * heightCm) - (5 * age) + sexOffset;
     return Math.round(bmr * activityMultiplier);
   }
 
@@ -302,26 +322,36 @@ export interface CatabolismRiskResult {
   isAtRisk: boolean;
   maxSafeDeficit: number;
   currentDeficit: number;
+  essentialFatReached: boolean;
 }
 
 /**
  * Check catabolism risk using Alpert's fat transfer rule.
- * Max safe deficit = fatMassKg * 69 kcal/day.
+ * Subtracts essential fat before computing max safe deficit.
  */
 export function checkCatabolismRisk(
   currentTDEE: number,
   targetCalories: number,
-  fatMassKg: number | null
+  fatMassKg: number | null,
+  weightKg?: number | null,
+  sex?: string | null,
 ): CatabolismRiskResult {
   if (fatMassKg == null || fatMassKg <= 0) {
-    return { isAtRisk: false, maxSafeDeficit: 0, currentDeficit: 0 };
+    return { isAtRisk: false, maxSafeDeficit: 0, currentDeficit: 0, essentialFatReached: false };
   }
-  const maxSafeDeficit = fatMassKg * 69;
+
+  const essentialPct = sex === 'F' ? ESSENTIAL_BF_FEMALE : ESSENTIAL_BF_MALE;
+  const essentialFatKg = (weightKg ?? 0) * essentialPct;
+  const disposableFatKg = Math.max(0, fatMassKg - essentialFatKg);
+  const essentialFatReached = disposableFatKg <= 0;
+
+  const maxSafeDeficit = disposableFatKg * 69;
   const currentDeficit = currentTDEE - targetCalories;
   return {
-    isAtRisk: currentDeficit > maxSafeDeficit,
+    isAtRisk: currentDeficit > maxSafeDeficit && !essentialFatReached,
     maxSafeDeficit: Math.round(maxSafeDeficit),
     currentDeficit: Math.round(currentDeficit),
+    essentialFatReached,
   };
 }
 
@@ -338,7 +368,8 @@ export function calculateMicronutrients(
   activityLevel: number,
   weightKg?: number | null,
   tbw?: number | null,
-  isTrainingDay?: boolean
+  isTrainingDay?: boolean,
+  sex?: string | null,
 ): MicronutrientTargets {
   const fiberG = Math.max(25, Math.round((targetCalories / 1000) * 14));
 
@@ -363,7 +394,9 @@ export function calculateMicronutrients(
 
   if (tbw != null && weightKg != null && weightKg > 0) {
     const hydrationRatio = tbw / weightKg;
-    if (hydrationRatio < 0.55) {
+    // Gender-specific TBW threshold: women naturally hold less water %
+    const tbwThreshold = sex === 'F' ? 0.50 : 0.55;
+    if (hydrationRatio < tbwThreshold) {
       waterL += 0.5;
     }
   }
