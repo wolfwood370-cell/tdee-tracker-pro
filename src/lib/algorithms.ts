@@ -645,7 +645,6 @@ export function calculateGoalETA(
   goalType: GoalType
 ): string | null {
   if (targetWeight == null || goalType === 'maintenance') return null;
-  if (weeklyRateKg === 0) return null;
 
   const weightDelta = targetWeight - currentWeight;
 
@@ -654,7 +653,9 @@ export function calculateGoalETA(
   if (isLoss && weightDelta >= 0) return "🎉 Obiettivo Raggiunto!";
   if (goalType === 'weight_gain' && weightDelta <= 0) return "🎉 Obiettivo Raggiunto!";
 
+  // Clinical block: essential fat clamp has zeroed out the rate
   const absRate = Math.abs(weeklyRateKg);
+  if (isLoss && absRate < 0.05) return "Blocco Clinico (Grasso Essenziale Raggiunto)";
   if (absRate < 0.01) return null; // rate too small to estimate
 
   const totalWeeks = Math.abs(weightDelta) / absRate;
