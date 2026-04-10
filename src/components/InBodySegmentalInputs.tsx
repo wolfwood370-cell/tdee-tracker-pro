@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 /**
- * All 21 segmental InBody fields + tbw, keyed exactly
+ * All segmental InBody fields + tbw, keyed exactly
  * as the DB columns for easy spreading into upsert payloads.
  */
 export interface SegmentalFields {
@@ -39,11 +39,7 @@ export function segmentalToPayload(f: SegmentalFields): Record<string, number | 
   const out: Record<string, number | null> = {};
   for (const [key, val] of Object.entries(f)) {
     if (val !== "") {
-      out[key] = key.endsWith("_pct") || key === "tbw"
-        ? parseFloat(val)
-        : key.endsWith("_kg")
-          ? parseFloat(val)
-          : parseFloat(val);
+      out[key] = parseFloat(val);
     }
   }
   return out;
@@ -59,11 +55,11 @@ export function segmentalFromLog(log: Record<string, unknown>): SegmentalFields 
 }
 
 const SEGMENTS = [
-  { label: "Braccio Dx", kgKey: "ra_kg", pctKey: "ra_pct" },
-  { label: "Braccio Sx", kgKey: "la_kg", pctKey: "la_pct" },
-  { label: "Tronco",     kgKey: "tr_kg", pctKey: "tr_pct" },
-  { label: "Gamba Dx",   kgKey: "rl_kg", pctKey: "rl_pct" },
-  { label: "Gamba Sx",   kgKey: "ll_kg", pctKey: "ll_pct" },
+  { label: "Braccio Dx", kgKey: "ra_kg" },
+  { label: "Braccio Sx", kgKey: "la_kg" },
+  { label: "Tronco",     kgKey: "tr_kg" },
+  { label: "Gamba Dx",   kgKey: "rl_kg" },
+  { label: "Gamba Sx",   kgKey: "ll_kg" },
 ] as const;
 
 interface Props {
@@ -93,25 +89,22 @@ export function InBodySegmentalInputs({ fields, onChange }: Props) {
 
       <Separator />
 
-      {/* Lean & Fat Mass side by side on md+ */}
+      {/* Lean & Fat Mass side by side */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Lean Mass */}
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Magra</Label>
           <div className="rounded-lg border border-border p-3 space-y-2">
-            <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
+            <div className="grid grid-cols-[1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
               <span>Segmento</span>
               <span className="text-center">Kg</span>
-              <span className="text-center">%</span>
             </div>
             {SEGMENTS.map((seg) => {
               const kgKey = `lean_${seg.kgKey}` as keyof SegmentalFields;
-              const pctKey = `lean_${seg.pctKey}` as keyof SegmentalFields;
               return (
-                <div key={seg.label + "_lean"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
+                <div key={seg.label + "_lean"} className="grid grid-cols-[1fr_1fr] gap-2 items-center">
                   <span className="text-xs text-muted-foreground">{seg.label}</span>
                   <Input type="number" step="0.01" min="0" placeholder="Kg" value={fields[kgKey]} onChange={(e) => set(kgKey, e.target.value)} className="border-border h-8 text-xs" />
-                  <Input type="number" step="0.1" min="0" max="100" placeholder="%" value={fields[pctKey]} onChange={(e) => set(pctKey, e.target.value)} className="border-border h-8 text-xs" />
                 </div>
               );
             })}
@@ -122,19 +115,16 @@ export function InBodySegmentalInputs({ fields, onChange }: Props) {
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-foreground">Analisi Segmentale Massa Grassa</Label>
           <div className="rounded-lg border border-border p-3 space-y-2">
-            <div className="grid grid-cols-[1fr_1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
+            <div className="grid grid-cols-[1fr_1fr] gap-2 text-[10px] text-muted-foreground font-medium">
               <span>Segmento</span>
               <span className="text-center">Kg</span>
-              <span className="text-center">%</span>
             </div>
             {SEGMENTS.map((seg) => {
               const kgKey = `fat_${seg.kgKey}` as keyof SegmentalFields;
-              const pctKey = `fat_${seg.pctKey}` as keyof SegmentalFields;
               return (
-                <div key={seg.label + "_fat"} className="grid grid-cols-[1fr_1fr_1fr] gap-2 items-center">
+                <div key={seg.label + "_fat"} className="grid grid-cols-[1fr_1fr] gap-2 items-center">
                   <span className="text-xs text-muted-foreground">{seg.label}</span>
                   <Input type="number" step="0.01" min="0" placeholder="Kg" value={fields[kgKey]} onChange={(e) => set(kgKey, e.target.value)} className="border-border h-8 text-xs" />
-                  <Input type="number" step="0.1" min="0" max="100" placeholder="%" value={fields[pctKey]} onChange={(e) => set(pctKey, e.target.value)} className="border-border h-8 text-xs" />
                 </div>
               );
             })}
