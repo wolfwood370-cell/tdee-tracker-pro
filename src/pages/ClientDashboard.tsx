@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -16,6 +19,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
+import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 
 interface MacroCardProps {
   title: string;
