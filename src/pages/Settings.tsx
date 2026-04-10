@@ -83,6 +83,7 @@ export default function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
+  const [targetWeight, setTargetWeight] = useState("");
 
   useEffect(() => {
     if (profile) {
@@ -98,6 +99,7 @@ export default function Settings() {
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
       setTrackMenstrualCycle((profile as Record<string, unknown>).track_menstrual_cycle === true);
+      setTargetWeight((profile as Record<string, unknown>).target_weight?.toString() ?? "");
     }
   }, [profile]);
 
@@ -140,7 +142,8 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
-          track_menstrual_cycle: trackMenstrualCycle,
+           track_menstrual_cycle: trackMenstrualCycle,
+           target_weight: targetWeight ? parseFloat(targetWeight) : null,
       };
       const { data, error } = await supabase
         .from("profiles")
@@ -292,6 +295,25 @@ export default function Settings() {
               ))}
             </RadioGroup>
           </div>
+
+          {/* Target Weight */}
+          {goalType !== 'maintenance' && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                Peso Obiettivo (kg)
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                min="30"
+                max="300"
+                value={targetWeight}
+                onChange={(e) => setTargetWeight(e.target.value)}
+                placeholder="es. 72.0"
+                className="border-border"
+              />
+            </div>
+          )}
 
           {/* Diet Type */}
           <div className="space-y-2">
