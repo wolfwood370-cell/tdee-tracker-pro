@@ -178,171 +178,181 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   };
 
   return (
-    <Card className="glass-card border-border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-display flex items-center gap-2">
-          <Scale className="h-4 w-4 text-primary" />
-          {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          {isEditing
-            ? "Stai modificando un log esistente per questa data"
-            : "Inserisci peso e calorie per la giornata selezionata"}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Date Picker */}
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Data</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal border-border",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "d MMMM yyyy", { locale: it }) : "Seleziona data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && handleDateChange(d)}
-                disabled={(d) => d > new Date()}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+    <div className="space-y-0">
+      {/* Two-column layout: Log form + InBody accordion */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left: Daily Log Form */}
+        <Card className="glass-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-display flex items-center gap-2">
+              <Scale className="h-4 w-4 text-primary" />
+              {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {isEditing
+                ? "Stai modificando un log esistente per questa data"
+                : "Inserisci peso e calorie per la giornata selezionata"}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Date Picker */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Data</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal border-border",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "d MMMM yyyy", { locale: it }) : "Seleziona data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => d && handleDateChange(d)}
+                    disabled={(d) => d > new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-        {/* Weight, Calories & Steps */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
-              <Scale className="h-3 w-3" /> Peso (kg)
-            </Label>
-            <Input
-              id="weight"
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder="es. 78.5"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="border-border"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="calories" className="text-xs text-muted-foreground flex items-center gap-1">
-              <Flame className="h-3 w-3" /> Calorie (kcal)
-            </Label>
-            <Input
-              id="calories"
-              type="number"
-              step="1"
-              min="0"
-              placeholder="es. 2200"
-              value={calories}
-              onChange={(e) => setCalories(e.target.value)}
-              className="border-border"
-            />
-          </div>
-          <div className="col-span-2 md:col-span-1 space-y-1.5">
-            <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
-              <Footprints className="h-3 w-3" /> Passi Giornalieri
-            </Label>
-            <Input
-              id="steps"
-              type="number"
-              step="1"
-              min="0"
-              placeholder="es. 8000"
-              value={steps}
-              onChange={(e) => setSteps(e.target.value)}
-              className="border-border"
-            />
-          </div>
-        </div>
-
-        {/* Menstrual Cycle Phase (female only) */}
-        {profile?.track_menstrual_cycle === true && (
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">🌸 Fase del Ciclo</Label>
-            <Select value={menstrualPhase} onValueChange={setMenstrualPhase}>
-              <SelectTrigger className="border-border">
-                <SelectValue placeholder="Nessuna specifica" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nessuna specifica</SelectItem>
-                <SelectItem value="menstruation">Mestruazioni</SelectItem>
-                <SelectItem value="follicular">Follicolare</SelectItem>
-                <SelectItem value="ovulation">Ovulazione</SelectItem>
-                <SelectItem value="luteal">Luteale / Pre-ciclo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* InBody BIA Accordion */}
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="inbody" className="border-border">
-            <AccordionTrigger className="text-sm py-2 hover:no-underline">
-              <span className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5 text-primary" />
-                Aggiungi dati InBody (Opzionale)
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Massa Muscolare (kg)</Label>
-                  <Input type="number" step="0.1" min="0" placeholder="es. 32.5" value={smm} onChange={(e) => setSmm(e.target.value)} className="border-border" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Massa Grassa (kg)</Label>
-                  <Input type="number" step="0.1" min="0" placeholder="es. 15.2" value={bfm} onChange={(e) => setBfm(e.target.value)} className="border-border" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">% Massa Grassa</Label>
-                  <Input type="number" step="0.1" min="0" max="100" placeholder="es. 18.5" value={pbf} onChange={(e) => setPbf(e.target.value)} className="border-border" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Grasso Viscerale</Label>
-                  <Input type="number" step="1" min="0" placeholder="es. 8" value={vfa} onChange={(e) => setVfa(e.target.value)} className="border-border" />
-                </div>
-                <div className="col-span-2 space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Metabolismo Basale InBody (kcal)</Label>
-                  <Input type="number" step="1" min="0" placeholder="es. 1650" value={bmrInbody} onChange={(e) => setBmrInbody(e.target.value)} className="border-border" />
-                </div>
+            {/* Weight, Calories & Steps */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Scale className="h-3 w-3" /> Peso (kg)
+                </Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="es. 78.5"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="border-border"
+                />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="calories" className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Flame className="h-3 w-3" /> Calorie (kcal)
+                </Label>
+                <Input
+                  id="calories"
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="es. 2200"
+                  value={calories}
+                  onChange={(e) => setCalories(e.target.value)}
+                  className="border-border"
+                />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Footprints className="h-3 w-3" /> Passi Giornalieri
+                </Label>
+                <Input
+                  id="steps"
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="es. 8000"
+                  value={steps}
+                  onChange={(e) => setSteps(e.target.value)}
+                  className="border-border"
+                />
+              </div>
+            </div>
 
-              {/* Segmental Analysis */}
-              <InBodySegmentalInputs fields={segmental} onChange={setSegmental} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            {/* Menstrual Cycle Phase (female only) */}
+            {profile?.track_menstrual_cycle === true && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">🌸 Fase del Ciclo</Label>
+                <Select value={menstrualPhase} onValueChange={setMenstrualPhase}>
+                  <SelectTrigger className="border-border">
+                    <SelectValue placeholder="Nessuna specifica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nessuna specifica</SelectItem>
+                    <SelectItem value="menstruation">Mestruazioni</SelectItem>
+                    <SelectItem value="follicular">Follicolare</SelectItem>
+                    <SelectItem value="ovulation">Ovulazione</SelectItem>
+                    <SelectItem value="luteal">Luteale / Pre-ciclo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-        {/* Submit */}
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || (!weight && !calories && !steps)}
-          className="w-full"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Salvataggio...
-            </>
-          ) : (
-            isEditing ? "Aggiorna Log" : "Salva Log"
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+            {/* Submit */}
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || (!weight && !calories && !steps)}
+              className="w-full"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvataggio...
+                </>
+              ) : (
+                isEditing ? "Aggiorna Log" : "Salva Log"
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Right: InBody Data */}
+        <Card className="glass-card border-border">
+          <CardContent className="pt-6 space-y-4">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="inbody" className="border-border">
+                <AccordionTrigger className="text-sm py-2 hover:no-underline">
+                  <span className="flex items-center gap-2">
+                    <FileText className="h-3.5 w-3.5 text-primary" />
+                    Aggiungi dati InBody (Opzionale)
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Massa Muscolare (kg)</Label>
+                      <Input type="number" step="0.1" min="0" placeholder="es. 32.5" value={smm} onChange={(e) => setSmm(e.target.value)} className="border-border" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Massa Grassa (kg)</Label>
+                      <Input type="number" step="0.1" min="0" placeholder="es. 15.2" value={bfm} onChange={(e) => setBfm(e.target.value)} className="border-border" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">% Massa Grassa</Label>
+                      <Input type="number" step="0.1" min="0" max="100" placeholder="es. 18.5" value={pbf} onChange={(e) => setPbf(e.target.value)} className="border-border" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Grasso Viscerale</Label>
+                      <Input type="number" step="1" min="0" placeholder="es. 8" value={vfa} onChange={(e) => setVfa(e.target.value)} className="border-border" />
+                    </div>
+                    <div className="col-span-2 space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Metabolismo Basale InBody (kcal)</Label>
+                      <Input type="number" step="1" min="0" placeholder="es. 1650" value={bmrInbody} onChange={(e) => setBmrInbody(e.target.value)} className="border-border" />
+                    </div>
+                  </div>
+
+                  {/* Segmental Analysis */}
+                  <InBodySegmentalInputs fields={segmental} onChange={setSegmental} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
