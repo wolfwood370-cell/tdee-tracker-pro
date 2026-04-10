@@ -311,6 +311,15 @@ export default function Settings() {
                 placeholder="es. 72.0"
                 className="border-border"
               />
+              {targetWeight && heightCm && isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-2">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold text-sm">⚠️ Attenzione Clinica</AlertTitle>
+                  <AlertDescription className="text-xs mt-1">
+                    Il peso obiettivo inserito porterebbe a un Indice di Massa Corporea (BMI) inferiore a 18.5, classificato come sottopeso severo. Procedere con questo obiettivo senza supervisione medica può comportare gravi rischi per la salute.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
 

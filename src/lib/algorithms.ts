@@ -637,6 +637,17 @@ export function calculateWeeklyPlan(opts: {
   }
 }
 
+// ─── BMI Utilities ───────────────────────────────────────────
+export function calculateBMI(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
+}
+
+export function isUnderweightRisk(weightKg: number, heightCm: number): boolean {
+  if (weightKg <= 0 || heightCm <= 0) return false;
+  return calculateBMI(weightKg, heightCm) < 18.5;
+}
+
 // ─── Goal ETA Prediction ─────────────────────────────────────
 export function calculateGoalETA(
   currentWeight: number,
