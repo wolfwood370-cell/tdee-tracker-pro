@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN target_weight numeric NULL;

@@ -201,6 +201,7 @@ export type Database = {
           manual_protein: number | null
           protein_pref: string
           sex: string | null
+          target_weight: number | null
           track_menstrual_cycle: boolean
           training_days_per_week: number
           training_schedule: Json
@@ -225,6 +226,7 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          target_weight?: number | null
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
@@ -249,6 +251,7 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          target_weight?: number | null
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
