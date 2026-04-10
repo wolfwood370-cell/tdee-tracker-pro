@@ -168,6 +168,7 @@ const ClientDashboard = () => {
   const [checkinDismissed, setCheckinDismissed] = useState(false);
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
+  const [mealPlanOpen, setMealPlanOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
