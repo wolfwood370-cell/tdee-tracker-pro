@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { CoachCopilotSection } from "@/components/CoachCopilotSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ResponsiveContainer,
@@ -435,6 +436,9 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                   </AlertDescription>
                 </Alert>
               )}
+
+              {/* Coach Copilot AI Section */}
+              <CoachCopilotSection client={client} logs={logs} />
 
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
