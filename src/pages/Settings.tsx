@@ -3,7 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
-
+import { isUnderweightRisk } from "@/lib/algorithms";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
