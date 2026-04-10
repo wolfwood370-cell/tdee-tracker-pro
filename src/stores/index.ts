@@ -241,7 +241,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const bfmKg = bia?.bfm ?? (bia?.pbf != null && latestWeight ? latestWeight * bia.pbf / 100 : null);
 
       const dynamicRate = latestWeight != null
-        ? calculateDynamicGoalRate(goalType, latestWeight, bfmKg, lbm)
+        ? calculateDynamicGoalRate(goalType, latestWeight, bfmKg, lbm, profileSex)
         : (profile?.goal_rate ?? -0.25);
 
       updates.dynamicGoalRate = dynamicRate;
@@ -267,16 +267,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         const useBIA = lbm != null && lbm > 0;
         updates.usingBIAData = useBIA;
 
-        // Calculate age from birth_date
-        let age: number | null = null;
-        if (profile?.birth_date) {
-          const bd = new Date(profile.birth_date);
-          const now = new Date();
-          age = now.getFullYear() - bd.getFullYear();
-          if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
-            age--;
-          }
-        }
         updates.userAge = age;
 
         const macroResult = calculateTargetMacros(
@@ -287,7 +277,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         updates.tefDelta = macroResult.tefDelta;
 
         // Catabolism risk check (reuse bfmKg computed above)
-        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg);
+        updates.catabolismRisk = checkCatabolismRisk(tdee, targetCal, bfmKg, latestWeight, profileSex);
 
         // Polarized distribution
         if (calorieDistribution === 'polarized') {
