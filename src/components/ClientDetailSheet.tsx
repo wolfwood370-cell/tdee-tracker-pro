@@ -296,6 +296,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
     try {
       const { error } = await supabase
         .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({
           goal_type: editGoalType,
           diet_strategy: editDietStrategy,
@@ -305,7 +306,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           training_days_per_week: parseInt(editTrainingDays),
           activity_level: parseFloat(editActivityLevel),
           target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
-        } as Record<string, unknown>)
+        } as any)
         .eq("id", client.id);
       if (error) throw error;
       // Update local client profile for immediate reactivity
