@@ -4,8 +4,6 @@ import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
