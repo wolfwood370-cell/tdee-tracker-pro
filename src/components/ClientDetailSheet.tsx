@@ -304,7 +304,8 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
           calorie_distribution: editCalorieDist,
           training_days_per_week: parseInt(editTrainingDays),
           activity_level: parseFloat(editActivityLevel),
-        })
+          target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
+        } as Record<string, unknown>)
         .eq("id", client.id);
       if (error) throw error;
       // Update local client profile for immediate reactivity
@@ -316,6 +317,7 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
         calorie_distribution: editCalorieDist,
         training_days_per_week: parseInt(editTrainingDays),
         activity_level: parseFloat(editActivityLevel),
+        target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
       });
       setSelectedStrategy(editDietStrategy as DietStrategy);
       toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
