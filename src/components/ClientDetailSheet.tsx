@@ -18,7 +18,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +44,7 @@ import {
   extractLatestBIA,
   calculateLBM,
   checkCatabolismRisk,
+  calculateGoalETA,
   type DietStrategy,
   type GoalType,
   type ProteinPref,
@@ -406,11 +407,23 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
               {/* Targets Hero */}
               <Card className="glass-card border-border">
                 <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <Activity className="h-4 w-4 text-primary" />
                     <h3 className="font-display font-semibold text-foreground text-sm">
                       Target Calcolati
                     </h3>
+                    {(() => {
+                      const clientTargetWeight = (client.profile as Record<string, unknown>)?.target_weight as number | null;
+                      const eta = latestTrend != null
+                        ? calculateGoalETA(latestTrend, clientTargetWeight, dynamicRate, goalType)
+                        : null;
+                      return eta ? (
+                        <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                          <Hourglass className="h-3 w-3 mr-1" />
+                          ETA: {eta}
+                        </Badge>
+                      ) : null;
+                    })()}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
