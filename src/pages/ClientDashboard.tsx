@@ -332,9 +332,15 @@ const ClientDashboard = () => {
               </Badge>
             )}
             {goalETA && (
-              <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+              <Badge
+                variant={goalETA.startsWith("Blocco Clinico") ? "destructive" : "secondary"}
+                className={goalETA.startsWith("Blocco Clinico")
+                  ? "text-xs bg-red-500/10 text-red-600 border-red-500/30"
+                  : "text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                }
+              >
                 <Hourglass className="h-3 w-3 mr-1" />
-                ETA: {goalETA}
+                {goalETA.startsWith("Blocco Clinico") ? `⚠️ ${goalETA}` : `ETA: ${goalETA}`}
               </Badge>
             )}
             <span className="ml-auto text-xs text-muted-foreground">

@@ -435,12 +435,20 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
                       const eta = latestTrend != null
                         ? calculateGoalETA(latestTrend, clientTargetWeight, dynamicRate, goalType)
                         : null;
-                      return eta ? (
-                        <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                      if (!eta) return null;
+                      const isClinicalBlock = eta.startsWith("Blocco Clinico");
+                      return (
+                        <Badge
+                          variant={isClinicalBlock ? "destructive" : "secondary"}
+                          className={isClinicalBlock
+                            ? "text-xs bg-red-500/10 text-red-600 border-red-500/30"
+                            : "text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                          }
+                        >
                           <Hourglass className="h-3 w-3 mr-1" />
-                          ETA: {eta}
+                          {isClinicalBlock ? `⚠️ ${eta}` : `ETA: ${eta}`}
                         </Badge>
-                      ) : null;
+                      );
                     })()}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
