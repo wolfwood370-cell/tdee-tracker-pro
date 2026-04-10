@@ -143,7 +143,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().recalculateMetrics();
   },
   addLog: (log) => {
-    set((state) => ({ dailyLogs: [log, ...state.dailyLogs] }));
+    set((state) => {
+      const updated = [...state.dailyLogs, log].sort(
+        (a, b) => new Date(a.log_date).getTime() - new Date(b.log_date).getTime()
+      );
+      return { dailyLogs: updated };
+    });
     get().recalculateMetrics();
   },
   updateLog: (log) => {
@@ -167,7 +172,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   recalculateMetrics: () => {
     const { dailyLogs, profile } = get();
 
-    // --- Manual Override: bypass all calculations ---
+    // --- Manual Override: bypass macro calculations but keep other fields ---
     if (profile?.manual_override_active) {
       const manualCal = profile.manual_calories;
       const manualP = profile.manual_protein;
@@ -176,6 +181,31 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       const smoothed = calculateSmoothedWeight(dailyLogs);
       const tdee = calculateAdaptiveTDEE(smoothed, 14);
+
+      // Calculate age for display
+      let age: number | null = null;
+      if (profile.birth_date) {
+        const bd = new Date(profile.birth_date);
+        const now = new Date();
+        age = now.getFullYear() - bd.getFullYear();
+        if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) {
+          age--;
+        }
+      }
+
+      // Menstrual phase
+      const latestLogSorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+      const trackCycle = profile.track_menstrual_cycle === true;
+      const menstrualPhase: MenstrualPhase | null = trackCycle
+        ? (latestLogSorted[0]?.menstrual_phase as MenstrualPhase | null) ?? null
+        : null;
+
+      // Goal ETA
+      const latestWeight = [...smoothed].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+      const goalType = (profile.goal_type as GoalType) ?? 'sustainable_loss';
+      const goalETA = latestWeight != null
+        ? calculateGoalETA(latestWeight, profile.target_weight ?? null, profile.goal_rate ?? -0.25, goalType)
+        : null;
 
       set({
         smoothedLogs: smoothed,
@@ -191,6 +221,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         weeklyPlan: null,
         usingBIAData: false,
         catabolismRisk: null,
+        userAge: age,
+        activeMenstrualPhase: menstrualPhase,
+        goalETA,
       });
       return;
     }
