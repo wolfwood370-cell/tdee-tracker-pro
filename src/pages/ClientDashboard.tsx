@@ -435,8 +435,30 @@ const ClientDashboard = () => {
               <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
             </div>
           </div>
+
+          {/* AI Meal Plan Button */}
+          <div className="mt-4 pt-3 border-t border-border">
+            <Button
+              onClick={() => setMealPlanOpen(true)}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              <Sparkles className="h-3.5 w-3.5 mr-1" />
+              Idee Pasti e Spesa AI
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <AIMealPlanModal
+        open={mealPlanOpen}
+        onOpenChange={setMealPlanOpen}
+        targetCalories={calories}
+        protein={macros.protein}
+        carbs={macros.carbs}
+        fats={macros.fats}
+        dietType={profile?.diet_type ?? "balanced"}
+      />
 
       {/* Biofeedback Check-in */}
       {needsCheckin && !checkinDismissed && (
