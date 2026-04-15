@@ -85,9 +85,10 @@ interface ClientDetailSheetProps {
     displayName: string;
     profile: Tables<"profiles">;
   } | null;
+  onClientDeleted?: () => void;
 }
 
-export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSheetProps) {
+export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted }: ClientDetailSheetProps) {
   const [logs, setLogs] = useState<Tables<"daily_metrics">[]>([]);
   const [smoothed, setSmoothed] = useState<SmoothedLog[]>([]);
   const [tdee, setTdee] = useState<number | null>(null);
@@ -118,6 +119,27 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   // Coach Note state
   const [coachNote, setCoachNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClient = useCallback(async () => {
+    if (!client) return;
+    setDeleting(true);
+    toast({ title: "Eliminazione in corso…", description: `Eliminazione dell'account di ${client.displayName}` });
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { userId: client.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Cliente eliminato ✓", description: `${client.displayName} è stato eliminato permanentemente.` });
+      onOpenChange(false);
+      onClientDeleted?.();
+    } catch (e) {
+      toast({ title: "Errore eliminazione", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
+  }, [client, onOpenChange, onClientDeleted]);
 
   useEffect(() => {
     if (!client || !open) return;
