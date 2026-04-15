@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { CoachCopilotSection } from "@/components/CoachCopilotSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -19,7 +19,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,6 +35,18 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { exportClientCSV } from "@/lib/csvExport";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
 import {
   calculateSmoothedWeight,
   calculateAdaptiveTDEE,
@@ -73,9 +85,10 @@ interface ClientDetailSheetProps {
     displayName: string;
     profile: Tables<"profiles">;
   } | null;
+  onClientDeleted?: () => void;
 }
 
-export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSheetProps) {
+export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted }: ClientDetailSheetProps) {
   const [logs, setLogs] = useState<Tables<"daily_metrics">[]>([]);
   const [smoothed, setSmoothed] = useState<SmoothedLog[]>([]);
   const [tdee, setTdee] = useState<number | null>(null);
@@ -106,6 +119,27 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
   // Coach Note state
   const [coachNote, setCoachNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClient = useCallback(async () => {
+    if (!client) return;
+    setDeleting(true);
+    toast({ title: "Eliminazione in corso…", description: `Eliminazione dell'account di ${client.displayName}` });
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { userId: client.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Cliente eliminato ✓", description: `${client.displayName} è stato eliminato permanentemente.` });
+      onOpenChange(false);
+      onClientDeleted?.();
+    } catch (e) {
+      toast({ title: "Errore eliminazione", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
+  }, [client, onOpenChange, onClientDeleted]);
 
   useEffect(() => {
     if (!client || !open) return;
@@ -985,6 +1019,39 @@ export function ClientDetailSheet({ open, onOpenChange, client }: ClientDetailSh
               })()}
             </>
           )}
+
+          {/* Danger Zone: Delete Client */}
+          <Separator className="my-4" />
+          <div className="pt-2 pb-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full" disabled={deleting}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  🗑️ Elimina Cliente
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione è irreversibile. Eliminerà permanentemente l'account del cliente,
+                    tutto il suo storico del peso, i macro, i check-in e le foto. Non può essere annullata.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteClient}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={deleting}
+                  >
+                    {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Sì, Elimina Definitivamente
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
