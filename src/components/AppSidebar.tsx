@@ -1,8 +1,9 @@
-import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun } from "lucide-react";
+import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAppStore } from "@/stores";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import {
   Sidebar,
   SidebarContent,
@@ -16,14 +17,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const clientNav = [
   { title: "Dashboard", url: "/client-dashboard", icon: LayoutDashboard },
+  { title: "Messaggi", url: "/messages", icon: MessageCircle, showBadge: true },
   { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
 
 const coachNav = [
   { title: "Dashboard", url: "/coach-dashboard", icon: LayoutDashboard },
+  { title: "Messaggi", url: "/messages", icon: MessageCircle, showBadge: true },
 ];
 
 export function AppSidebar() {
@@ -31,6 +35,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { user, logout } = useAppStore();
   const { theme, toggleTheme } = useTheme();
+  const unreadCount = useUnreadMessages();
 
   const items = user?.role === "coach" ? coachNav : clientNav;
 
@@ -57,11 +62,16 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="hover:bg-sidebar-accent/50"
+                      className="hover:bg-sidebar-accent/50 relative"
                       activeClassName="bg-sidebar-accent text-primary font-medium"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {item.showBadge && unreadCount > 0 && (
+                        <Badge className="bg-primary text-primary-foreground text-[10px] h-4 min-w-4 flex items-center justify-center rounded-full ml-auto px-1">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
