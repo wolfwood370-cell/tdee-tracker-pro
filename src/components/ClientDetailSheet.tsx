@@ -1019,6 +1019,39 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               })()}
             </>
           )}
+
+          {/* Danger Zone: Delete Client */}
+          <Separator className="my-4" />
+          <div className="pt-2 pb-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full" disabled={deleting}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  🗑️ Elimina Cliente
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione è irreversibile. Eliminerà permanentemente l'account del cliente,
+                    tutto il suo storico del peso, i macro, i check-in e le foto. Non può essere annullata.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteClient}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={deleting}
+                  >
+                    {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Sì, Elimina Definitivamente
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
