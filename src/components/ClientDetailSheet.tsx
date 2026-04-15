@@ -19,7 +19,7 @@ import { it } from "date-fns/locale";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass, Trash2 } from "lucide-react";
+import { Activity, Download, Flame, Target, TrendingUp, Utensils, Zap, Loader2, AlertTriangle, Moon, Dumbbell, ClipboardCheck, Bot, ShieldCheck, MessageSquareText, Hourglass, Trash2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -389,16 +389,29 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 Vista in sola lettura
               </p>
             </div>
-            {smoothed.length > 0 && (
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => exportClientCSV(smoothed, client.displayName)}
+                onClick={() => {
+                  onOpenChange(false);
+                  window.location.href = "/messages";
+                }}
               >
-                <Download className="mr-2 h-4 w-4" />
-                Esporta CSV
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Chat
               </Button>
-            )}
+              {smoothed.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportClientCSV(smoothed, client.displayName)}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Esporta CSV
+                </Button>
+              )}
+            </div>
           </div>
         </SheetHeader>
 
