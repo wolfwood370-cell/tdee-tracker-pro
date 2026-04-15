@@ -12,6 +12,7 @@ import CoachDashboard from "./pages/CoachDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Settings from "./pages/Settings";
+import Messages from "./pages/Messages";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 
@@ -93,6 +94,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRole="coach">
             <CoachDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <Messages />
           </ProtectedRoute>
         }
       />
