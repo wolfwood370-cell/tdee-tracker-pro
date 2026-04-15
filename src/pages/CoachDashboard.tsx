@@ -305,6 +305,7 @@ const CoachDashboard = () => {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         client={selectedClient}
+        onClientDeleted={fetchClients}
       />
     </div>
   );
