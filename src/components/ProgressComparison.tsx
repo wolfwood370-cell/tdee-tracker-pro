@@ -1,11 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MEASUREMENT_GROUPS, REDUCTION_POSITIVE_KEYS } from "@/types/progress";
 import type { ProgressEntry } from "@/types/progress";
-import { ArrowDown, ArrowUp, Minus, Camera } from "lucide-react";
+import { useAppStore } from "@/stores";
+import { ArrowDown, ArrowUp, Camera } from "lucide-react";
 
 interface Props {
   entries: ProgressEntry[];
@@ -18,13 +19,25 @@ const ALL_MEASUREMENTS = [
 ];
 
 export function ProgressComparison({ entries }: Props) {
+  const { profile } = useAppStore();
+  const goalType = profile?.goal_type ?? "sustainable_loss";
+  const isBulk = goalType === "lean_bulk" || goalType === "aggressive_bulk";
+
   const sorted = useMemo(
     () => [...entries].sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime()),
     [entries]
   );
 
-  const [dateA, setDateA] = useState<string>(sorted[0]?.id ?? "");
-  const [dateB, setDateB] = useState<string>(sorted[sorted.length - 1]?.id ?? "");
+  const [dateA, setDateA] = useState<string>("");
+  const [dateB, setDateB] = useState<string>("");
+
+  // Sync selectors when entries change
+  useEffect(() => {
+    if (sorted.length >= 2) {
+      setDateA(sorted[0].id);
+      setDateB(sorted[sorted.length - 1].id);
+    }
+  }, [sorted]);
 
   const entryA = sorted.find((e) => e.id === dateA);
   const entryB = sorted.find((e) => e.id === dateB);
@@ -43,11 +56,13 @@ export function ProgressComparison({ entries }: Props) {
   const formatDate = (d: string) => new Date(d).toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" });
 
   const renderDelta = (key: string, valA: number | null, valB: number | null) => {
-    if (valA == null || valB == null) return <Minus className="h-3 w-3 text-muted-foreground" />;
+    if (valA == null || valB == null) return <span className="text-muted-foreground text-xs">—</span>;
     const delta = valB - valA;
     if (Math.abs(delta) < 0.05) return <span className="text-muted-foreground text-xs">—</span>;
 
-    const isReductionPositive = REDUCTION_POSITIVE_KEYS.includes(key) || key === "weight";
+    // In bulk mode, weight gain is positive; in cut mode, weight loss is positive
+    const isWeightKey = key === "weight";
+    const isReductionPositive = REDUCTION_POSITIVE_KEYS.includes(key) || (isWeightKey && !isBulk);
     const isPositiveChange = isReductionPositive ? delta < 0 : delta > 0;
 
     return (
