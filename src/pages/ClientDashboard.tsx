@@ -397,7 +397,17 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {isPolarized ? (
+          {/* Macro Rings */}
+          <div className="flex justify-center py-2">
+            <MacroRings
+              protein={{ current: 0, target: macros.protein }}
+              carbs={{ current: 0, target: macros.carbs }}
+              fats={{ current: 0, target: macros.fats }}
+              calories={{ current: todayCalories, target: calories }}
+              onPerfect={handlePerfectMacros}
+            />
+          </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               <MacroCard
                 title="Giorno Allenamento"
