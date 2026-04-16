@@ -1,0 +1,64 @@
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppStore } from "@/stores";
+import { ProgressEntryForm } from "@/components/ProgressEntryForm";
+import { ProgressComparison } from "@/components/ProgressComparison";
+import type { ProgressEntry } from "@/types/progress";
+import { TrendingUp } from "lucide-react";
+
+export default function Progress() {
+  const { user } = useAppStore();
+  const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("new");
+
+  const fetchEntries = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    const { data } = await supabase
+      .from("progress_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("entry_date", { ascending: false });
+    setEntries(data ?? []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchEntries();
+  }, [user]);
+
+  return (
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <TrendingUp className="h-6 w-6 text-primary" />
+        <h1 className="text-xl font-display font-bold text-foreground">Progressi</h1>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2 bg-secondary">
+          <TabsTrigger value="new">Nuovo Check-in</TabsTrigger>
+          <TabsTrigger value="compare">Comparativa</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="new" className="mt-6">
+          <ProgressEntryForm
+            onSaved={() => {
+              fetchEntries();
+              setActiveTab("compare");
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="compare" className="mt-6">
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground animate-pulse">Caricamento...</div>
+          ) : (
+            <ProgressComparison entries={entries} />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

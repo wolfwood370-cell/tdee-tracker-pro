@@ -12,6 +12,7 @@ import CoachDashboard from "./pages/CoachDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Settings from "./pages/Settings";
+import Progress from "./pages/Progress";
 import Messages from "./pages/Messages";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
@@ -78,6 +79,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRole="client">
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/progress"
+        element={
+          <ProtectedRoute allowedRole="client">
+            <Progress />
           </ProtectedRoute>
         }
       />
