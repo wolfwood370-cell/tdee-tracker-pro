@@ -294,7 +294,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       let targetCal = calculateTargetCalories(tdee, dynamicRate, currentMenstrualPhase);
 
       // Diet Break Override: force maintenance + extra carbs
-      const dietBreakUntil = (profile as any)?.diet_break_until;
+      const dietBreakUntil = profile?.diet_break_until;
       const isDietBreakActive = dietBreakUntil && new Date(dietBreakUntil) >= new Date(new Date().toISOString().slice(0, 10));
       if (isDietBreakActive) {
         targetCal = tdee; // cancel deficit, go to maintenance

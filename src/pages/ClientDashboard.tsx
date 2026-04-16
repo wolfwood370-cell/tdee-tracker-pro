@@ -306,7 +306,7 @@ const ClientDashboard = () => {
 
       {/* Diet Break Banner */}
       {(() => {
-        const breakUntil = (profile as any)?.diet_break_until;
+        const breakUntil = profile?.diet_break_until;
         if (!breakUntil) return null;
         const breakDate = new Date(breakUntil);
         const today = new Date();
@@ -489,7 +489,7 @@ const ClientDashboard = () => {
              </div>
             {/* Food Quality Badge */}
             {(() => {
-              const quality = (todayLog as any)?.average_food_quality;
+              const quality = todayLog?.average_food_quality;
               if (quality == null) return null;
               const isGood = quality >= 8;
               const isMid = quality >= 5;
