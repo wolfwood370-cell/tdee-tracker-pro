@@ -226,7 +226,40 @@ const ClientDashboard = () => {
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
   const isPolarized = polarizedTargets != null;
 
-  const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
+  // Determine active targets based on selected day type
+  const activeTargets = useMemo(() => {
+    if (dayType === "refeed" && weeklyPlan) {
+      const refeedDay = weeklyPlan.days.find((d) => d.isRefeed);
+      if (refeedDay) {
+        return {
+          calories: refeedDay.calories,
+          macros: refeedDay.macros,
+          label: "🍝 Refeed",
+        };
+      }
+    }
+    if (isPolarized && polarizedTargets) {
+      if (dayType === "rest") {
+        return {
+          calories: polarizedTargets.restDay.calories,
+          macros: polarizedTargets.restDay.macros,
+          label: "🛋️ Riposo",
+        };
+      }
+      return {
+        calories: polarizedTargets.trainingDay.calories,
+        macros: polarizedTargets.trainingDay.macros,
+        label: "🏋️ Allenamento",
+      };
+    }
+    return {
+      calories,
+      macros,
+      label: dayType === "rest" ? "🛋️ Riposo" : dayType === "refeed" ? "🍝 Refeed" : "🏋️ Allenamento",
+    };
+  }, [dayType, isPolarized, polarizedTargets, weeklyPlan, calories, macros]);
+
+  const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
   // Streak calculation
   const streak = useMemo(
