@@ -505,6 +505,7 @@ const ClientDashboard = () => {
                 </div>
               );
             })()}
+          </div>
 
           {/* AI Meal Plan Button */}
           <div className="mt-4 pt-3 border-t border-border">
