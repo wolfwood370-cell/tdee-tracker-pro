@@ -192,28 +192,40 @@ Log recenti: ${JSON.stringify(payload.recentLogs)}`;
 
     const data = await response.json();
 
+    const sanitizeJson = (text: string): string =>
+      text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    const safeParse = (text: string) => {
+      try {
+        return JSON.parse(sanitizeJson(text));
+      } catch {
+        return null;
+      }
+    };
+
     // Extract tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
-      const result = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify({ data: result }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const result = safeParse(toolCall.function.arguments);
+      if (result) {
+        return new Response(JSON.stringify({ data: result }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Fallback: try content
     const content = data.choices?.[0]?.message?.content;
     if (content) {
-      try {
-        const parsed = JSON.parse(content);
+      const parsed = safeParse(content);
+      if (parsed) {
         return new Response(JSON.stringify({ data: parsed }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-      } catch {
-        return new Response(JSON.stringify({ data: content }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
       }
+      return new Response(JSON.stringify({ data: content }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ error: "No result from AI" }), {
