@@ -26,10 +26,79 @@ const Messages = () => {
   const [selectedRecipient, setSelectedRecipient] = useState<Conversation | null>(null);
   const [search, setSearch] = useState("");
 
+  const fetchConversations = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+
+    try {
+      const { data: msgs, error } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const convMap = new Map<string, { msgs: any[]; unread: number }>();
+      for (const msg of msgs ?? []) {
+        const partnerId =
+          msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+        if (!convMap.has(partnerId)) {
+          convMap.set(partnerId, { msgs: [], unread: 0 });
+        }
+        const entry = convMap.get(partnerId)!;
+        entry.msgs.push(msg);
+        if (msg.receiver_id === user.id && !msg.read_at) {
+          entry.unread++;
+        }
+      }
+
+      const partnerIds = Array.from(convMap.keys());
+      if (partnerIds.length === 0) {
+        setConversations([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", partnerIds);
+
+      const profileMap = new Map(
+        (profiles ?? []).map((p) => [p.id, p.full_name || p.id.slice(0, 8)])
+      );
+
+      const convList: Conversation[] = partnerIds.map((pid) => {
+        const entry = convMap.get(pid)!;
+        const lastMsg = entry.msgs[0];
+        return {
+          recipientId: pid,
+          recipientName: profileMap.get(pid) ?? pid.slice(0, 8),
+          lastMessage: lastMsg.content,
+          lastMessageAt: lastMsg.created_at,
+          unreadCount: entry.unread,
+        };
+      });
+
+      convList.sort(
+        (a, b) =>
+          new Date(b.lastMessageAt).getTime() -
+          new Date(a.lastMessageAt).getTime()
+      );
+
+      setConversations(convList);
+    } catch (e) {
+      console.error("Error fetching conversations:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user?.id) return;
     fetchConversations();
-  }, [user?.id]);
+  }, [user?.id, fetchConversations]);
 
   async function fetchConversations() {
     if (!user?.id) return;
