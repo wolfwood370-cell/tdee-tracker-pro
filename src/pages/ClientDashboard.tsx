@@ -294,11 +294,14 @@ const ClientDashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Panoramica giornaliera di nutrizione e progressi
-        </p>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Panoramica giornaliera di nutrizione e progressi
+          </p>
+        </div>
+        <StreakIndicator streak={streak} className="ml-auto" />
       </div>
 
       {/* Coach Note */}
