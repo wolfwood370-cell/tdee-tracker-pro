@@ -60,6 +60,7 @@ export type Database = {
       }
       daily_metrics: {
         Row: {
+          average_food_quality: number | null
           bfm: number | null
           bmr_inbody: number | null
           calories: number | null
@@ -97,6 +98,7 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          average_food_quality?: number | null
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
@@ -134,6 +136,7 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          average_food_quality?: number | null
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null

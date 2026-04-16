@@ -30,7 +30,7 @@ serve(async (req) => {
 
     if (action === "parse_meal") {
       const systemPrompt =
-        "Sei un nutrizionista esperto. L'utente fornisce una descrizione testuale o un'immagine di un pasto. Stima calorie e macronutrienti con precisione. Rispondi SEMPRE in italiano.";
+        "Sei un nutrizionista esperto. L'utente fornisce una descrizione testuale o un'immagine di un pasto. Stima calorie e macronutrienti con precisione. Inoltre, valuta la qualità biologica, la densità di micronutrienti e il livello di lavorazione del cibo su una scala da 1 a 10 (10 = alimenti integrali e nutrienti, 1 = ultra-processati). Restituisci questo come 'qualityScore' (number). Fornisci anche un breve feedback di 1 frase in italiano come 'qualityFeedback'. Rispondi SEMPRE in italiano.";
 
       const userContent: any[] = [];
 
@@ -64,8 +64,10 @@ serve(async (req) => {
                 carbs: { type: "number", description: "Carboidrati in grammi" },
                 fats: { type: "number", description: "Grassi in grammi" },
                 confidenceScore: { type: "number", description: "Punteggio di confidenza 0-100" },
+                qualityScore: { type: "number", description: "Punteggio qualità biologica 1-10 (10=integrale, 1=ultra-processato)" },
+                qualityFeedback: { type: "string", description: "Breve feedback sulla qualità nutrizionale in italiano" },
               },
-              required: ["foodName", "calories", "protein", "carbs", "fats", "confidenceScore"],
+              required: ["foodName", "calories", "protein", "carbs", "fats", "confidenceScore", "qualityScore", "qualityFeedback"],
               additionalProperties: false,
             },
           },

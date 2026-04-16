@@ -640,6 +640,33 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 </CardContent>
               </Card>
 
+              {/* Food Quality Badge */}
+              {(() => {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const todayLog = logs.find((l) => l.log_date === todayStr);
+                const quality = (todayLog as any)?.average_food_quality;
+                if (quality == null) return null;
+                const isGood = quality >= 8;
+                const isMid = quality >= 5;
+                return (
+                  <div className={`flex items-center gap-2 rounded-lg px-3 py-2.5 border ${
+                    isGood ? 'bg-emerald-500/10 border-emerald-500/30' :
+                    isMid ? 'bg-amber-500/10 border-amber-500/30' :
+                    'bg-red-500/10 border-red-500/30'
+                  }`}>
+                    <Leaf className={`h-4 w-4 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
+                    <span className="text-sm font-semibold">Qualità Nutrizionale Oggi: {quality}/10</span>
+                    <Badge variant="secondary" className={`text-xs ml-auto ${
+                      isGood ? 'bg-emerald-500/20 text-emerald-700' :
+                      isMid ? 'bg-amber-500/20 text-amber-700' :
+                      'bg-red-500/20 text-red-700'
+                    }`}>
+                      {isGood ? '🍃 Ottima' : isMid ? '⚠️ Discreta' : '🔴 Bassa'}
+                    </Badge>
+                  </div>
+                );
+              })()}
+
               {/* Strategic Protocols - Coach Assignment */}
               <Card className="glass-card border-border">
                 <CardHeader className="pb-3">
