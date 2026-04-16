@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { CoachCopilotSection } from "@/components/CoachCopilotSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
