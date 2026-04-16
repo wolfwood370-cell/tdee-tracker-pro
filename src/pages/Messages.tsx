@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { ChatWindow } from "@/components/ChatWindow";
@@ -26,17 +26,11 @@ const Messages = () => {
   const [selectedRecipient, setSelectedRecipient] = useState<Conversation | null>(null);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    if (!user?.id) return;
-    fetchConversations();
-  }, [user?.id]);
-
-  async function fetchConversations() {
+  const fetchConversations = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
 
     try {
-      // Get all messages involving this user
       const { data: msgs, error } = await supabase
         .from("messages")
         .select("*")
@@ -45,7 +39,6 @@ const Messages = () => {
 
       if (error) throw error;
 
-      // Group by conversation partner
       const convMap = new Map<string, { msgs: any[]; unread: number }>();
       for (const msg of msgs ?? []) {
         const partnerId =
@@ -60,7 +53,6 @@ const Messages = () => {
         }
       }
 
-      // Fetch partner profiles
       const partnerIds = Array.from(convMap.keys());
       if (partnerIds.length === 0) {
         setConversations([]);
@@ -101,7 +93,13 @@ const Messages = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchConversations();
+  }, [user?.id, fetchConversations]);
+
 
   // For clients: auto-select the coach conversation or show empty
   useEffect(() => {

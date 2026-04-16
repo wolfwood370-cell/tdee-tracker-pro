@@ -38,7 +38,6 @@ export function ChatWindow({ recipientId, recipientName, className }: ChatWindow
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const currentUserId = user?.id;
@@ -195,7 +194,7 @@ export function ChatWindow({ recipientId, recipientName, className }: ChatWindow
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Messages area */}
-      <ScrollArea className="flex-1 px-4 py-2" ref={scrollRef}>
+      <ScrollArea className="flex-1 px-4 py-2">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

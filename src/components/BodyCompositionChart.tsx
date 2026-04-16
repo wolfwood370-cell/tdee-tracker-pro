@@ -6,7 +6,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
