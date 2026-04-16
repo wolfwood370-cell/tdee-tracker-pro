@@ -214,6 +214,7 @@ export type Database = {
           calorie_distribution: string
           coach_note: string | null
           created_at: string
+          diet_break_until: string | null
           diet_strategy: string
           diet_type: string
           full_name: string | null
@@ -239,6 +240,7 @@ export type Database = {
           calorie_distribution?: string
           coach_note?: string | null
           created_at?: string
+          diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
           full_name?: string | null
@@ -264,6 +266,7 @@ export type Database = {
           calorie_distribution?: string
           coach_note?: string | null
           created_at?: string
+          diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
           full_name?: string | null
