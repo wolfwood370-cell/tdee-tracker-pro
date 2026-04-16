@@ -42,9 +42,12 @@ const AuthPage = () => {
       },
     });
     if (error) {
-      toast({ title: "Errore di registrazione", description: error.message, variant: "destructive" });
+      const msg = error.message?.toLowerCase().includes("already registered")
+        ? "Questa email è già registrata. Prova ad accedere oppure usa 'Password dimenticata' per recuperare il tuo account."
+        : error.message;
+      toast({ title: "Errore di registrazione", description: msg, variant: "destructive" });
     } else {
-      toast({ title: "Account creato!", description: "Controlla la tua email per la verifica." });
+      toast({ title: "Account creato!", description: "Controlla la tua email (anche nello spam) per la verifica." });
       setView("login");
     }
     setIsSubmitting(false);
