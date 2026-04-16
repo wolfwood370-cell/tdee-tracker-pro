@@ -30,12 +30,14 @@ export function DayTypeSelector({ onChange }: DayTypeSelectorProps) {
     ((todayLog as unknown as { day_type?: DayType | null })?.day_type) ?? defaultType
   );
 
+  const persistedType = (todayLog as unknown as { day_type?: DayType | null })?.day_type ?? null;
+
   useEffect(() => {
-    const t = ((todayLog as unknown as { day_type?: DayType | null })?.day_type) ?? defaultType;
+    const t = persistedType ?? defaultType;
     setDayType(t);
     onChange?.(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todayLog?.id]);
+  }, [persistedType, defaultType]);
 
   const handleChange = async (value: string) => {
     if (!value || !user) return;
