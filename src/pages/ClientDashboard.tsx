@@ -450,15 +450,25 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {/* Macro Rings */}
-          <div className="flex justify-center py-2">
+          {/* Day Type Selector (when polarized) */}
+          {isPolarized && (
+            <div className="py-2">
+              <DayTypeSelector onChange={setDayType} />
+            </div>
+          )}
+
+          {/* Macro Rings — adapt to selected day type */}
+          <div className="flex flex-col items-center justify-center py-2 gap-2">
             <MacroRings
-              protein={{ current: 0, target: macros.protein }}
-              carbs={{ current: 0, target: macros.carbs }}
-              fats={{ current: 0, target: macros.fats }}
-              calories={{ current: todayCalories, target: calories }}
+              protein={{ current: 0, target: activeTargets.macros.protein }}
+              carbs={{ current: 0, target: activeTargets.macros.carbs }}
+              fats={{ current: 0, target: activeTargets.macros.fats }}
+              calories={{ current: todayCalories, target: activeTargets.calories }}
               onPerfect={handlePerfectMacros}
             />
+            <Badge variant="secondary" className="text-xs">
+              🎯 Target Attuale: {activeTargets.label}
+            </Badge>
           </div>
 
           {isPolarized ? (
