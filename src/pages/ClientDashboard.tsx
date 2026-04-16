@@ -11,7 +11,7 @@ import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
-import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
+import { DayTypeSelector, type DayType } from "@/components/DayTypeSelector";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -111,8 +111,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Training Schedule Toggle (polarized only) */}
-        {isPolarized && <TrainingScheduleToggle />}
+        {/* Day Type Selector inline preview removed; managed at Hero level */}
 
         {/* Bar chart */}
         <div className="flex items-end gap-1.5 h-28">
