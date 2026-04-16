@@ -408,6 +408,7 @@ const ClientDashboard = () => {
             />
           </div>
 
+          {isPolarized ? (
             <div className="grid md:grid-cols-2 gap-4">
               <MacroCard
                 title="Giorno Allenamento"
