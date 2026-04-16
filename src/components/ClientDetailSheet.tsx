@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { CoachCopilotSection } from "@/components/CoachCopilotSection";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -89,6 +90,7 @@ interface ClientDetailSheetProps {
 }
 
 export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted }: ClientDetailSheetProps) {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<Tables<"daily_metrics">[]>([]);
   const [smoothed, setSmoothed] = useState<SmoothedLog[]>([]);
   const [tdee, setTdee] = useState<number | null>(null);
@@ -483,6 +485,22 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                   </AlertDescription>
                 </Alert>
               )}
+
+              {/* Quick Actions */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/messages?clientId=${client.id}`);
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  💬 Invia Messaggio
+                </Button>
+              </div>
 
               {/* Coach Copilot AI Section */}
               <CoachCopilotSection client={client} logs={logs} />
