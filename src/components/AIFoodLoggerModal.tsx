@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Camera, Sparkles, FileText, X, Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { Camera, Sparkles, FileText, X, Upload, Loader2, CheckCircle2, Leaf } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -85,6 +85,13 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
 
     const newCalories = (existingLog?.calories ?? 0) + result.calories;
 
+    // Calculate rolling average food quality
+    const existingQuality = (existingLog as any)?.average_food_quality;
+    const mealCount = existingQuality != null ? 2 : 1; // simplified: assume at least 1 prior meal if quality exists
+    const newQuality = existingQuality != null
+      ? Math.round(((existingQuality * (mealCount - 1) + result.qualityScore) / mealCount) * 10) / 10
+      : result.qualityScore;
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const upsertPayload: Record<string, unknown> = {
@@ -93,6 +100,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
         calories: newCalories,
         weight: existingLog?.weight ?? null,
         steps: existingLog?.steps ?? null,
+        average_food_quality: newQuality,
       };
 
       const { data, error } = await supabase
@@ -264,7 +272,32 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
               <p className="text-xs text-muted-foreground text-center">
                 Precisione stimata: <span className="font-semibold text-primary">{result.confidenceScore}%</span>
               </p>
-            </div>
+
+              {/* Quality Score */}
+              <div className={`flex items-center gap-2 rounded-lg p-2.5 border ${
+                result.qualityScore >= 8 ? 'bg-emerald-500/10 border-emerald-500/30' :
+                result.qualityScore >= 5 ? 'bg-amber-500/10 border-amber-500/30' :
+                'bg-red-500/10 border-red-500/30'
+              }`}>
+                <Leaf className={`h-4 w-4 ${
+                  result.qualityScore >= 8 ? 'text-emerald-600' :
+                  result.qualityScore >= 5 ? 'text-amber-600' :
+                  'text-red-600'
+                }`} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold">Qualità Nutrizionale: {result.qualityScore}/10</span>
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                      result.qualityScore >= 8 ? 'bg-emerald-500/20 text-emerald-700' :
+                      result.qualityScore >= 5 ? 'bg-amber-500/20 text-amber-700' :
+                      'bg-red-500/20 text-red-700'
+                    }`}>
+                      {result.qualityScore >= 8 ? 'Ottima' : result.qualityScore >= 5 ? 'Discreta' : 'Bassa'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{result.qualityFeedback}</p>
+                </div>
+              </div>
 
             {/* Actions */}
             <div className="flex gap-3">
