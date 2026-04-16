@@ -75,8 +75,8 @@ export function ProgressEntryForm({ onSaved }: Props) {
         typeof activityLevel === "number" ? activityLevel : parseFloat(String(activityLevel)),
         latestWeight,
         null,
-        null,
-        false
+        false,
+        profile?.sex ?? null
       );
 
       const numOrNull = (key: string) => {
