@@ -7,6 +7,8 @@ export interface AIParsedMeal {
   carbs: number;
   fats: number;
   confidenceScore: number;
+  qualityScore: number;
+  qualityFeedback: string;
 }
 
 export interface AICheckInSummary {
