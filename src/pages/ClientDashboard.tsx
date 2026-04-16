@@ -304,6 +304,26 @@ const ClientDashboard = () => {
         <StreakIndicator streak={streak} className="ml-auto" />
       </div>
 
+      {/* Diet Break Banner */}
+      {(() => {
+        const breakUntil = (profile as any)?.diet_break_until;
+        if (!breakUntil) return null;
+        const breakDate = new Date(breakUntil);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (breakDate < today) return null;
+        const formattedDate = breakDate.toLocaleDateString("it-IT", { day: "numeric", month: "long" });
+        return (
+          <Alert className="border-emerald-500/50 bg-emerald-500/10 ring-1 ring-emerald-400/20">
+            <Leaf className="h-4 w-4 text-emerald-600" />
+            <AlertTitle className="font-display text-emerald-700 dark:text-emerald-400">🌴 Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
+            <AlertDescription className="text-sm text-emerald-700/80 dark:text-emerald-300/80 mt-1">
+              Il tuo metabolismo aveva bisogno di respirare. Goditi i carboidrati extra per resettare gli ormoni, si torna in deficit a breve!
+            </AlertDescription>
+          </Alert>
+        );
+      })()}
+
       {/* Coach Note */}
       {profile?.coach_note && String(profile.coach_note).trim() !== "" && (
         <Alert className="border-primary/50 bg-primary/5">

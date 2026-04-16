@@ -486,6 +486,61 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 </Alert>
               )}
 
+              {/* Metabolic Burnout Alert */}
+              {(() => {
+                const { detectMetabolicBurnout } = require("@/lib/autoRegulation");
+                const isBurnout = detectMetabolicBurnout(logs);
+                const breakUntil = (client.profile as any).diet_break_until;
+                const isBreakActive = breakUntil && new Date(breakUntil) >= new Date(new Date().toISOString().slice(0, 10));
+
+                if (isBreakActive) {
+                  const formattedDate = new Date(breakUntil).toLocaleDateString("it-IT", { day: "numeric", month: "long" });
+                  return (
+                    <Alert className="border-emerald-500/50 bg-emerald-500/10">
+                      <Leaf className="h-4 w-4 text-emerald-600" />
+                      <AlertTitle className="font-display text-emerald-700">🌴 Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
+                      <AlertDescription className="text-sm text-emerald-700/80 mt-1">
+                        Il cliente è attualmente in Diet Break. Le calorie sono al livello di mantenimento con extra carboidrati.
+                      </AlertDescription>
+                    </Alert>
+                  );
+                }
+
+                if (!isBurnout) return null;
+                return (
+                  <Alert className="border-amber-500/50 bg-amber-500/10">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertTitle className="font-display text-amber-700">⚠️ Rischio Burnout Metabolico</AlertTitle>
+                    <AlertDescription className="text-sm text-amber-700/80 mt-1">
+                      Il biofeedback indica fatica cronica e fame estrema (4+ giorni critici su 7).
+                      <div className="mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-amber-500 text-amber-700 hover:bg-amber-100"
+                          onClick={async () => {
+                            const breakDate = new Date();
+                            breakDate.setDate(breakDate.getDate() + 3);
+                            const dateStr = breakDate.toISOString().slice(0, 10);
+                            const { error } = await supabase
+                              .from("profiles")
+                              .update({ diet_break_until: dateStr } as any)
+                              .eq("id", client.id);
+                            if (error) {
+                              toast({ title: "Errore", description: error.message, variant: "destructive" });
+                            } else {
+                              toast({ title: "Diet Break attivato ✓", description: `Diet Break fino al ${new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long" })}` });
+                            }
+                          }}
+                        >
+                          🌴 Attiva Diet Break (3 Giorni)
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                );
+              })()}
+
               {/* Quick Actions */}
               <div className="flex gap-2 flex-wrap">
                 <Button

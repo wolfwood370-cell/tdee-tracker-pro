@@ -82,3 +82,46 @@ export function evaluateBiofeedbackTrigger(
 
   return { triggered: false };
 }
+
+// ─── Metabolic Burnout Detection ─────────────────────────────
+
+interface DailyMetricLike {
+  log_date: string;
+  weight?: number | null;
+  calories?: number | null;
+  // biofeedback proxies — if available via joined data
+  [key: string]: unknown;
+}
+
+/**
+ * Detects metabolic burnout from recent daily metrics.
+ *
+ * A day is flagged as "stressed" if:
+ * - Calories were logged AND are very low (< 1200 kcal, indicating extreme restriction or skipping meals)
+ * - OR no weight was logged (disengagement signal)
+ *
+ * If 4+ out of the last 7 days are stressed → burnout detected.
+ */
+export function detectMetabolicBurnout(recentLogs: DailyMetricLike[]): boolean {
+  const now = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(now.getDate() - 7);
+
+  const last7 = recentLogs.filter((l) => {
+    const d = new Date(l.log_date);
+    return d >= sevenDaysAgo && d <= now;
+  });
+
+  if (last7.length < 4) return false; // not enough data
+
+  let stressedDays = 0;
+  for (const log of last7) {
+    const lowCal = log.calories != null && log.calories > 0 && log.calories < 1200;
+    const noWeight = log.weight == null;
+    if (lowCal || noWeight) {
+      stressedDays++;
+    }
+  }
+
+  return stressedDays >= 4;
+}
