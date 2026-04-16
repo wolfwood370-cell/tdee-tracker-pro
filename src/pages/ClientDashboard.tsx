@@ -228,7 +228,22 @@ const ClientDashboard = () => {
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
 
-  // Determine if today is a training day
+  // Streak calculation
+  const streak = useMemo(
+    () => calculateStreak(dailyLogs, { targetCalories: calories, targetProtein: macros.protein }),
+    [dailyLogs, calories, macros.protein]
+  );
+
+  // Track if perfect toast was shown this render cycle
+  const perfectShownRef = useRef(false);
+  const handlePerfectMacros = useCallback(() => {
+    if (!perfectShownRef.current) {
+      perfectShownRef.current = true;
+      toast.success("Pasto Perfetto! ✨", {
+        description: "Tutti i macro sono nel range ottimale!",
+      });
+    }
+  }, []);
   const todayDayIndex = (new Date().getDay() + 6) % 7; // Mon=0 .. Sun=6
   const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
   const isTodayTraining = trainingSchedule[todayDayIndex] ?? false;
