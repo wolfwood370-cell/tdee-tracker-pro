@@ -291,6 +291,90 @@ export type Database = {
         }
         Relationships: []
       }
+      progress_entries: {
+        Row: {
+          arm_left: number | null
+          arm_right: number | null
+          calf_left: number | null
+          calf_right: number | null
+          chest: number | null
+          created_at: string
+          entry_date: string
+          hips: number | null
+          id: string
+          neck: number | null
+          photo_back: string | null
+          photo_front: string | null
+          photo_side: string | null
+          snap_calories: number | null
+          snap_carbs: number | null
+          snap_fats: number | null
+          snap_protein: number | null
+          snap_sodium: number | null
+          snap_tdee: number | null
+          snap_water: number | null
+          thigh_left: number | null
+          thigh_right: number | null
+          user_id: string
+          waist: number | null
+          weight: number | null
+        }
+        Insert: {
+          arm_left?: number | null
+          arm_right?: number | null
+          calf_left?: number | null
+          calf_right?: number | null
+          chest?: number | null
+          created_at?: string
+          entry_date: string
+          hips?: number | null
+          id?: string
+          neck?: number | null
+          photo_back?: string | null
+          photo_front?: string | null
+          photo_side?: string | null
+          snap_calories?: number | null
+          snap_carbs?: number | null
+          snap_fats?: number | null
+          snap_protein?: number | null
+          snap_sodium?: number | null
+          snap_tdee?: number | null
+          snap_water?: number | null
+          thigh_left?: number | null
+          thigh_right?: number | null
+          user_id: string
+          waist?: number | null
+          weight?: number | null
+        }
+        Update: {
+          arm_left?: number | null
+          arm_right?: number | null
+          calf_left?: number | null
+          calf_right?: number | null
+          chest?: number | null
+          created_at?: string
+          entry_date?: string
+          hips?: number | null
+          id?: string
+          neck?: number | null
+          photo_back?: string | null
+          photo_front?: string | null
+          photo_side?: string | null
+          snap_calories?: number | null
+          snap_carbs?: number | null
+          snap_fats?: number | null
+          snap_protein?: number | null
+          snap_sodium?: number | null
+          snap_tdee?: number | null
+          snap_water?: number | null
+          thigh_left?: number | null
+          thigh_right?: number | null
+          user_id?: string
+          waist?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
