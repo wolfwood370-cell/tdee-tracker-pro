@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,8 @@ export function ProgressEntryForm({ onSaved }: Props) {
   const { toast } = useToast();
   const { user, profile, currentTDEE, targetCalories, targetMacros } = useAppStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const today = new Date().toISOString().split("T")[0];
+  const [date, setDate] = useState(today);
 
   // Measurements
   const [measurements, setMeasurements] = useState<Record<string, string>>({});
@@ -31,14 +32,27 @@ export function ProgressEntryForm({ onSaved }: Props) {
     side: useRef<HTMLInputElement>(null),
   };
 
+  // Cleanup object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      Object.values(photos).forEach((p) => URL.revokeObjectURL(p.preview));
+    };
+  }, []);
+
   const handleMeasurement = (key: string, val: string) => {
     setMeasurements((prev) => ({ ...prev, [key]: val }));
   };
 
-  const handlePhoto = (position: "front" | "back" | "side", file: File) => {
-    const preview = URL.createObjectURL(file);
-    setPhotos((prev) => ({ ...prev, [position]: { file, preview } }));
-  };
+  const handlePhoto = useCallback((position: "front" | "back" | "side", file: File) => {
+    setPhotos((prev) => {
+      // Revoke previous URL if replacing
+      if (prev[position]) {
+        URL.revokeObjectURL(prev[position].preview);
+      }
+      const preview = URL.createObjectURL(file);
+      return { ...prev, [position]: { file, preview } };
+    });
+  }, []);
 
   const uploadPhoto = async (position: string, file: File): Promise<string | null> => {
     if (!user) return null;
@@ -56,6 +70,13 @@ export function ProgressEntryForm({ onSaved }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Validate: no future dates
+    if (date > today) {
+      toast({ title: "Data non valida", description: "Non puoi inserire un check-in con una data futura.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -112,9 +133,18 @@ export function ProgressEntryForm({ onSaved }: Props) {
         photo_side: photoUrls.side ?? null,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle duplicate entry
+        if (error.code === "23505") {
+          toast({ title: "Check-in già presente", description: `Esiste già un check-in per il ${new Date(date).toLocaleDateString("it-IT")}. Scegli un'altra data.`, variant: "destructive" });
+          return;
+        }
+        throw error;
+      }
 
       toast({ title: "Check-in salvato!", description: "I tuoi progressi sono stati registrati." });
+      // Cleanup previews
+      Object.values(photos).forEach((p) => URL.revokeObjectURL(p.preview));
       setMeasurements({});
       setPhotos({});
       onSaved();
@@ -160,6 +190,7 @@ export function ProgressEntryForm({ onSaved }: Props) {
           id="entry-date"
           type="date"
           value={date}
+          max={today}
           onChange={(e) => setDate(e.target.value)}
           className="bg-secondary border-border max-w-xs"
         />

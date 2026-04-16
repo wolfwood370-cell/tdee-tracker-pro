@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -13,7 +13,7 @@ export default function Progress() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("new");
 
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     const { data } = await supabase
@@ -23,11 +23,11 @@ export default function Progress() {
       .order("entry_date", { ascending: false });
     setEntries(data ?? []);
     setIsLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchEntries();
-  }, [user]);
+  }, [fetchEntries]);
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
