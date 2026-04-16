@@ -114,13 +114,9 @@ const Messages = () => {
   useEffect(() => {
     if (user?.role === "client" && !loading && conversations.length === 0) {
       supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "coach")
-        .limit(1)
-        .then(({ data }) => {
-          if (data && data.length > 0) {
-            const coachId = data[0].user_id;
+        .rpc("get_coach_user_id")
+        .then(({ data: coachId }) => {
+          if (coachId) {
             supabase
               .from("profiles")
               .select("id, full_name")
