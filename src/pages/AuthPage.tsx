@@ -78,7 +78,7 @@ const AuthPage = () => {
             <Activity className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-display font-bold text-foreground">NC Smart Nutrition</h1>
           </div>
-          <p className="text-muted-foreground text-sm">NC Smart Nutrition</p>
+          <p className="text-muted-foreground text-sm">by NC Personal Trainer</p>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-display font-bold leading-tight text-foreground">
@@ -90,7 +90,7 @@ const AuthPage = () => {
           </p>
         </div>
         <div className="relative z-10">
-          <p className="text-xs text-muted-foreground">© 2026 NC Smart Nutrition. Tutti i diritti riservati.</p>
+          <p className="text-xs text-muted-foreground">© 2026 NC Personal Trainer. Tutti i diritti riservati.</p>
         </div>
       </div>
 
