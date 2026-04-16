@@ -4,6 +4,7 @@ import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -14,6 +15,9 @@ import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { MacroRings } from "@/components/MacroRings";
+import { StreakIndicator } from "@/components/StreakIndicator";
+import { calculateStreak } from "@/lib/streaks";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
