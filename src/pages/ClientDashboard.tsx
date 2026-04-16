@@ -4,6 +4,7 @@ import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -14,6 +15,9 @@ import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { MacroRings } from "@/components/MacroRings";
+import { StreakIndicator } from "@/components/StreakIndicator";
+import { calculateStreak } from "@/lib/streaks";
 import type { TargetMacros } from "@/stores";
 import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
@@ -224,7 +228,22 @@ const ClientDashboard = () => {
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
 
-  // Determine if today is a training day
+  // Streak calculation
+  const streak = useMemo(
+    () => calculateStreak(dailyLogs, { targetCalories: calories, targetProtein: macros.protein }),
+    [dailyLogs, calories, macros.protein]
+  );
+
+  // Track if perfect toast was shown this render cycle
+  const perfectShownRef = useRef(false);
+  const handlePerfectMacros = useCallback(() => {
+    if (!perfectShownRef.current) {
+      perfectShownRef.current = true;
+      toast.success("Pasto Perfetto! ✨", {
+        description: "Tutti i macro sono nel range ottimale!",
+      });
+    }
+  }, []);
   const todayDayIndex = (new Date().getDay() + 6) % 7; // Mon=0 .. Sun=6
   const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
   const isTodayTraining = trainingSchedule[todayDayIndex] ?? false;
@@ -275,11 +294,14 @@ const ClientDashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Panoramica giornaliera di nutrizione e progressi
-        </p>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Panoramica giornaliera di nutrizione e progressi
+          </p>
+        </div>
+        <StreakIndicator streak={streak} className="ml-auto" />
       </div>
 
       {/* Coach Note */}
@@ -373,6 +395,17 @@ const ClientDashboard = () => {
                 Variazione target: <span className="text-primary font-semibold">{dynamicGoalRate > 0 ? "+" : ""}{dynamicGoalRate.toFixed(2)} kg/sett</span>
               </p>
             )}
+          </div>
+
+          {/* Macro Rings */}
+          <div className="flex justify-center py-2">
+            <MacroRings
+              protein={{ current: 0, target: macros.protein }}
+              carbs={{ current: 0, target: macros.carbs }}
+              fats={{ current: 0, target: macros.fats }}
+              calories={{ current: todayCalories, target: calories }}
+              onPerfect={handlePerfectMacros}
+            />
           </div>
 
           {isPolarized ? (
