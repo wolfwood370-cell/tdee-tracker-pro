@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Camera, Sparkles, FileText, X, Upload, Loader2, CheckCircle2, Leaf } from "lucide-react";
+import { Camera, Sparkles, X, Loader2, CheckCircle2, Leaf } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -86,7 +86,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     const newCalories = (existingLog?.calories ?? 0) + result.calories;
 
     // Calculate rolling average food quality
-    const existingQuality = (existingLog as any)?.average_food_quality;
+    const existingQuality = existingLog?.average_food_quality;
     const mealCount = existingQuality != null ? 2 : 1; // simplified: assume at least 1 prior meal if quality exists
     const newQuality = existingQuality != null
       ? Math.round(((existingQuality * (mealCount - 1) + result.qualityScore) / mealCount) * 10) / 10

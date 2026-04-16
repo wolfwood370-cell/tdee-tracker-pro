@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface MacroRingsProps {
@@ -70,17 +70,20 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
 
   const remaining = calories.target - calories.current;
 
-  // Check if all macros are within range (80-110%)
+  // Check if all macros are within range (90-110%)
   const isPerfect = useMemo(() => {
     const allInRange =
       proteinPct >= 0.9 && proteinPct <= 1.1 &&
       carbsPct >= 0.9 && carbsPct <= 1.1 &&
       fatsPct >= 0.9 && fatsPct <= 1.1;
-    if (allInRange && calories.current > 0 && onPerfect) {
-      onPerfect();
-    }
     return allInRange && calories.current > 0;
   }, [proteinPct, carbsPct, fatsPct, calories.current]);
+
+  useEffect(() => {
+    if (isPerfect && onPerfect) {
+      onPerfect();
+    }
+  }, [isPerfect, onPerfect]);
 
   return (
     <div className={cn("flex flex-col items-center", className)}>
