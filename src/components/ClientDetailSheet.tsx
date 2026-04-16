@@ -90,6 +90,7 @@ interface ClientDetailSheetProps {
 }
 
 export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted }: ClientDetailSheetProps) {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<Tables<"daily_metrics">[]>([]);
   const [smoothed, setSmoothed] = useState<SmoothedLog[]>([]);
   const [tdee, setTdee] = useState<number | null>(null);
