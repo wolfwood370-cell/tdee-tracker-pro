@@ -298,6 +298,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                   <p className="text-[10px] text-muted-foreground mt-0.5">{result.qualityFeedback}</p>
                 </div>
               </div>
+            </div>
 
             {/* Actions */}
             <div className="flex gap-3">
