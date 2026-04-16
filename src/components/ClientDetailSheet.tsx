@@ -398,7 +398,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 size="sm"
                 onClick={() => {
                   onOpenChange(false);
-                  window.location.href = "/messages";
+                  navigate("/messages");
                 }}
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
@@ -490,7 +490,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               {/* Metabolic Burnout Alert */}
               {(() => {
                 const isBurnout = detectMetabolicBurnout(logs);
-                const breakUntil = (client.profile as any).diet_break_until;
+                const breakUntil = client.profile.diet_break_until;
                 const isBreakActive = breakUntil && new Date(breakUntil) >= new Date(new Date().toISOString().slice(0, 10));
 
                 if (isBreakActive) {
@@ -524,7 +524,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                             const dateStr = breakDate.toISOString().slice(0, 10);
                             const { error } = await supabase
                               .from("profiles")
-                              .update({ diet_break_until: dateStr } as any)
+                              .update({ diet_break_until: dateStr })
                               .eq("id", client.id);
                             if (error) {
                               toast({ title: "Errore", description: error.message, variant: "destructive" });
@@ -644,7 +644,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               {(() => {
                 const todayStr = new Date().toISOString().slice(0, 10);
                 const todayLog = logs.find((l) => l.log_date === todayStr);
-                const quality = (todayLog as any)?.average_food_quality;
+                const quality = todayLog?.average_food_quality;
                 if (quality == null) return null;
                 const isGood = quality >= 8;
                 const isMid = quality >= 5;
