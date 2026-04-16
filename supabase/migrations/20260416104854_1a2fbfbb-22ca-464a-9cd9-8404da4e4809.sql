@@ -1,0 +1,1 @@
+ALTER TABLE public.daily_metrics ADD COLUMN average_food_quality numeric DEFAULT NULL;
