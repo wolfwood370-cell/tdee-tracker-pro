@@ -67,6 +67,7 @@ import {
   type DietType,
 } from "@/lib/algorithms";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { detectMetabolicBurnout } from "@/lib/autoRegulation";
 import type { Tables } from "@/integrations/supabase/types";
 import type { SmoothedLog } from "@/lib/algorithms";
 
@@ -488,7 +489,6 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
 
               {/* Metabolic Burnout Alert */}
               {(() => {
-                const { detectMetabolicBurnout } = require("@/lib/autoRegulation");
                 const isBurnout = detectMetabolicBurnout(logs);
                 const breakUntil = (client.profile as any).diet_break_until;
                 const isBreakActive = breakUntil && new Date(breakUntil) >= new Date(new Date().toISOString().slice(0, 10));
