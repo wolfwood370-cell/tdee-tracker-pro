@@ -1,4 +1,4 @@
-import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle } from "lucide-react";
+import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle, TrendingUp } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAppStore } from "@/stores";
 import { useTheme } from "@/components/ThemeProvider";
@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 
 const clientNav = [
   { title: "Dashboard", url: "/client-dashboard", icon: LayoutDashboard },
+  { title: "Progressi", url: "/progress", icon: TrendingUp },
   { title: "Messaggi", url: "/messages", icon: MessageCircle, showBadge: true },
   { title: "Impostazioni", url: "/settings", icon: Settings },
 ];
