@@ -200,4 +200,5 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
       <AutoRegulationModal open={showAIModal} onConfirm={handleAIModalConfirm} />
     </>
   );
-}
+});
+BiofeedbackCheckin.displayName = "BiofeedbackCheckin";
