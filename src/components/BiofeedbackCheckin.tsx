@@ -115,7 +115,7 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
         }
       }
 
-      toast({ title: "Check-in completato ✓", description: "Grazie per il feedback settimanale!" });
+      toast({ title: "Check-in completato ✓", description: "Grazie per il biofeedback quotidiano!" });
       onComplete();
     } catch (e) {
       console.error("Biofeedback submit error:", e);
@@ -140,10 +140,10 @@ export function BiofeedbackCheckin({ onComplete }: BiofeedbackCheckinProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
-            Check-in Settimanale
+            Check-in Quotidiano
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Come ti sei sentito questa settimana? Valuta ogni area da 1 a 5.
+            Come ti sei sentito oggi? Valuta ogni area da 1 a 5.
           </p>
         </CardHeader>
         <CardContent className="space-y-5">

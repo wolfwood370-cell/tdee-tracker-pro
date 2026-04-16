@@ -64,6 +64,7 @@ export type Database = {
           bfm: number | null
           bmr_inbody: number | null
           calories: number | null
+          day_type: string | null
           fat_la_kg: number | null
           fat_la_pct: number | null
           fat_ll_kg: number | null
@@ -102,6 +103,7 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          day_type?: string | null
           fat_la_kg?: number | null
           fat_la_pct?: number | null
           fat_ll_kg?: number | null
@@ -140,6 +142,7 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          day_type?: string | null
           fat_la_kg?: number | null
           fat_la_pct?: number | null
           fat_ll_kg?: number | null

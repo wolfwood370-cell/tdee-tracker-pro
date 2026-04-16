@@ -11,7 +11,7 @@ import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
-import { TrainingScheduleToggle } from "@/components/TrainingScheduleToggle";
+import { DayTypeSelector, type DayType } from "@/components/DayTypeSelector";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -111,8 +111,7 @@ function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Training Schedule Toggle (polarized only) */}
-        {isPolarized && <TrainingScheduleToggle />}
+        {/* Day Type Selector inline preview removed; managed at Hero level */}
 
         {/* Bar chart */}
         <div className="flex items-end gap-1.5 h-28">
@@ -173,6 +172,7 @@ const ClientDashboard = () => {
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
+  const [dayType, setDayType] = useState<DayType>("training");
 
   useEffect(() => {
     if (!user) return;
@@ -226,7 +226,40 @@ const ClientDashboard = () => {
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
   const isPolarized = polarizedTargets != null;
 
-  const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
+  // Determine active targets based on selected day type
+  const activeTargets = useMemo(() => {
+    if (dayType === "refeed" && weeklyPlan) {
+      const refeedDay = weeklyPlan.days.find((d) => d.isRefeed);
+      if (refeedDay) {
+        return {
+          calories: refeedDay.calories,
+          macros: refeedDay.macros,
+          label: "🍝 Refeed",
+        };
+      }
+    }
+    if (isPolarized && polarizedTargets) {
+      if (dayType === "rest") {
+        return {
+          calories: polarizedTargets.restDay.calories,
+          macros: polarizedTargets.restDay.macros,
+          label: "🛋️ Riposo",
+        };
+      }
+      return {
+        calories: polarizedTargets.trainingDay.calories,
+        macros: polarizedTargets.trainingDay.macros,
+        label: "🏋️ Allenamento",
+      };
+    }
+    return {
+      calories,
+      macros,
+      label: dayType === "rest" ? "🛋️ Riposo" : dayType === "refeed" ? "🍝 Refeed" : "🏋️ Allenamento",
+    };
+  }, [dayType, isPolarized, polarizedTargets, weeklyPlan, calories, macros]);
+
+  const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
   // Streak calculation
   const streak = useMemo(
@@ -417,15 +450,25 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {/* Macro Rings */}
-          <div className="flex justify-center py-2">
+          {/* Day Type Selector (when polarized) */}
+          {isPolarized && (
+            <div className="py-2">
+              <DayTypeSelector onChange={setDayType} />
+            </div>
+          )}
+
+          {/* Macro Rings — adapt to selected day type */}
+          <div className="flex flex-col items-center justify-center py-2 gap-2">
             <MacroRings
-              protein={{ current: 0, target: macros.protein }}
-              carbs={{ current: 0, target: macros.carbs }}
-              fats={{ current: 0, target: macros.fats }}
-              calories={{ current: todayCalories, target: calories }}
+              protein={{ current: 0, target: activeTargets.macros.protein }}
+              carbs={{ current: 0, target: activeTargets.macros.carbs }}
+              fats={{ current: 0, target: activeTargets.macros.fats }}
+              calories={{ current: todayCalories, target: activeTargets.calories }}
               onPerfect={handlePerfectMacros}
             />
+            <Badge variant="secondary" className="text-xs">
+              🎯 Target Attuale: {activeTargets.label}
+            </Badge>
           </div>
 
           {isPolarized ? (
