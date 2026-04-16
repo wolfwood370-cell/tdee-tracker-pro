@@ -486,6 +486,22 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 </Alert>
               )}
 
+              {/* Quick Actions */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/messages?clientId=${client.id}`);
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  💬 Invia Messaggio
+                </Button>
+              </div>
+
               {/* Coach Copilot AI Section */}
               <CoachCopilotSection client={client} logs={logs} />
 
