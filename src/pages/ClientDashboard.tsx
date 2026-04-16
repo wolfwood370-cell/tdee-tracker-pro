@@ -486,8 +486,25 @@ const ClientDashboard = () => {
               <Leaf className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs text-muted-foreground">🌾 Fibre:</span>
               <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
-            </div>
-          </div>
+             </div>
+            {/* Food Quality Badge */}
+            {(() => {
+              const quality = (todayLog as any)?.average_food_quality;
+              if (quality == null) return null;
+              const isGood = quality >= 8;
+              const isMid = quality >= 5;
+              return (
+                <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${
+                  isGood ? 'bg-emerald-500/10' : isMid ? 'bg-amber-500/10' : 'bg-red-500/10'
+                }`}>
+                  <Leaf className={`h-3.5 w-3.5 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
+                  <span className="text-xs text-muted-foreground">🍃 Qualità:</span>
+                  <span className={`text-xs font-semibold ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`}>
+                    {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
+                  </span>
+                </div>
+              );
+            })()}
 
           {/* AI Meal Plan Button */}
           <div className="mt-4 pt-3 border-t border-border">
