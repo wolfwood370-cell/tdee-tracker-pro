@@ -332,14 +332,7 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {/* Day Type Selector (when polarized) */}
-          {isPolarized && (
-            <div className="py-2">
-              <DayTypeSelector onChange={setDayType} />
-            </div>
-          )}
-
-          {/* Macro Rings — adapt to selected day type */}
+          {/* Macro Rings — Mission Accomplishment for TODAY */}
           <div className="flex flex-col items-center justify-center py-2 gap-2">
             <MacroRings
               protein={{ current: 0, target: activeTargets.macros.protein }}
@@ -349,51 +342,33 @@ const ClientDashboard = () => {
               onPerfect={handlePerfectMacros}
             />
             <Badge variant="secondary" className="text-xs">
-              🎯 Target Attuale: {activeTargets.label}
+              🎯 Target di Oggi: {activeTargets.label}
             </Badge>
           </div>
 
-          {isPolarized ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              <MacroCard
-                title="Giorno Allenamento"
-                icon={Dumbbell}
-                calories={polarizedTargets.trainingDay.calories}
-                macros={polarizedTargets.trainingDay.macros}
-                todayCalories={todayCalories}
-              />
-              <MacroCard
-                title="Giorno Riposo"
-                icon={Moon}
-                calories={polarizedTargets.restDay.calories}
-                macros={polarizedTargets.restDay.macros}
-                todayCalories={todayCalories}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {[
-                { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
-                { label: "Proteine", value: "—", target: `${macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
-                { label: "Carboidrati", value: "—", target: `${macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
-                { label: "Grassi", value: "—", target: `${macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
-              ].map((metric) => (
-                <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <metric.icon className={`h-4 w-4 ${metric.color}`} />
-                    <span className="text-xs text-muted-foreground">{metric.label}</span>
-                  </div>
-                  <div>
-                    <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                    <p className="text-xs text-muted-foreground">di {metric.target}</p>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
-                  </div>
+          {/* Today's clean summary (always single set, driven by weekly_schedule) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {[
+              { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: activeTargets.calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
+              { label: "Proteine", value: "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
+              { label: "Carboidrati", value: "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
+              { label: "Grassi", value: "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
+            ].map((metric) => (
+              <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <metric.icon className={`h-4 w-4 ${metric.color}`} />
+                  <span className="text-xs text-muted-foreground">{metric.label}</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div>
+                  <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
+                  <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Micronutrient Targets */}
           <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
