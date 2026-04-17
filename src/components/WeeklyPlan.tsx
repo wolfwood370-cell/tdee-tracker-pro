@@ -88,7 +88,6 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
       return toLocalISODate(x);
     });
   }, [weekStart]);
-  const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
     <Card className="glass-card border-border">
