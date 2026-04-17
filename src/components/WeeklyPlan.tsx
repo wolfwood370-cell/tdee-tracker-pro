@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Dumbbell, Moon, RefreshCw } from "lucide-react";
+import { BarChart3, Dumbbell, Moon, RefreshCw, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppStore } from "@/stores";
 import {
   getWeeklySlots,
@@ -10,6 +11,7 @@ import {
   getWeeklyRemainingBudget,
   getWeekStartISO,
   toLocalISODate,
+  daysElapsedInWeek,
   type DayType,
 } from "@/lib/weeklyBudget";
 import type { WeeklyPlan as WeeklyPlanType, DietStrategy } from "@/lib/algorithms";
@@ -108,7 +110,18 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
         {/* Weekly Budget Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Budget Settimanale</span>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-muted-foreground inline-flex items-center gap-1 cursor-help">
+                    Budget Settimanale <Info className="h-3 w-3" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs text-xs">
+                  Questo è il tuo "conto in banca" calorico della settimana. Le calorie consumate vengono prelevate dal totale; il marker verticale mostra dove dovresti essere oggi.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <span className={`font-semibold ${overBudget ? "text-destructive" : overPace ? "text-amber-600" : "text-foreground"}`}>
               {budget.consumedKcal.toLocaleString("it-IT")} / {budget.totalKcal.toLocaleString("it-IT")} kcal
             </span>
@@ -118,6 +131,14 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
               value={consumedPct}
               className={overBudget ? "[&>div]:bg-destructive" : overPace ? "[&>div]:bg-amber-500" : ""}
             />
+            {/* Planned-future shading: from expected pace marker to end represents future planned days */}
+            {expectedPct < 100 && (
+              <div
+                className="absolute top-0 bottom-0 right-0 bg-muted-foreground/10 pointer-events-none rounded-r"
+                style={{ left: `${Math.max(consumedPct, expectedPct)}%` }}
+                aria-hidden
+              />
+            )}
             {/* Expected-pace marker (where you "should be" mid-week) */}
             {expectedPct > 0 && expectedPct < 100 && (
               <div
@@ -127,13 +148,18 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
               />
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            {overBudget
-              ? `⚠️ Superato di ${(budget.consumedKcal - budget.totalKcal).toLocaleString("it-IT")} kcal`
-              : overPace
-              ? `⚡ Sopra il ritmo previsto (atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal)`
-              : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal — atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal`}
-          </p>
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>
+              {overBudget
+                ? `⚠️ Superato di ${(budget.consumedKcal - budget.totalKcal).toLocaleString("it-IT")} kcal`
+                : overPace
+                ? `⚡ Sopra il ritmo previsto (atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal)`
+                : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal — atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal`}
+            </span>
+            <span className="text-muted-foreground/70">
+              Giorno {daysElapsedInWeek()}/7
+            </span>
+          </div>
         </div>
 
         {/* Slot counters */}
