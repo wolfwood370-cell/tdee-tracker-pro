@@ -239,6 +239,7 @@ export type Database = {
           track_menstrual_cycle: boolean
           training_days_per_week: number
           training_schedule: Json
+          weekly_schedule: Json
         }
         Insert: {
           activity_level?: number | null
@@ -265,6 +266,7 @@ export type Database = {
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
+          weekly_schedule?: Json
         }
         Update: {
           activity_level?: number | null
@@ -291,6 +293,7 @@ export type Database = {
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
+          weekly_schedule?: Json
         }
         Relationships: []
       }

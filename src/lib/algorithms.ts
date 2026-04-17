@@ -689,3 +689,54 @@ export function calculateGoalETA(
   if (days === 0) return `~ ${weeks} ${wLabel} rimanenti`;
   return `~ ${weeks} ${wLabel}, ${days} ${dLabel} rimanenti`;
 }
+
+// ─── Phase 53: Per-Day On-the-Fly Target Computation ─────────
+/**
+ * Computes calories + macros for a single day given its assigned `dayType`.
+ * This powers the Weekly Plan "Strategy" view where each row recalculates
+ * instantly when the user changes the day type.
+ *
+ * Logic:
+ * - "training": uses polarized training-day target if polarized, else baseline.
+ * - "rest": uses polarized rest-day target if polarized, else baseline * 0.9
+ *   (lightly reduced to mirror real-world non-polarized rest behaviour).
+ * - "refeed": maintenance calories with extra cals routed to carbs.
+ */
+export function computeDayTargets(opts: {
+  dayType: 'training' | 'rest' | 'refeed';
+  baselineDailyCal: number;
+  tdee: number;
+  bodyWeightKg: number;
+  proteinPref: ProteinPref;
+  dietType: DietType;
+  lbmKg?: number | null;
+  age?: number | null;
+  polarized?: PolarizedTargets | null;
+}): { calories: number; macros: TargetMacros } {
+  const { dayType, baselineDailyCal, tdee, bodyWeightKg, proteinPref, dietType, lbmKg, age, polarized } = opts;
+
+  if (dayType === 'refeed') {
+    const refeedCal = Math.round(tdee);
+    const baseMacros = calculateTargetMacros(baselineDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg, age).macros;
+    return { calories: refeedCal, macros: calculateRefeedMacros(refeedCal, baseMacros) };
+  }
+
+  if (polarized) {
+    const src = dayType === 'training' ? polarized.trainingDay : polarized.restDay;
+    return { calories: src.calories, macros: src.macros };
+  }
+
+  if (dayType === 'training') {
+    return {
+      calories: baselineDailyCal,
+      macros: calculateTargetMacros(baselineDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg, age).macros,
+    };
+  }
+
+  // Non-polarized "rest": apply mild ~10% reduction so rest days visibly differ.
+  const restCal = Math.round(baselineDailyCal * 0.9);
+  return {
+    calories: restCal,
+    macros: calculateTargetMacros(restCal, bodyWeightKg, proteinPref, dietType, lbmKg, age).macros,
+  };
+}

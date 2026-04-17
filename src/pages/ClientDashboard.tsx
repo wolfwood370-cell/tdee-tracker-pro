@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -11,61 +11,23 @@ import { useAppStore } from "@/stores";
 import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
-import { DayTypeSelector, type DayType } from "@/components/DayTypeSelector";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { MacroRings } from "@/components/MacroRings";
 import { StreakIndicator } from "@/components/StreakIndicator";
 import { calculateStreak } from "@/lib/streaks";
-import type { TargetMacros } from "@/stores";
-import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
+import {
+  calculateMicronutrients,
+  computeDayTargets,
+  isUnderweightRisk,
+  isObesityRisk,
+  type ProteinPref,
+  type DietType,
+} from "@/lib/algorithms";
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
-
-interface MacroCardProps {
-  title: string;
-  icon: React.ElementType;
-  calories: number;
-  macros: TargetMacros;
-  todayCalories: number;
-}
-
-function MacroCard({ title, icon: Icon, calories, macros, todayCalories }: MacroCardProps) {
-  const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / calories) * 100)) : 0;
-
-  const metrics = [
-    { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
-    { label: "Proteine", value: "—", target: `${macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
-    { label: "Carboidrati", value: "—", target: `${macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
-    { label: "Grassi", value: "—", target: `${macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
-  ];
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-display font-semibold text-foreground">{title}</h3>
-        <span className="ml-auto text-xs font-semibold text-primary">{calories.toLocaleString("it-IT")} kcal</span>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {metrics.map((m) => (
-          <div key={m.label} className="bg-secondary/50 rounded-lg p-3 space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
-              <span className="text-xs text-muted-foreground">{m.label}</span>
-            </div>
-            <p className="text-lg font-display font-bold text-foreground">{m.value}</p>
-            <p className="text-xs text-muted-foreground">di {m.target}</p>
-            <div className="h-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${m.pct}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { parseWeeklySchedule, getDayKey, type DayType } from "@/lib/weeklyBudget";
 
 const ClientDashboard = () => {
   const {
@@ -92,7 +54,6 @@ const ClientDashboard = () => {
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
-  const [dayType, setDayType] = useState<DayType>("training");
 
   useEffect(() => {
     if (!user) return;
@@ -144,40 +105,53 @@ const ClientDashboard = () => {
 
   const calories = targetCalories ?? 2450;
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
-  const isPolarized = polarizedTargets != null;
 
-  // Determine active targets based on selected day type
+  // Phase 53: Today's dayType is read from profile.weekly_schedule (Strategy)
+  const weeklySchedule = useMemo(
+    () => parseWeeklySchedule((profile as { weekly_schedule?: unknown } | null)?.weekly_schedule),
+    [profile],
+  );
+  const todayDayType: DayType = weeklySchedule[getDayKey()];
+
+  // Latest weight + LBM for on-the-fly target recomputation
+  const latestLog = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0];
+  const latestWeight = latestLog?.weight ?? null;
+  const latestTbw = useMemo(() => {
+    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+    return sorted.find((l) => l.tbw != null)?.tbw ?? null;
+  }, [dailyLogs]);
+  const latestLbm = useMemo(() => {
+    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+    const log = sorted.find((l) => l.bfm != null || l.pbf != null);
+    if (!log) return null;
+    if (log.bfm != null && log.weight != null) return Number(log.weight) - Number(log.bfm);
+    if (log.pbf != null && log.weight != null) return Number(log.weight) * (1 - Number(log.pbf) / 100);
+    return null;
+  }, [dailyLogs]);
+
+  // Active targets for TODAY based on weekly_schedule
   const activeTargets = useMemo(() => {
-    if (dayType === "refeed" && weeklyPlan) {
-      const refeedDay = weeklyPlan.days.find((d) => d.isRefeed);
-      if (refeedDay) {
-        return {
-          calories: refeedDay.calories,
-          macros: refeedDay.macros,
-          label: "🍝 Refeed",
-        };
-      }
-    }
-    if (isPolarized && polarizedTargets) {
-      if (dayType === "rest") {
-        return {
-          calories: polarizedTargets.restDay.calories,
-          macros: polarizedTargets.restDay.macros,
-          label: "🛋️ Riposo",
-        };
-      }
-      return {
-        calories: polarizedTargets.trainingDay.calories,
-        macros: polarizedTargets.trainingDay.macros,
-        label: "🏋️ Allenamento",
-      };
-    }
-    return {
-      calories,
-      macros,
-      label: dayType === "rest" ? "🛋️ Riposo" : dayType === "refeed" ? "🍝 Refeed" : "🏋️ Allenamento",
+    const labels: Record<DayType, string> = {
+      training: "🏋️ Allenamento",
+      rest: "🛋️ Riposo",
+      refeed: "🍝 Refeed",
     };
-  }, [dayType, isPolarized, polarizedTargets, weeklyPlan, calories, macros]);
+    if (currentTDEE && latestWeight) {
+      const t = computeDayTargets({
+        dayType: todayDayType,
+        baselineDailyCal: calories,
+        tdee: currentTDEE,
+        bodyWeightKg: latestWeight,
+        proteinPref: (profile?.protein_pref as ProteinPref) ?? "moderate",
+        dietType: (profile?.diet_type as DietType) ?? "balanced",
+        lbmKg: latestLbm,
+        age: userAge,
+        polarized: polarizedTargets,
+      });
+      return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
+    }
+    return { calories, macros, label: labels[todayDayType] };
+  }, [todayDayType, currentTDEE, latestWeight, calories, macros, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
@@ -197,30 +171,18 @@ const ClientDashboard = () => {
       });
     }
   }, []);
-  const todayDayIndex = (new Date().getDay() + 6) % 7; // Mon=0 .. Sun=6
-  const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
-  const isTodayTraining = trainingSchedule[todayDayIndex] ?? false;
-
-  // Extract latest weight and TBW for hydration calc
-  const latestLog = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0];
-  const latestWeight = latestLog?.weight ?? null;
-  // TBW may be in an older InBody scan, not necessarily the latest log
-  const latestTbw = useMemo(() => {
-    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
-    return sorted.find((l) => l.tbw != null)?.tbw ?? null;
-  }, [dailyLogs]);
 
   const microTargets = useMemo(() => {
     const activityLevel = profile?.activity_level ?? 1.55;
     return calculateMicronutrients(
-      calories,
+      activeTargets.calories,
       typeof activityLevel === 'number' ? activityLevel : parseFloat(String(activityLevel)),
       latestWeight,
       latestTbw,
-      isTodayTraining,
+      todayDayType === "training",
       profile?.sex ?? null,
     );
-  }, [calories, profile?.activity_level, profile?.sex, latestWeight, latestTbw, isTodayTraining]);
+  }, [activeTargets.calories, profile?.activity_level, profile?.sex, latestWeight, latestTbw, todayDayType]);
 
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);
@@ -370,14 +332,7 @@ const ClientDashboard = () => {
             )}
           </div>
 
-          {/* Day Type Selector (when polarized) */}
-          {isPolarized && (
-            <div className="py-2">
-              <DayTypeSelector onChange={setDayType} />
-            </div>
-          )}
-
-          {/* Macro Rings — adapt to selected day type */}
+          {/* Macro Rings — Mission Accomplishment for TODAY */}
           <div className="flex flex-col items-center justify-center py-2 gap-2">
             <MacroRings
               protein={{ current: 0, target: activeTargets.macros.protein }}
@@ -387,51 +342,33 @@ const ClientDashboard = () => {
               onPerfect={handlePerfectMacros}
             />
             <Badge variant="secondary" className="text-xs">
-              🎯 Target Attuale: {activeTargets.label}
+              🎯 Target di Oggi: {activeTargets.label}
             </Badge>
           </div>
 
-          {isPolarized ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              <MacroCard
-                title="Giorno Allenamento"
-                icon={Dumbbell}
-                calories={polarizedTargets.trainingDay.calories}
-                macros={polarizedTargets.trainingDay.macros}
-                todayCalories={todayCalories}
-              />
-              <MacroCard
-                title="Giorno Riposo"
-                icon={Moon}
-                calories={polarizedTargets.restDay.calories}
-                macros={polarizedTargets.restDay.macros}
-                todayCalories={todayCalories}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {[
-                { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
-                { label: "Proteine", value: "—", target: `${macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
-                { label: "Carboidrati", value: "—", target: `${macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
-                { label: "Grassi", value: "—", target: `${macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
-              ].map((metric) => (
-                <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <metric.icon className={`h-4 w-4 ${metric.color}`} />
-                    <span className="text-xs text-muted-foreground">{metric.label}</span>
-                  </div>
-                  <div>
-                    <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                    <p className="text-xs text-muted-foreground">di {metric.target}</p>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
-                  </div>
+          {/* Today's clean summary (always single set, driven by weekly_schedule) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {[
+              { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: activeTargets.calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
+              { label: "Proteine", value: "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
+              { label: "Carboidrati", value: "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
+              { label: "Grassi", value: "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
+            ].map((metric) => (
+              <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <metric.icon className={`h-4 w-4 ${metric.color}`} />
+                  <span className="text-xs text-muted-foreground">{metric.label}</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div>
+                  <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
+                  <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Micronutrient Targets */}
           <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
@@ -499,9 +436,9 @@ const ClientDashboard = () => {
         <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
       )}
 
-      {/* Non-Linear Weekly Plan / Polarized Schedule */}
-      {(weeklyPlan && (weeklyPlan.strategy !== 'linear' || isPolarized)) && (
-        <WeeklyPlan plan={weeklyPlan} selectedDayType={dayType} todayTarget={activeTargets.calories} />
+      {/* Phase 53: Strategy Center — always visible, weekly plan with per-day controls */}
+      {weeklyPlan && (
+        <WeeklyPlan plan={weeklyPlan} todayTarget={activeTargets.calories} />
       )}
 
       {/* Charts */}
