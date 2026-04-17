@@ -19,8 +19,16 @@ export interface AICheckInSummary {
 }
 
 export interface AIMealPlan {
-  dailyMeals: { name: string; description: string; estimatedMacros: string }[];
-  groceryList: string[];
+  meals: {
+    type: string;
+    name: string;
+    description: string;
+    macros: string;
+  }[];
+  groceryList: {
+    category: string;
+    items: string[];
+  }[];
 }
 
 /**
