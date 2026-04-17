@@ -136,21 +136,22 @@ const ClientDashboard = () => {
       rest: "🛋️ Riposo",
       refeed: "🍝 Refeed",
     };
-    if (currentTDEE && latestWeight) {
-      const t = computeDayTargets({
-        dayType: todayDayType,
-        baselineDailyCal: calories,
-        tdee: currentTDEE,
-        bodyWeightKg: latestWeight,
-        proteinPref: (profile?.protein_pref as ProteinPref) ?? "moderate",
-        dietType: (profile?.diet_type as DietType) ?? "balanced",
-        lbmKg: latestLbm,
-        age: userAge,
-        polarized: polarizedTargets,
-      });
-      return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
-    }
-    return { calories, macros, label: labels[todayDayType] };
+    // Use a sensible bodyweight fallback so target differentiation by dayType
+    // works even before the user has logged a weight (rest = -10%, refeed = TDEE).
+    const bw = latestWeight ?? 70;
+    const tdeeForCalc = currentTDEE ?? Math.round(calories / 0.85); // approx maintenance from baseline
+    const t = computeDayTargets({
+      dayType: todayDayType,
+      baselineDailyCal: calories,
+      tdee: tdeeForCalc,
+      bodyWeightKg: bw,
+      proteinPref: (profile?.protein_pref as ProteinPref) ?? "moderate",
+      dietType: (profile?.diet_type as DietType) ?? "balanced",
+      lbmKg: latestLbm,
+      age: userAge,
+      polarized: polarizedTargets,
+    });
+    return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
   }, [todayDayType, currentTDEE, latestWeight, calories, macros, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
