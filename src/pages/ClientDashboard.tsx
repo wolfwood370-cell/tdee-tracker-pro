@@ -28,6 +28,8 @@ import {
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { parseWeeklySchedule, getDayKey, type DayType } from "@/lib/weeklyBudget";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const ClientDashboard = () => {
   const {
