@@ -109,18 +109,30 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Budget Settimanale</span>
-            <span className={`font-semibold ${overBudget ? "text-destructive" : "text-foreground"}`}>
+            <span className={`font-semibold ${overBudget ? "text-destructive" : overPace ? "text-amber-600" : "text-foreground"}`}>
               {budget.consumedKcal.toLocaleString("it-IT")} / {budget.totalKcal.toLocaleString("it-IT")} kcal
             </span>
           </div>
-          <Progress
-            value={consumedPct}
-            className={overBudget ? "[&>div]:bg-destructive" : ""}
-          />
+          <div className="relative">
+            <Progress
+              value={consumedPct}
+              className={overBudget ? "[&>div]:bg-destructive" : overPace ? "[&>div]:bg-amber-500" : ""}
+            />
+            {/* Expected-pace marker (where you "should be" mid-week) */}
+            {expectedPct > 0 && expectedPct < 100 && (
+              <div
+                className="absolute top-0 bottom-0 w-px bg-foreground/60"
+                style={{ left: `${expectedPct}%` }}
+                aria-hidden
+              />
+            )}
+          </div>
           <p className="text-[11px] text-muted-foreground">
             {overBudget
               ? `⚠️ Superato di ${(budget.consumedKcal - budget.totalKcal).toLocaleString("it-IT")} kcal`
-              : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal questa settimana`}
+              : overPace
+              ? `⚡ Sopra il ritmo previsto (atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal)`
+              : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal — atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal`}
           </p>
         </div>
 
