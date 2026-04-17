@@ -10,6 +10,9 @@ import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalFromLog, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
 import type { MenstrualPhase } from "@/lib/algorithms";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Droplets } from "lucide-react";
+import { toLocalISODate } from "@/lib/weeklyBudget";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
