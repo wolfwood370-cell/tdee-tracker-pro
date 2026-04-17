@@ -178,17 +178,8 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   const overPace = !overBudget && budget.consumedKcal > budget.expectedSoFarKcal * 1.05;
   const remainingKcal = Math.max(0, budget.totalKcal - budget.consumedKcal);
 
-  // Today highlight
+  // Today highlight (single source: DayKey of today, no double check)
   const todayKey = getDayKey();
-  const weekStart = getWeekStartISO();
-  const weekDates = useMemo(() => {
-    const start = new Date(weekStart);
-    return Array.from({ length: 7 }, (_, i) => {
-      const x = new Date(start);
-      x.setDate(start.getDate() + i);
-      return toLocalISODate(x);
-    });
-  }, [weekStart]);
 
   // ── Persistence + Guardrails ──────────────────────────────
   const [pending, setPending] = useState<{ key: DayKey; newType: DayType } | null>(null);

@@ -104,9 +104,10 @@ export interface WeeklySlots {
 }
 
 export function getWeeklySlots(profile: Profile | null): WeeklySlots {
-  const schedule = (profile?.training_schedule as boolean[] | null) ??
-    [true, false, true, false, true, false, false];
-  const trainingAllowed = schedule.filter(Boolean).length;
+  // Phase 53: trainingAllowed comes from profile.training_days_per_week (the user's
+  // declared weekly training capacity), NOT from training_schedule (legacy boolean
+  // array kept only for backward compatibility). weekly_schedule is the assignment.
+  const trainingAllowed = Math.max(0, Math.min(7, profile?.training_days_per_week ?? 4));
   const strategy = (profile?.diet_strategy as DietStrategy) ?? "linear";
   const refeedAllowed =
     strategy === "refeed_1_day" ? 1 : strategy === "refeed_2_days" ? 2 : 0;
