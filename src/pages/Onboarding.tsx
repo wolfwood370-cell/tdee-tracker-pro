@@ -164,6 +164,16 @@ function generateTrainingSchedule(days: number): boolean[] {
   return schedule;
 }
 
+// Phase 53: build weekly_schedule (the new source of truth) from a boolean[] array.
+function buildWeeklySchedule(schedule: boolean[]): Record<string, "training" | "rest" | "refeed"> {
+  const keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+  const out: Record<string, "training" | "rest" | "refeed"> = {} as Record<string, "training" | "rest" | "refeed">;
+  keys.forEach((k, i) => {
+    out[k] = schedule[i] ? "training" : "rest";
+  });
+  return out;
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, setProfile, addLog } = useAppStore();
@@ -305,6 +315,7 @@ export default function Onboarding() {
           protein_pref: proteinPref,
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
+          weekly_schedule: buildWeeklySchedule(schedule),
            track_menstrual_cycle: trackMenstrualCycle,
            target_weight: targetWeight ? parseFloat(targetWeight) : null,
       };

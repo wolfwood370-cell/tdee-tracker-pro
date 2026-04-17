@@ -143,6 +143,21 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
+          // Phase 53: keep weekly_schedule (source of truth) in sync.
+          // Preserve any "refeed" already planned by the user; otherwise map boolean→training/rest.
+          weekly_schedule: (() => {
+            const keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+            const existing = (profile?.weekly_schedule as Record<string, string> | null) ?? {};
+            const out: Record<string, "training" | "rest" | "refeed"> = {} as Record<string, "training" | "rest" | "refeed">;
+            keys.forEach((k, i) => {
+              if (existing[k] === "refeed") {
+                out[k] = "refeed";
+              } else {
+                out[k] = newSchedule[i] ? "training" : "rest";
+              }
+            });
+            return out;
+          })(),
            track_menstrual_cycle: trackMenstrualCycle,
            target_weight: targetWeight ? parseFloat(targetWeight) : null,
       };
