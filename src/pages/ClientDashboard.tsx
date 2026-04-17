@@ -154,7 +154,7 @@ const ClientDashboard = () => {
       polarized: polarizedTargets,
     });
     return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
-  }, [todayDayType, currentTDEE, latestWeight, calories, macros, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
+  }, [todayDayType, currentTDEE, latestWeight, calories, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
@@ -530,10 +530,10 @@ const ClientDashboard = () => {
       <AIMealPlanModal
         open={mealPlanOpen}
         onOpenChange={setMealPlanOpen}
-        targetCalories={calories}
-        protein={macros.protein}
-        carbs={macros.carbs}
-        fats={macros.fats}
+        targetCalories={activeTargets.calories}
+        protein={activeTargets.macros.protein}
+        carbs={activeTargets.macros.carbs}
+        fats={activeTargets.macros.fats}
         dietType={profile?.diet_type ?? "balanced"}
       />
     </div>
