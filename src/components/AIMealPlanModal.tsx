@@ -201,17 +201,20 @@ export function AIMealPlanModal({
                   ))}
                 </TabsContent>
 
-                {/* Regenerate */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchPlan}
-                  className="w-full mt-6"
-                >
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                  Rigenera Menù
-                </Button>
               </Tabs>
+            )}
+
+            {/* Regenerate (outside Tabs to avoid invalid Radix child) */}
+            {mealPlan && !isLoading && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchPlan}
+                className="w-full mt-6"
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Rigenera Menù
+              </Button>
             )}
           </div>
         </ScrollArea>
