@@ -176,8 +176,8 @@ export function ProgressComparison({ entries }: Props) {
                 </TableHeader>
                 <TableBody>
                   {ALL_MEASUREMENTS.map((m) => {
-                    const valA = (entryA as Record<string, number | null>)[m.key] ?? null;
-                    const valB = (entryB as Record<string, number | null>)[m.key] ?? null;
+                    const valA = (entryA as unknown as Record<string, number | null>)[m.key] ?? null;
+                    const valB = (entryB as unknown as Record<string, number | null>)[m.key] ?? null;
                     return (
                       <TableRow key={m.key}>
                         <TableCell className="text-xs font-medium">{m.label}</TableCell>
