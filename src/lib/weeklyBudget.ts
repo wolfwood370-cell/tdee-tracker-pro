@@ -141,6 +141,10 @@ export function getWeeklyRemainingBudget(
       pendingOverrunKcal = 0;
     }
   }
+
+  const ratio = totalKcal > 0 ? consumedKcal / totalKcal : 0;
+
+  return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal };
 }
 
 /**
@@ -177,9 +181,5 @@ export function estimateExtraDayDelta(
     return -Math.max(0, trainingCal - restCal);
   }
   return 0;
-{
-
-  const ratio = totalKcal > 0 ? consumedKcal / totalKcal : 0;
-
-  return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal };
 }
+
