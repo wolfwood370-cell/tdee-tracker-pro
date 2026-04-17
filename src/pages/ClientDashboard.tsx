@@ -28,6 +28,8 @@ import {
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { parseWeeklySchedule, getDayKey, type DayType } from "@/lib/weeklyBudget";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const ClientDashboard = () => {
   const {
@@ -251,176 +253,279 @@ const ClientDashboard = () => {
         </Alert>
       )}
 
-      {/* Hero - Obiettivi di Oggi */}
-      <Card className="glass-card glow-primary border-border overflow-hidden">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="h-5 w-5 text-primary" />
-            <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
-            {profile?.manual_override_active && (
-              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
-                Override Manuale
-              </Badge>
-            )}
-            {usingBIAData && !profile?.manual_override_active && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground border-accent/30 cursor-help">
-                      <Microscope className="h-3 w-3 mr-1" />
-                      InBody
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">🎯 Ottimizzato con dati clinici InBody</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {tefDelta > 0 && (
-              <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
-                🔥 TEF: +{tefDelta} kcal
-              </Badge>
-            )}
-            {userAge != null && userAge >= 45 && (
-              <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
-                🛡️ Over-45
-              </Badge>
-            )}
-             {activeMenstrualPhase === 'luteal' && (
-              <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
-                🌸 Fase Luteale: +150 kcal
-              </Badge>
-            )}
-            {goalETA && (
-              <Badge
-                variant={goalETA.startsWith("Blocco Clinico") ? "destructive" : "secondary"}
-                className={goalETA.startsWith("Blocco Clinico")
-                  ? "text-xs bg-red-500/10 text-red-600 border-red-500/30"
-                  : "text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-                }
-              >
-                <Hourglass className="h-3 w-3 mr-1" />
-                {goalETA.startsWith("Blocco Clinico") ? `⚠️ ${goalETA}` : `ETA: ${goalETA}`}
-              </Badge>
-            )}
-            {profile?.target_weight && profile?.height_cm && isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
-              <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
-                <ShieldAlert className="h-3 w-3 mr-1" />
-                🛑 Avviso Medico: Target Sottopeso
-              </Badge>
-            )}
-            {profile?.target_weight && profile?.height_cm && !isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && isObesityRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
-              <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
-                <ShieldAlert className="h-3 w-3 mr-1" />
-                ⚠️ Avviso Medico: Target BMI ≥ 30
-              </Badge>
-            )}
-            <span className="ml-auto text-xs text-muted-foreground">
-              {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
-            {currentTDEE && (
-              <p className="text-xs text-muted-foreground">
-                TDEE adattivo: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
-              </p>
-            )}
-            {dynamicGoalRate != null && (
-              <p className="text-xs text-muted-foreground">
-                Variazione target: <span className="text-primary font-semibold">{dynamicGoalRate > 0 ? "+" : ""}{dynamicGoalRate.toFixed(2)} kg/sett</span>
-              </p>
-            )}
-          </div>
+      {/* Biofeedback Check-in — always above tabs */}
+      {needsCheckin && !checkinDismissed && (
+        <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
+      )}
 
-          {/* Macro Rings — Mission Accomplishment for TODAY */}
-          <div className="flex flex-col items-center justify-center py-2 gap-2">
-            <MacroRings
-              protein={{ current: 0, target: activeTargets.macros.protein }}
-              carbs={{ current: 0, target: activeTargets.macros.carbs }}
-              fats={{ current: 0, target: activeTargets.macros.fats }}
-              calories={{ current: todayCalories, target: activeTargets.calories }}
-              onPerfect={handlePerfectMacros}
-            />
-            <Badge variant="secondary" className="text-xs">
-              🎯 Target di Oggi: {activeTargets.label}
-            </Badge>
-          </div>
+      <Tabs defaultValue="action" className="w-full space-y-6">
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+          <TabsTrigger value="action" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            🔥 Oggi
+          </TabsTrigger>
+          <TabsTrigger value="strategy" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            📅 Strategia
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            📊 Analisi
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Today's clean summary (always single set, driven by weekly_schedule) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {[
-              { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: activeTargets.calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
-              { label: "Proteine", value: "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
-              { label: "Carboidrati", value: "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
-              { label: "Grassi", value: "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
-            ].map((metric) => (
-              <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <metric.icon className={`h-4 w-4 ${metric.color}`} />
-                  <span className="text-xs text-muted-foreground">{metric.label}</span>
-                </div>
-                <div>
-                  <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                  <p className="text-xs text-muted-foreground">di {metric.target}</p>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
-                </div>
+        {/* ============ ACTION TAB ============ */}
+        <TabsContent value="action" className="space-y-6 animate-fade-in">
+          {/* Hero - Obiettivi di Oggi */}
+          <Card className="glass-card glow-primary border-border overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <Activity className="h-5 w-5 text-primary" />
+                <h2 className="font-display font-semibold text-foreground">Obiettivi di Oggi</h2>
+                {profile?.manual_override_active && (
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
+                    Override Manuale
+                  </Badge>
+                )}
+                {usingBIAData && !profile?.manual_override_active && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground border-accent/30 cursor-help">
+                          <Microscope className="h-3 w-3 mr-1" />
+                          InBody
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">🎯 Ottimizzato con dati clinici InBody</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {tefDelta > 0 && (
+                  <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                    🔥 TEF: +{tefDelta} kcal
+                  </Badge>
+                )}
+                {userAge != null && userAge >= 45 && (
+                  <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
+                    🛡️ Over-45
+                  </Badge>
+                )}
+                 {activeMenstrualPhase === 'luteal' && (
+                  <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
+                    🌸 Fase Luteale: +150 kcal
+                  </Badge>
+                )}
+                {goalETA && (
+                  <Badge
+                    variant={goalETA.startsWith("Blocco Clinico") ? "destructive" : "secondary"}
+                    className={goalETA.startsWith("Blocco Clinico")
+                      ? "text-xs bg-red-500/10 text-red-600 border-red-500/30"
+                      : "text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                    }
+                  >
+                    <Hourglass className="h-3 w-3 mr-1" />
+                    {goalETA.startsWith("Blocco Clinico") ? `⚠️ ${goalETA}` : `ETA: ${goalETA}`}
+                  </Badge>
+                )}
+                {profile?.target_weight && profile?.height_cm && isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
+                  <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
+                    <ShieldAlert className="h-3 w-3 mr-1" />
+                    🛑 Avviso Medico: Target Sottopeso
+                  </Badge>
+                )}
+                {profile?.target_weight && profile?.height_cm && !isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && isObesityRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
+                  <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                    <ShieldAlert className="h-3 w-3 mr-1" />
+                    ⚠️ Avviso Medico: Target BMI ≥ 30
+                  </Badge>
+                )}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {new Date().toLocaleDateString("it-IT", { weekday: "long", month: "short", day: "numeric" })}
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
+                {currentTDEE && (
+                  <p className="text-xs text-muted-foreground">
+                    TDEE adattivo: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
+                  </p>
+                )}
+                {dynamicGoalRate != null && (
+                  <p className="text-xs text-muted-foreground">
+                    Variazione target: <span className="text-primary font-semibold">{dynamicGoalRate > 0 ? "+" : ""}{dynamicGoalRate.toFixed(2)} kg/sett</span>
+                  </p>
+                )}
+              </div>
 
-          {/* Micronutrient Targets */}
-          <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
-            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-              <GlassWater className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs text-muted-foreground">💧 Acqua:</span>
-              <span className="text-xs font-semibold text-foreground">{microTargets.waterL} L</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-              <Droplets className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs text-muted-foreground">🧂 Elettroliti:</span>
-              <span className="text-xs font-semibold text-foreground">{microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-              <Leaf className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs text-muted-foreground">🌾 Fibre:</span>
-              <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
-             </div>
-            {/* Food Quality Badge */}
-            {(() => {
-              const quality = todayLog?.average_food_quality;
-              if (quality == null) return null;
-              const isGood = quality >= 8;
-              const isMid = quality >= 5;
-              return (
-                <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${
-                  isGood ? 'bg-emerald-500/10' : isMid ? 'bg-amber-500/10' : 'bg-red-500/10'
-                }`}>
-                  <Leaf className={`h-3.5 w-3.5 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
-                  <span className="text-xs text-muted-foreground">🍃 Qualità:</span>
-                  <span className={`text-xs font-semibold ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`}>
-                    {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
-                  </span>
+              {/* Macro Rings */}
+              <div className="flex flex-col items-center justify-center py-2 gap-2">
+                <MacroRings
+                  protein={{ current: 0, target: activeTargets.macros.protein }}
+                  carbs={{ current: 0, target: activeTargets.macros.carbs }}
+                  fats={{ current: 0, target: activeTargets.macros.fats }}
+                  calories={{ current: todayCalories, target: activeTargets.calories }}
+                  onPerfect={handlePerfectMacros}
+                />
+                <Badge variant="secondary" className="text-xs">
+                  🎯 Target di Oggi: {activeTargets.label}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {[
+                  { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: activeTargets.calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
+                  { label: "Proteine", value: "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
+                  { label: "Carboidrati", value: "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
+                  { label: "Grassi", value: "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
+                ].map((metric) => (
+                  <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <metric.icon className={`h-4 w-4 ${metric.color}`} />
+                      <span className="text-xs text-muted-foreground">{metric.label}</span>
+                    </div>
+                    <div>
+                      <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
+                      <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Micronutrient Targets */}
+              <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
+                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                  <GlassWater className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-muted-foreground">💧 Acqua:</span>
+                  <span className="text-xs font-semibold text-foreground">{microTargets.waterL} L</span>
                 </div>
-              );
-            })()}
-          </div>
+                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                  <Droplets className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-muted-foreground">🧂 Elettroliti:</span>
+                  <span className="text-xs font-semibold text-foreground">{microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                  <Leaf className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-muted-foreground">🌾 Fibre:</span>
+                  <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
+                 </div>
+                {(() => {
+                  const quality = todayLog?.average_food_quality;
+                  if (quality == null) return null;
+                  const isGood = quality >= 8;
+                  const isMid = quality >= 5;
+                  return (
+                    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${
+                      isGood ? 'bg-emerald-500/10' : isMid ? 'bg-amber-500/10' : 'bg-red-500/10'
+                    }`}>
+                      <Leaf className={`h-3.5 w-3.5 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
+                      <span className="text-xs text-muted-foreground">🍃 Qualità:</span>
+                      <span className={`text-xs font-semibold ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`}>
+                        {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
 
-          {/* AI Meal Plan Button */}
-          <div className="mt-4 pt-3 border-t border-border">
-            <Button
-              onClick={() => setMealPlanOpen(true)}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              <Sparkles className="h-3.5 w-3.5 mr-1" />
-              Idee Pasti e Spesa AI
-            </Button>
+              <div className="mt-4 pt-3 border-t border-border">
+                <Button
+                  onClick={() => setMealPlanOpen(true)}
+                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-3.5 w-3.5 mr-1" />
+                  Idee Pasti e Spesa AI
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Daily Log */}
+          <div ref={logWidgetRef}>
+            <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        {/* ============ STRATEGY TAB ============ */}
+        <TabsContent value="strategy" className="space-y-6 animate-fade-in">
+          <div className="space-y-1">
+            <h2 className="text-lg font-display font-semibold text-foreground">Piano Settimanale</h2>
+            <p className="text-sm text-muted-foreground">
+              Pianifica la tua settimana per ottimizzare il budget calorico.
+            </p>
+          </div>
+          {weeklyPlan && (
+            <WeeklyPlan plan={weeklyPlan} todayTarget={activeTargets.calories} />
+          )}
+
+          <Card className="glass-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-display flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                Obiettivi Settimanali
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Obiettivi algoritmici per questa settimana</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  {
+                    label: "Peso Trend Attuale",
+                    value: latestTrend != null ? `${latestTrend.toFixed(1)} kg` : "— kg",
+                    sub: "Media mobile esponenziale",
+                  },
+                  {
+                    label: "Calorie Giornaliere Target",
+                    value: `${calories.toLocaleString("it-IT")} kcal`,
+                    sub: currentTDEE ? "Calcolate dal TDEE adattivo" : "Valore predefinito",
+                  },
+                  {
+                    label: "Media Calorie Settimanale",
+                    value: avgWeeklyCal != null ? `${avgWeeklyCal.toLocaleString("it-IT")} kcal` : "— kcal",
+                    sub: validCalLogs.length > 0 ? `Su ${validCalLogs.length} giorni registrati` : "Registra per calcolare",
+                  },
+                  {
+                    label: "Aderenza",
+                    value: adherencePct != null ? `${adherencePct} %` : "— %",
+                    sub: `${last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length}/7 giorni registrati`,
+                  },
+                ].map((item) => (
+                  <div key={item.label} className="bg-secondary/50 rounded-lg p-3 space-y-1">
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className="text-lg font-display font-bold text-foreground">{item.value}</p>
+                    <p className="text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ============ ANALYTICS TAB ============ */}
+        <TabsContent value="analytics" className="space-y-6 animate-fade-in">
+          <WeightTrendChart />
+          <BodyCompositionChart />
+
+          <Card className="glass-card border-border">
+            <CardContent className="p-2 md:p-4">
+              <Accordion type="single" collapsible defaultValue="">
+                <AccordionItem value="history" className="border-0">
+                  <AccordionTrigger className="px-2 hover:no-underline">
+                    <span className="text-lg font-display flex items-center gap-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      Storico Completo
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <LogHistoryTable onEditLog={handleEditLog} />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <AIMealPlanModal
         open={mealPlanOpen}
@@ -431,69 +536,6 @@ const ClientDashboard = () => {
         fats={macros.fats}
         dietType={profile?.diet_type ?? "balanced"}
       />
-
-      {/* Biofeedback Check-in */}
-      {needsCheckin && !checkinDismissed && (
-        <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
-      )}
-
-      {/* Phase 53: Strategy Center — always visible, weekly plan with per-day controls */}
-      {weeklyPlan && (
-        <WeeklyPlan plan={weeklyPlan} todayTarget={activeTargets.calories} />
-      )}
-
-      {/* Charts */}
-      <WeightTrendChart />
-      <BodyCompositionChart />
-
-      <div ref={logWidgetRef}>
-        <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
-      </div>
-
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" />
-            Obiettivi Settimanali
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">Obiettivi algoritmici per questa settimana</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {
-                label: "Peso Trend Attuale",
-                value: latestTrend != null ? `${latestTrend.toFixed(1)} kg` : "— kg",
-                sub: "Media mobile esponenziale",
-              },
-              {
-                label: "Calorie Giornaliere Target",
-                value: `${calories.toLocaleString("it-IT")} kcal`,
-                sub: currentTDEE ? "Calcolate dal TDEE adattivo" : "Valore predefinito",
-              },
-              {
-                label: "Media Calorie Settimanale",
-                value: avgWeeklyCal != null ? `${avgWeeklyCal.toLocaleString("it-IT")} kcal` : "— kcal",
-                sub: validCalLogs.length > 0 ? `Su ${validCalLogs.length} giorni registrati` : "Registra per calcolare",
-              },
-              {
-                label: "Aderenza",
-                value: adherencePct != null ? `${adherencePct} %` : "— %",
-                sub: `${last7Logs.filter((l) => l.weight != null || (l.calories != null && l.calories > 0)).length}/7 giorni registrati`,
-              },
-            ].map((item) => (
-              <div key={item.label} className="bg-secondary/50 rounded-lg p-3 space-y-1">
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className="text-lg font-display font-bold text-foreground">{item.value}</p>
-                <p className="text-xs text-muted-foreground">{item.sub}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Log History */}
-      <LogHistoryTable onEditLog={handleEditLog} />
     </div>
   );
 };
