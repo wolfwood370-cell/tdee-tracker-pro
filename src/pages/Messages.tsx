@@ -66,7 +66,7 @@ const Messages = () => {
         .order("created_at", { ascending: false });
 
       // Build message map
-      const msgMap = new Map<string, { lastMsg: any; unread: number }>();
+      const msgMap = new Map<string, { lastMsg: typeof msgs extends Array<infer M> | null ? M : never; unread: number }>();
       for (const msg of msgs ?? []) {
         const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
         if (!msgMap.has(partnerId)) {
@@ -126,7 +126,7 @@ const Messages = () => {
 
       if (error) throw error;
 
-      const convMap = new Map<string, { msgs: any[]; unread: number }>();
+      const convMap = new Map<string, { msgs: NonNullable<typeof msgs>; unread: number }>();
       for (const msg of msgs ?? []) {
         const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
         if (!convMap.has(partnerId)) {

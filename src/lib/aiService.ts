@@ -73,8 +73,8 @@ export async function parseMealWithAI(input: string | File): Promise<AIParsedMea
  * AI Coach Copilot analysis using Lovable AI Gateway.
  */
 export async function analyzeClientCheckIn(
-  clientData: any,
-  recentLogs: any[],
+  clientData: Record<string, unknown>,
+  recentLogs: Array<Record<string, unknown>>,
 ): Promise<AICheckInSummary> {
   const { data, error } = await supabase.functions.invoke("ai-handler", {
     body: {
