@@ -509,7 +509,7 @@ const ClientDashboard = () => {
 
           <Card className="glass-card border-border">
             <CardContent className="p-2 md:p-4">
-              <Accordion type="single" collapsible defaultValue="">
+              <Accordion type="single" collapsible>
                 <AccordionItem value="history" className="border-0">
                   <AccordionTrigger className="px-2 hover:no-underline">
                     <span className="text-lg font-display flex items-center gap-2">
