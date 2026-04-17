@@ -54,7 +54,6 @@ const ClientDashboard = () => {
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
-  const [dayType, setDayType] = useState<DayType>("training");
 
   useEffect(() => {
     if (!user) return;
@@ -106,40 +105,53 @@ const ClientDashboard = () => {
 
   const calories = targetCalories ?? 2450;
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
-  const isPolarized = polarizedTargets != null;
 
-  // Determine active targets based on selected day type
+  // Phase 53: Today's dayType is read from profile.weekly_schedule (Strategy)
+  const weeklySchedule = useMemo(
+    () => parseWeeklySchedule((profile as { weekly_schedule?: unknown } | null)?.weekly_schedule),
+    [profile],
+  );
+  const todayDayType: DayType = weeklySchedule[getDayKey()];
+
+  // Latest weight + LBM for on-the-fly target recomputation
+  const latestLog = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0];
+  const latestWeight = latestLog?.weight ?? null;
+  const latestTbw = useMemo(() => {
+    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+    return sorted.find((l) => l.tbw != null)?.tbw ?? null;
+  }, [dailyLogs]);
+  const latestLbm = useMemo(() => {
+    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
+    const log = sorted.find((l) => l.bfm != null || l.pbf != null);
+    if (!log) return null;
+    if (log.bfm != null && log.weight != null) return Number(log.weight) - Number(log.bfm);
+    if (log.pbf != null && log.weight != null) return Number(log.weight) * (1 - Number(log.pbf) / 100);
+    return null;
+  }, [dailyLogs]);
+
+  // Active targets for TODAY based on weekly_schedule
   const activeTargets = useMemo(() => {
-    if (dayType === "refeed" && weeklyPlan) {
-      const refeedDay = weeklyPlan.days.find((d) => d.isRefeed);
-      if (refeedDay) {
-        return {
-          calories: refeedDay.calories,
-          macros: refeedDay.macros,
-          label: "🍝 Refeed",
-        };
-      }
-    }
-    if (isPolarized && polarizedTargets) {
-      if (dayType === "rest") {
-        return {
-          calories: polarizedTargets.restDay.calories,
-          macros: polarizedTargets.restDay.macros,
-          label: "🛋️ Riposo",
-        };
-      }
-      return {
-        calories: polarizedTargets.trainingDay.calories,
-        macros: polarizedTargets.trainingDay.macros,
-        label: "🏋️ Allenamento",
-      };
-    }
-    return {
-      calories,
-      macros,
-      label: dayType === "rest" ? "🛋️ Riposo" : dayType === "refeed" ? "🍝 Refeed" : "🏋️ Allenamento",
+    const labels: Record<DayType, string> = {
+      training: "🏋️ Allenamento",
+      rest: "🛋️ Riposo",
+      refeed: "🍝 Refeed",
     };
-  }, [dayType, isPolarized, polarizedTargets, weeklyPlan, calories, macros]);
+    if (currentTDEE && latestWeight) {
+      const t = computeDayTargets({
+        dayType: todayDayType,
+        baselineDailyCal: calories,
+        tdee: currentTDEE,
+        bodyWeightKg: latestWeight,
+        proteinPref: (profile?.protein_pref as ProteinPref) ?? "moderate",
+        dietType: (profile?.diet_type as DietType) ?? "balanced",
+        lbmKg: latestLbm,
+        age: userAge,
+        polarized: polarizedTargets,
+      });
+      return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
+    }
+    return { calories, macros, label: labels[todayDayType] };
+  }, [todayDayType, currentTDEE, latestWeight, calories, macros, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
@@ -159,30 +171,18 @@ const ClientDashboard = () => {
       });
     }
   }, []);
-  const todayDayIndex = (new Date().getDay() + 6) % 7; // Mon=0 .. Sun=6
-  const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
-  const isTodayTraining = trainingSchedule[todayDayIndex] ?? false;
-
-  // Extract latest weight and TBW for hydration calc
-  const latestLog = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0];
-  const latestWeight = latestLog?.weight ?? null;
-  // TBW may be in an older InBody scan, not necessarily the latest log
-  const latestTbw = useMemo(() => {
-    const sorted = [...dailyLogs].sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
-    return sorted.find((l) => l.tbw != null)?.tbw ?? null;
-  }, [dailyLogs]);
 
   const microTargets = useMemo(() => {
     const activityLevel = profile?.activity_level ?? 1.55;
     return calculateMicronutrients(
-      calories,
+      activeTargets.calories,
       typeof activityLevel === 'number' ? activityLevel : parseFloat(String(activityLevel)),
       latestWeight,
       latestTbw,
-      isTodayTraining,
+      todayDayType === "training",
       profile?.sex ?? null,
     );
-  }, [calories, profile?.activity_level, profile?.sex, latestWeight, latestTbw, isTodayTraining]);
+  }, [activeTargets.calories, profile?.activity_level, profile?.sex, latestWeight, latestTbw, todayDayType]);
 
   const last7Logs = dailyLogs.filter((l) => {
     const d = new Date(l.log_date);
