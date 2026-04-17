@@ -3,6 +3,56 @@ import type { WeeklyPlan, DietStrategy } from "@/lib/algorithms";
 
 export type DayType = "training" | "rest" | "refeed";
 
+/** Day keys used in profiles.weekly_schedule (Monday-first). */
+export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export const DAY_KEYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+export const DAY_LABELS_IT: Record<DayKey, string> = {
+  mon: "Lunedì",
+  tue: "Martedì",
+  wed: "Mercoledì",
+  thu: "Giovedì",
+  fri: "Venerdì",
+  sat: "Sabato",
+  sun: "Domenica",
+};
+
+export type WeeklySchedule = Record<DayKey, DayType>;
+
+export const DEFAULT_WEEKLY_SCHEDULE: WeeklySchedule = {
+  mon: "rest",
+  tue: "rest",
+  wed: "rest",
+  thu: "rest",
+  fri: "rest",
+  sat: "rest",
+  sun: "rest",
+};
+
+/**
+ * Coerce arbitrary JSON into a fully-typed WeeklySchedule.
+ * Falls back to "rest" for missing/invalid keys.
+ */
+export function parseWeeklySchedule(raw: unknown): WeeklySchedule {
+  const obj = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const valid: DayType[] = ["training", "rest", "refeed"];
+  const out = { ...DEFAULT_WEEKLY_SCHEDULE };
+  for (const k of DAY_KEYS) {
+    const v = obj[k];
+    if (typeof v === "string" && (valid as string[]).includes(v)) {
+      out[k] = v as DayType;
+    }
+  }
+  return out;
+}
+
+/** Returns the DayKey for a given JS Date (Monday-first). */
+export function getDayKey(d: Date = new Date()): DayKey {
+  const idx = (d.getDay() + 6) % 7; // 0=Mon..6=Sun
+  return DAY_KEYS[idx];
+}
+
 /**
  * Returns local YYYY-MM-DD for a given Date (timezone-safe, unlike toISOString).
  */
@@ -20,8 +70,8 @@ export function toLocalISODate(d: Date): string {
 export function getWeekStartISO(d: Date = new Date()): string {
   const date = new Date(d);
   date.setHours(0, 0, 0, 0);
-  const day = date.getDay(); // 0=Sun..6=Sat
-  const diff = day === 0 ? 6 : day - 1; // Monday-based
+  const day = date.getDay();
+  const diff = day === 0 ? 6 : day - 1;
   date.setDate(date.getDate() - diff);
   return toLocalISODate(date);
 }
@@ -41,7 +91,7 @@ export function getWeekDates(d: Date = new Date()): string[] {
 /** How many days of the current week have already elapsed (1..7, including today). */
 export function daysElapsedInWeek(now: Date = new Date()): number {
   const day = now.getDay();
-  return day === 0 ? 7 : day; // Mon=1..Sun=7
+  return day === 0 ? 7 : day;
 }
 
 /**
@@ -60,7 +110,6 @@ export function getWeeklySlots(profile: Profile | null): WeeklySlots {
   const strategy = (profile?.diet_strategy as DietStrategy) ?? "linear";
   const refeedAllowed =
     strategy === "refeed_1_day" ? 1 : strategy === "refeed_2_days" ? 2 : 0;
-  // Rest = remaining non-training, non-refeed slots
   const restAllowed = Math.max(0, 7 - trainingAllowed - refeedAllowed);
   return { trainingAllowed, restAllowed, refeedAllowed };
 }
@@ -72,18 +121,15 @@ export interface WeeklyUsage {
 }
 
 /**
- * Counts how many days of the current week have been explicitly tagged
- * with each dayType (via daily_metrics.day_type).
+ * Counts how many days of the week are assigned to each type
+ * in the user's planned `weekly_schedule` (the Strategy).
+ *
+ * Phase 53: source of truth is profile.weekly_schedule, NOT daily_metrics.day_type.
  */
-export function getWeeklyUsage(
-  dailyLogs: DailyMetric[],
-  weekStart: string = getWeekStartISO(),
-): WeeklyUsage {
-  const weekDates = getWeekDates(new Date(weekStart));
-  const inWeek = dailyLogs.filter((l) => weekDates.includes(l.log_date));
+export function getWeeklyUsage(schedule: WeeklySchedule): WeeklyUsage {
   const usage: WeeklyUsage = { trainingUsed: 0, restUsed: 0, refeedUsed: 0 };
-  for (const l of inWeek) {
-    const t = (l as DailyMetric & { day_type?: string | null }).day_type;
+  for (const k of DAY_KEYS) {
+    const t = schedule[k];
     if (t === "training") usage.trainingUsed++;
     else if (t === "rest") usage.restUsed++;
     else if (t === "refeed") usage.refeedUsed++;
@@ -92,65 +138,36 @@ export function getWeeklyUsage(
 }
 
 export interface WeeklyBudget {
-  /** Sum of calories actually logged in days of the current week */
   consumedKcal: number;
-  /** Total weekly target derived from the WeeklyPlan (or daily target × 7) */
   totalKcal: number;
-  /** Pro-rated target up to today (avoids false "all green" mid-week) */
   expectedSoFarKcal: number;
-  /** consumed / total ratio (0-1+) */
   ratio: number;
-  /** Predicted overrun in kcal if the user proceeds with `pendingType` today */
   pendingOverrunKcal: number | null;
 }
 
 /**
  * Returns weekly caloric budget vs. consumed for the current week.
- * If `pendingType` is provided, it estimates the overrun delta vs. choosing a normal day.
  */
 export function getWeeklyRemainingBudget(
-  profile: Profile | null,
   dailyLogs: DailyMetric[],
   weeklyPlan: WeeklyPlan | null,
   todayTarget: number | null,
-  pendingType?: DayType | null,
 ): WeeklyBudget {
   const weekDates = getWeekDates();
   const weekLogs = dailyLogs.filter((l) => weekDates.includes(l.log_date));
-  const consumedKcal = weekLogs.reduce(
-    (s, l) => s + (l.calories ?? 0),
-    0,
-  );
+  const consumedKcal = weekLogs.reduce((s, l) => s + (l.calories ?? 0), 0);
 
   const totalKcal = weeklyPlan?.weeklyTotal ?? (todayTarget ? todayTarget * 7 : 0);
   const elapsed = daysElapsedInWeek();
   const expectedSoFarKcal = Math.round((totalKcal * elapsed) / 7);
-
-  // Estimate overrun based on slot usage
-  let pendingOverrunKcal: number | null = null;
-  if (pendingType === "refeed") {
-    const slots = getWeeklySlots(profile);
-    const usage = getWeeklyUsage(dailyLogs);
-    if (usage.refeedUsed >= slots.refeedAllowed) {
-      const refeedDay = weeklyPlan?.days.find((d) => d.isRefeed);
-      const restDay = weeklyPlan?.days.find((d) => !d.isRefeed);
-      const delta =
-        (refeedDay?.calories ?? 0) - (restDay?.calories ?? 0);
-      pendingOverrunKcal = Math.max(0, delta);
-    } else {
-      pendingOverrunKcal = 0;
-    }
-  }
-
   const ratio = totalKcal > 0 ? consumedKcal / totalKcal : 0;
 
-  return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal };
+  return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal: null };
 }
 
 /**
  * Estimates the kcal delta on the WEEKLY budget when forcing an extra
- * day of `newType` (replacing what would otherwise be the default day).
- * Positive = surplus (slows fat loss). Negative = deficit (risk of LBM loss).
+ * day of `newType`.
  */
 export function estimateExtraDayDelta(
   newType: DayType,
@@ -182,4 +199,3 @@ export function estimateExtraDayDelta(
   }
   return 0;
 }
-
