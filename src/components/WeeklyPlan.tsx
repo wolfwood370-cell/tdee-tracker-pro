@@ -9,9 +9,10 @@ import {
   getWeeklyUsage,
   getWeeklyRemainingBudget,
   getWeekStartISO,
+  toLocalISODate,
+  type DayType,
 } from "@/lib/weeklyBudget";
 import type { WeeklyPlan as WeeklyPlanType, DietStrategy } from "@/lib/algorithms";
-import type { DayType } from "@/components/DayTypeSelector";
 
 const STRATEGY_LABELS: Record<DietStrategy, string> = {
   linear: "Lineare",
@@ -41,10 +42,10 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
 
   // Optimistic usage: if today's selection is not yet persisted in dailyLogs,
   // overlay it for live counter feedback.
+  const todayStr = toLocalISODate(new Date());
   const usage = useMemo(() => {
     const base = getWeeklyUsage(dailyLogs);
     if (!selectedDayType) return base;
-    const todayStr = new Date().toISOString().slice(0, 10);
     const todayLog = dailyLogs.find((l) => l.log_date === todayStr) as
       | (typeof dailyLogs[number] & { day_type?: string | null })
       | undefined;
@@ -59,17 +60,22 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
     if (selectedDayType === "rest") adjusted.restUsed += 1;
     if (selectedDayType === "refeed") adjusted.refeedUsed += 1;
     return adjusted;
-  }, [dailyLogs, selectedDayType]);
+  }, [dailyLogs, selectedDayType, todayStr]);
 
   const budget = useMemo(
     () => getWeeklyRemainingBudget(profile, dailyLogs, plan, todayTarget ?? null, selectedDayType ?? null),
     [profile, dailyLogs, plan, todayTarget, selectedDayType],
   );
 
+  // Pace-aware status: compare consumed against the pro-rated expected total so far.
   const consumedPct = budget.totalKcal > 0
     ? Math.min(100, Math.round((budget.consumedKcal / budget.totalKcal) * 100))
     : 0;
+  const expectedPct = budget.totalKcal > 0
+    ? Math.min(100, Math.round((budget.expectedSoFarKcal / budget.totalKcal) * 100))
+    : 0;
   const overBudget = budget.consumedKcal > budget.totalKcal;
+  const overPace = !overBudget && budget.consumedKcal > budget.expectedSoFarKcal * 1.05;
   const remainingKcal = Math.max(0, budget.totalKcal - budget.consumedKcal);
 
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
@@ -79,10 +85,9 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
     return Array.from({ length: 7 }, (_, i) => {
       const x = new Date(start);
       x.setDate(start.getDate() + i);
-      return x.toISOString().slice(0, 10);
+      return toLocalISODate(x);
     });
   }, [weekStart]);
-  const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
     <Card className="glass-card border-border">
@@ -104,18 +109,30 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Budget Settimanale</span>
-            <span className={`font-semibold ${overBudget ? "text-destructive" : "text-foreground"}`}>
+            <span className={`font-semibold ${overBudget ? "text-destructive" : overPace ? "text-amber-600" : "text-foreground"}`}>
               {budget.consumedKcal.toLocaleString("it-IT")} / {budget.totalKcal.toLocaleString("it-IT")} kcal
             </span>
           </div>
-          <Progress
-            value={consumedPct}
-            className={overBudget ? "[&>div]:bg-destructive" : ""}
-          />
+          <div className="relative">
+            <Progress
+              value={consumedPct}
+              className={overBudget ? "[&>div]:bg-destructive" : overPace ? "[&>div]:bg-amber-500" : ""}
+            />
+            {/* Expected-pace marker (where you "should be" mid-week) */}
+            {expectedPct > 0 && expectedPct < 100 && (
+              <div
+                className="absolute top-0 bottom-0 w-px bg-foreground/60"
+                style={{ left: `${expectedPct}%` }}
+                aria-hidden
+              />
+            )}
+          </div>
           <p className="text-[11px] text-muted-foreground">
             {overBudget
               ? `⚠️ Superato di ${(budget.consumedKcal - budget.totalKcal).toLocaleString("it-IT")} kcal`
-              : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal questa settimana`}
+              : overPace
+              ? `⚡ Sopra il ritmo previsto (atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal)`
+              : `Restano ${remainingKcal.toLocaleString("it-IT")} kcal — atteso a oggi: ${budget.expectedSoFarKcal.toLocaleString("it-IT")} kcal`}
           </p>
         </div>
 
