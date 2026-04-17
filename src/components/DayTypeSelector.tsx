@@ -23,7 +23,7 @@ interface DayTypeSelectorProps {
 
 export function DayTypeSelector({ onChange }: DayTypeSelectorProps) {
   const { user, profile, dailyLogs, updateLog, addLog } = useAppStore();
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toLocalISODate(new Date());
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
 
   const isPolarized = profile?.calorie_distribution === "polarized";

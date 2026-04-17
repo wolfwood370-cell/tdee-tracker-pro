@@ -9,9 +9,10 @@ import {
   getWeeklyUsage,
   getWeeklyRemainingBudget,
   getWeekStartISO,
+  toLocalISODate,
+  type DayType,
 } from "@/lib/weeklyBudget";
 import type { WeeklyPlan as WeeklyPlanType, DietStrategy } from "@/lib/algorithms";
-import type { DayType } from "@/components/DayTypeSelector";
 
 const STRATEGY_LABELS: Record<DietStrategy, string> = {
   linear: "Lineare",
@@ -41,10 +42,10 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
 
   // Optimistic usage: if today's selection is not yet persisted in dailyLogs,
   // overlay it for live counter feedback.
+  const todayStr = toLocalISODate(new Date());
   const usage = useMemo(() => {
     const base = getWeeklyUsage(dailyLogs);
     if (!selectedDayType) return base;
-    const todayStr = new Date().toISOString().slice(0, 10);
     const todayLog = dailyLogs.find((l) => l.log_date === todayStr) as
       | (typeof dailyLogs[number] & { day_type?: string | null })
       | undefined;
@@ -59,17 +60,22 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
     if (selectedDayType === "rest") adjusted.restUsed += 1;
     if (selectedDayType === "refeed") adjusted.refeedUsed += 1;
     return adjusted;
-  }, [dailyLogs, selectedDayType]);
+  }, [dailyLogs, selectedDayType, todayStr]);
 
   const budget = useMemo(
     () => getWeeklyRemainingBudget(profile, dailyLogs, plan, todayTarget ?? null, selectedDayType ?? null),
     [profile, dailyLogs, plan, todayTarget, selectedDayType],
   );
 
+  // Pace-aware status: compare consumed against the pro-rated expected total so far.
   const consumedPct = budget.totalKcal > 0
     ? Math.min(100, Math.round((budget.consumedKcal / budget.totalKcal) * 100))
     : 0;
+  const expectedPct = budget.totalKcal > 0
+    ? Math.min(100, Math.round((budget.expectedSoFarKcal / budget.totalKcal) * 100))
+    : 0;
   const overBudget = budget.consumedKcal > budget.totalKcal;
+  const overPace = !overBudget && budget.consumedKcal > budget.expectedSoFarKcal * 1.05;
   const remainingKcal = Math.max(0, budget.totalKcal - budget.consumedKcal);
 
   const maxCal = Math.max(...plan.days.map((d) => d.calories));
@@ -79,7 +85,7 @@ export function WeeklyPlan({ plan, selectedDayType, todayTarget }: WeeklyPlanPro
     return Array.from({ length: 7 }, (_, i) => {
       const x = new Date(start);
       x.setDate(start.getDate() + i);
-      return x.toISOString().slice(0, 10);
+      return toLocalISODate(x);
     });
   }, [weekStart]);
   const todayStr = new Date().toISOString().slice(0, 10);
