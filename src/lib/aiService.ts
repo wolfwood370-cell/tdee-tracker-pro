@@ -18,17 +18,40 @@ export interface AICheckInSummary {
   magicReplyDraft: string;
 }
 
+export interface AIMeal {
+  type: string;
+  name: string;
+  description: string;
+  macros: string;
+}
+
 export interface AIMealPlan {
-  meals: {
-    type: string;
-    name: string;
-    description: string;
-    macros: string;
-  }[];
+  meals: AIMeal[];
   groceryList: {
     category: string;
     items: string[];
   }[];
+}
+
+export interface MealPlanOptions {
+  targetCalories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  dietType: string;
+  numMeals?: number;
+  fridgeItems?: string;
+  dietaryPreference?: string;
+  allergies?: string;
+}
+
+export interface ReplaceMealOptions {
+  mealType: string;
+  targetMacros: string;
+  dietType: string;
+  dietaryPreference?: string;
+  allergies?: string;
+  fridgeItems?: string;
 }
 
 /**
@@ -106,17 +129,21 @@ export async function analyzeClientCheckIn(
 /**
  * AI Meal Plan generator using Lovable AI Gateway.
  */
-export async function generateMealPlanWithAI(
-  targetCalories: number,
-  protein: number,
-  carbs: number,
-  fats: number,
-  dietType: string,
-): Promise<AIMealPlan> {
+export async function generateMealPlanWithAI(opts: MealPlanOptions): Promise<AIMealPlan> {
   const { data, error } = await supabase.functions.invoke("ai-handler", {
     body: {
       action: "generate_meal_plan",
-      payload: { targetCalories, protein, carbs, fats, dietType },
+      payload: {
+        targetCalories: opts.targetCalories,
+        protein: opts.protein,
+        carbs: opts.carbs,
+        fats: opts.fats,
+        dietType: opts.dietType,
+        numMeals: opts.numMeals ?? 4,
+        fridgeItems: opts.fridgeItems ?? "",
+        dietaryPreference: opts.dietaryPreference ?? "onnivoro",
+        allergies: opts.allergies ?? "",
+      },
     },
   });
 
@@ -130,4 +157,34 @@ export async function generateMealPlanWithAI(
   }
 
   return data?.data as AIMealPlan;
+}
+
+/**
+ * Regenerate a single meal preserving target macros.
+ */
+export async function replaceMealWithAI(opts: ReplaceMealOptions): Promise<AIMeal> {
+  const { data, error } = await supabase.functions.invoke("ai-handler", {
+    body: {
+      action: "replace_meal",
+      payload: {
+        mealType: opts.mealType,
+        targetMacros: opts.targetMacros,
+        dietType: opts.dietType,
+        dietaryPreference: opts.dietaryPreference ?? "onnivoro",
+        allergies: opts.allergies ?? "",
+        fridgeItems: opts.fridgeItems ?? "",
+      },
+    },
+  });
+
+  if (error) {
+    console.error("replaceMealWithAI error:", error);
+    throw new Error("Servizio AI temporaneamente non disponibile");
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data?.data as AIMeal;
 }

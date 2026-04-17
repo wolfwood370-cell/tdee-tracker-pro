@@ -399,6 +399,39 @@ export default function Settings() {
             </RadioGroup>
           </div>
 
+          {/* Dietary Preference & Allergies */}
+          <div className="space-y-3 rounded-lg border border-border p-4 bg-secondary/20">
+            <div className="flex items-center gap-2">
+              <Salad className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-display font-semibold text-foreground">Preferenze Alimentari</Label>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Stile alimentare</Label>
+              <Select value={dietaryPreference} onValueChange={setDietaryPreference}>
+                <SelectTrigger className="border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="onnivoro">🥩 Onnivoro</SelectItem>
+                  <SelectItem value="vegetariano">🥗 Vegetariano</SelectItem>
+                  <SelectItem value="vegano">🌱 Vegano</SelectItem>
+                  <SelectItem value="pescatariano">🐟 Pescatariano</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Allergie e intolleranze (opzionale)</Label>
+              <Textarea
+                value={allergies}
+                onChange={(e) => setAllergies(e.target.value)}
+                placeholder="Es: lattosio, glutine, frutta a guscio, uova..."
+                className="border-border min-h-[70px] text-base"
+                rows={3}
+              />
+              <p className="text-[11px] text-muted-foreground">L'AI eviterà questi ingredienti nei piani pasto generati.</p>
+            </div>
+          </div>
+
           {/* Diet Strategy */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
