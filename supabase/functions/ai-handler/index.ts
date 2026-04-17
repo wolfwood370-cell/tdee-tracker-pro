@@ -108,11 +108,21 @@ Log recenti: ${JSON.stringify(payload.recentLogs)}`;
       tool_choice = { type: "function", function: { name: "checkin_analysis" } };
     } else if (action === "generate_meal_plan") {
       const { targetCalories, protein, carbs, fats, dietType } = payload;
-      const systemPrompt = `Sei un dietologo clinico esperto. Genera 3 pasti e una lista della spesa che rispettino STRETTAMENTE questi target giornalieri: ${targetCalories} kcal, ${protein}g proteine, ${carbs}g carboidrati, ${fats}g grassi per una dieta di tipo "${dietType}". Tutti i nomi dei piatti e le descrizioni devono essere in italiano. Usa emoji nei nomi dei pasti.`;
+      const systemPrompt = `Sei un dietologo clinico esperto. Genera un menù completo (Colazione, Pranzo, Spuntino, Cena) e una lista della spesa organizzata per categorie, che rispettino STRETTAMENTE questi target giornalieri: ${targetCalories} kcal, ${protein}g proteine, ${carbs}g carboidrati, ${fats}g grassi per una dieta di tipo "${dietType}". Tutti i nomi dei piatti, descrizioni e categorie devono essere in italiano. Usa emoji nei nomi dei pasti.
+
+Devi rispondere ESCLUSIVAMENTE con un file JSON valido che rispetti esattamente questa struttura: una chiave 'meals' (array di oggetti con: type, name, description, macros) e una chiave 'groceryList' (array di oggetti con: category, items). Calcola i pasti in base ai macro target forniti.
+
+Per ogni pasto:
+- type: tipologia (es. "Colazione", "Pranzo", "Spuntino", "Cena")
+- name: nome del piatto con emoji
+- description: breve descrizione con ingredienti principali e grammature
+- macros: stringa formato "XXX kcal | XXg P | XXg C | XXg G"
+
+Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati", "Ortaggi", "Frutta", "Grassi", "Latticini", "Altro").`;
 
       messages = [
         { role: "system", content: systemPrompt },
-        { role: "user", content: "Genera il piano pasti giornaliero con lista della spesa." },
+        { role: "user", content: "Genera il menù completo della giornata con la lista della spesa categorizzata." },
       ];
 
       tools = [
@@ -120,26 +130,38 @@ Log recenti: ${JSON.stringify(payload.recentLogs)}`;
           type: "function",
           function: {
             name: "meal_plan_result",
-            description: "Return generated meal plan",
+            description: "Return generated meal plan with categorized grocery list",
             parameters: {
               type: "object",
               properties: {
-                dailyMeals: {
+                meals: {
                   type: "array",
                   items: {
                     type: "object",
                     properties: {
-                      name: { type: "string" },
-                      description: { type: "string" },
-                      estimatedMacros: { type: "string" },
+                      type: { type: "string", description: "Tipologia pasto: Colazione, Pranzo, Spuntino, Cena" },
+                      name: { type: "string", description: "Nome piatto con emoji" },
+                      description: { type: "string", description: "Descrizione con ingredienti e grammature" },
+                      macros: { type: "string", description: "Formato: XXX kcal | XXg P | XXg C | XXg G" },
                     },
-                    required: ["name", "description", "estimatedMacros"],
+                    required: ["type", "name", "description", "macros"],
                     additionalProperties: false,
                   },
                 },
-                groceryList: { type: "array", items: { type: "string" } },
+                groceryList: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      category: { type: "string", description: "Categoria alimentare" },
+                      items: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["category", "items"],
+                    additionalProperties: false,
+                  },
+                },
               },
-              required: ["dailyMeals", "groceryList"],
+              required: ["meals", "groceryList"],
               additionalProperties: false,
             },
           },
