@@ -148,8 +148,8 @@ export function ProgressEntryForm({ onSaved }: Props) {
       setMeasurements({});
       setPhotos({});
       onSaved();
-    } catch (err: any) {
-      toast({ title: "Errore", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Errore", description: err instanceof Error ? err.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

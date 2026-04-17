@@ -348,7 +348,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
           training_days_per_week: parseInt(editTrainingDays),
           activity_level: parseFloat(editActivityLevel),
           target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
-        } as any)
+        })
         .eq("id", client.id);
       if (error) throw error;
       // Refetch not needed — local state already drives the UI

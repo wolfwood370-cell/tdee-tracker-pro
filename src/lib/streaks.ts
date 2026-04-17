@@ -43,10 +43,17 @@ export function calculateStreak(
   today.setHours(0, 0, 0, 0);
 
   // Start from today and go backwards
-  let checkDate = new Date(today);
+  const checkDate = new Date(today);
+
+  const toLocalISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
 
   for (let i = 0; i < 365; i++) {
-    const dateStr = checkDate.toISOString().slice(0, 10);
+    const dateStr = toLocalISO(checkDate);
     const log = sorted.find((l) => l.log_date === dateStr);
 
     if (log && isConsistentDay(log, params)) {
