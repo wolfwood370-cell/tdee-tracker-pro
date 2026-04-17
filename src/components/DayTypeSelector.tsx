@@ -13,9 +13,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getWeeklySlots, getWeeklyUsage } from "@/lib/weeklyBudget";
+import { getWeeklySlots, getWeeklyUsage, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 
-export type DayType = "training" | "rest" | "refeed";
+export type { DayType };
 
 interface DayTypeSelectorProps {
   onChange?: (dayType: DayType) => void;
