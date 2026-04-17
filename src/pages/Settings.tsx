@@ -104,10 +104,8 @@ export default function Settings() {
       setDietStrategy(profile.diet_strategy ?? "linear");
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
       setTargetWeight(profile.target_weight?.toString() ?? "");
-      const prefRaw = (profile as { dietary_preference?: string | null }).dietary_preference;
-      setDietaryPreference(prefRaw ?? "onnivoro");
-      const allergiesRaw = (profile as { allergies?: string | null }).allergies;
-      setAllergies(allergiesRaw ?? "");
+      setDietaryPreference(profile.dietary_preference ?? "onnivoro");
+      setAllergies(profile.allergies ?? "");
     }
   }, [profile]);
 
