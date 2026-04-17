@@ -107,10 +107,35 @@ Log recenti: ${JSON.stringify(payload.recentLogs)}`;
       ];
       tool_choice = { type: "function", function: { name: "checkin_analysis" } };
     } else if (action === "generate_meal_plan") {
-      const { targetCalories, protein, carbs, fats, dietType } = payload;
-      const systemPrompt = `Sei un dietologo clinico esperto. Genera un menù completo (Colazione, Pranzo, Spuntino, Cena) e una lista della spesa organizzata per categorie, che rispettino STRETTAMENTE questi target giornalieri: ${targetCalories} kcal, ${protein}g proteine, ${carbs}g carboidrati, ${fats}g grassi per una dieta di tipo "${dietType}". Tutti i nomi dei piatti, descrizioni e categorie devono essere in italiano. Usa emoji nei nomi dei pasti.
+      const {
+        targetCalories,
+        protein,
+        carbs,
+        fats,
+        dietType,
+        numMeals = 4,
+        fridgeItems = "",
+        dietaryPreference = "onnivoro",
+        allergies = "",
+      } = payload;
 
-Devi rispondere ESCLUSIVAMENTE con un file JSON valido che rispetti esattamente questa struttura: una chiave 'meals' (array di oggetti con: type, name, description, macros) e una chiave 'groceryList' (array di oggetti con: category, items). Calcola i pasti in base ai macro target forniti.
+      const allergiesLine = allergies && String(allergies).trim()
+        ? `IMPORTANTE: Evita rigorosamente questi ingredienti per allergie/intolleranze: ${allergies}.`
+        : "Nessuna allergia segnalata.";
+      const fridgeLine = fridgeItems && String(fridgeItems).trim()
+        ? `ANTI-SPRECO: L'utente ha già in frigo: ${fridgeItems}. Dai PRIORITÀ a questi ingredienti per ridurre la lista della spesa.`
+        : "";
+
+      const systemPrompt = `Sei un dietologo clinico esperto. Crea un piano di ${numMeals} pasti che rispetti STRETTAMENTE questi target giornalieri: ${targetCalories} kcal, ${protein}g proteine, ${carbs}g carboidrati, ${fats}g grassi per una dieta di tipo "${dietType}".
+
+REGOLE ALIMENTARI:
+- Stile alimentare: ${dietaryPreference} — rispetta rigorosamente questo regime (vegano = nessun prodotto animale; vegetariano = no carne/pesce; pescatariano = no carne ma sì pesce; onnivoro = libero).
+- ${allergiesLine}
+${fridgeLine}
+
+STRUTTURA: Distribuisci i ${numMeals} pasti in modo logico nella giornata (es: 3 pasti = Colazione/Pranzo/Cena; 4 = aggiungi Spuntino; 5-6 = aggiungi Spuntini multipli). Tutti i nomi dei piatti, descrizioni e categorie devono essere in italiano. Usa emoji nei nomi dei pasti.
+
+Devi rispondere ESCLUSIVAMENTE con un file JSON valido che rispetti esattamente questa struttura: una chiave 'meals' (array di oggetti con: type, name, description, macros) e una chiave 'groceryList' (array di oggetti con: category, items).
 
 Per ogni pasto:
 - type: tipologia (es. "Colazione", "Pranzo", "Spuntino", "Cena")
@@ -122,7 +147,7 @@ Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati"
 
       messages = [
         { role: "system", content: systemPrompt },
-        { role: "user", content: "Genera il menù completo della giornata con la lista della spesa categorizzata." },
+        { role: "user", content: `Genera un menù di ${numMeals} pasti con la lista della spesa categorizzata.` },
       ];
 
       tools = [
@@ -139,10 +164,10 @@ Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati"
                   items: {
                     type: "object",
                     properties: {
-                      type: { type: "string", description: "Tipologia pasto: Colazione, Pranzo, Spuntino, Cena" },
-                      name: { type: "string", description: "Nome piatto con emoji" },
-                      description: { type: "string", description: "Descrizione con ingredienti e grammature" },
-                      macros: { type: "string", description: "Formato: XXX kcal | XXg P | XXg C | XXg G" },
+                      type: { type: "string" },
+                      name: { type: "string" },
+                      description: { type: "string" },
+                      macros: { type: "string" },
                     },
                     required: ["type", "name", "description", "macros"],
                     additionalProperties: false,
@@ -153,7 +178,7 @@ Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati"
                   items: {
                     type: "object",
                     properties: {
-                      category: { type: "string", description: "Categoria alimentare" },
+                      category: { type: "string" },
                       items: { type: "array", items: { type: "string" } },
                     },
                     required: ["category", "items"],
@@ -168,6 +193,61 @@ Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati"
         },
       ];
       tool_choice = { type: "function", function: { name: "meal_plan_result" } };
+    } else if (action === "replace_meal") {
+      const {
+        mealType,
+        targetMacros,
+        dietType = "balanced",
+        dietaryPreference = "onnivoro",
+        allergies = "",
+        fridgeItems = "",
+      } = payload;
+
+      const allergiesLine = allergies && String(allergies).trim()
+        ? `Evita rigorosamente: ${allergies}.`
+        : "";
+      const fridgeLine = fridgeItems && String(fridgeItems).trim()
+        ? `Se possibile usa: ${fridgeItems}.`
+        : "";
+
+      const systemPrompt = `Sei un dietologo esperto. Genera UN'ALTERNATIVA per il pasto "${mealType}" che abbia ESATTAMENTE questi macro: ${targetMacros}.
+
+VINCOLI:
+- Stile alimentare: ${dietaryPreference} (rispetta rigorosamente).
+- Tipo di dieta: ${dietType}.
+- ${allergiesLine}
+- ${fridgeLine}
+
+Il pasto deve essere DIVERSO da quello sostituito ma con macro equivalenti. Italiano, emoji nel nome, descrizione con grammature.
+
+Rispondi ESCLUSIVAMENTE con un oggetto JSON con: type, name, description, macros (formato "XXX kcal | XXg P | XXg C | XXg G").`;
+
+      messages = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Proponi un'alternativa per ${mealType}.` },
+      ];
+
+      tools = [
+        {
+          type: "function",
+          function: {
+            name: "replace_meal_result",
+            description: "Return a replacement meal with matching macros",
+            parameters: {
+              type: "object",
+              properties: {
+                type: { type: "string" },
+                name: { type: "string" },
+                description: { type: "string" },
+                macros: { type: "string" },
+              },
+              required: ["type", "name", "description", "macros"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ];
+      tool_choice = { type: "function", function: { name: "replace_meal_result" } };
     } else {
       return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
         status: 400,

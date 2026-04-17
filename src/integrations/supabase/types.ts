@@ -216,6 +216,7 @@ export type Database = {
       profiles: {
         Row: {
           activity_level: number | null
+          allergies: string | null
           birth_date: string | null
           calorie_distribution: string
           coach_note: string | null
@@ -223,6 +224,7 @@ export type Database = {
           diet_break_until: string | null
           diet_strategy: string
           diet_type: string
+          dietary_preference: string
           full_name: string | null
           goal_rate: number | null
           goal_type: string
@@ -243,6 +245,7 @@ export type Database = {
         }
         Insert: {
           activity_level?: number | null
+          allergies?: string | null
           birth_date?: string | null
           calorie_distribution?: string
           coach_note?: string | null
@@ -250,6 +253,7 @@ export type Database = {
           diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
+          dietary_preference?: string
           full_name?: string | null
           goal_rate?: number | null
           goal_type?: string
@@ -270,6 +274,7 @@ export type Database = {
         }
         Update: {
           activity_level?: number | null
+          allergies?: string | null
           birth_date?: string | null
           calorie_distribution?: string
           coach_note?: string | null
@@ -277,6 +282,7 @@ export type Database = {
           diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
+          dietary_preference?: string
           full_name?: string | null
           goal_rate?: number | null
           goal_type?: string

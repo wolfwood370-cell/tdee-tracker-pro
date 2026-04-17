@@ -535,6 +535,8 @@ const ClientDashboard = () => {
         carbs={activeTargets.macros.carbs}
         fats={activeTargets.macros.fats}
         dietType={profile?.diet_type ?? "balanced"}
+        dietaryPreference={(profile as { dietary_preference?: string | null } | null)?.dietary_preference ?? "onnivoro"}
+        allergies={(profile as { allergies?: string | null } | null)?.allergies ?? ""}
       />
     </div>
   );

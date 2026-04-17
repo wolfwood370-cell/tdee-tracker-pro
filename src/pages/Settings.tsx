@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, AlertTriangle as AlertTriangleIcon } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, AlertTriangle as AlertTriangleIcon, Salad } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,8 @@ export default function Settings() {
   const [deleting, setDeleting] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
   const [targetWeight, setTargetWeight] = useState("");
+  const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
+  const [allergies, setAllergies] = useState("");
 
   useEffect(() => {
     if (profile) {
@@ -101,6 +104,10 @@ export default function Settings() {
       setDietStrategy(profile.diet_strategy ?? "linear");
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
       setTargetWeight(profile.target_weight?.toString() ?? "");
+      const prefRaw = (profile as { dietary_preference?: string | null }).dietary_preference;
+      setDietaryPreference(prefRaw ?? "onnivoro");
+      const allergiesRaw = (profile as { allergies?: string | null }).allergies;
+      setAllergies(allergiesRaw ?? "");
     }
   }, [profile]);
 
@@ -160,6 +167,8 @@ export default function Settings() {
           })(),
            track_menstrual_cycle: trackMenstrualCycle,
            target_weight: targetWeight ? parseFloat(targetWeight) : null,
+           dietary_preference: dietaryPreference,
+           allergies: allergies.trim() || null,
       };
       const { data, error } = await supabase
         .from("profiles")
@@ -388,6 +397,39 @@ export default function Settings() {
                 </label>
               ))}
             </RadioGroup>
+          </div>
+
+          {/* Dietary Preference & Allergies */}
+          <div className="space-y-3 rounded-lg border border-border p-4 bg-secondary/20">
+            <div className="flex items-center gap-2">
+              <Salad className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-display font-semibold text-foreground">Preferenze Alimentari</Label>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Stile alimentare</Label>
+              <Select value={dietaryPreference} onValueChange={setDietaryPreference}>
+                <SelectTrigger className="border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="onnivoro">🥩 Onnivoro</SelectItem>
+                  <SelectItem value="vegetariano">🥗 Vegetariano</SelectItem>
+                  <SelectItem value="vegano">🌱 Vegano</SelectItem>
+                  <SelectItem value="pescatariano">🐟 Pescatariano</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Allergie e intolleranze (opzionale)</Label>
+              <Textarea
+                value={allergies}
+                onChange={(e) => setAllergies(e.target.value)}
+                placeholder="Es: lattosio, glutine, frutta a guscio, uova..."
+                className="border-border min-h-[70px] text-base"
+                rows={3}
+              />
+              <p className="text-[11px] text-muted-foreground">L'AI eviterà questi ingredienti nei piani pasto generati.</p>
+            </div>
           </div>
 
           {/* Diet Strategy */}
