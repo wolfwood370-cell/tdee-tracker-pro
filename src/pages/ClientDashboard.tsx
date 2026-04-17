@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, BarChart3, RefreshCw, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, Dumbbell, Moon, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,9 @@ import { MacroRings } from "@/components/MacroRings";
 import { StreakIndicator } from "@/components/StreakIndicator";
 import { calculateStreak } from "@/lib/streaks";
 import type { TargetMacros } from "@/stores";
-import type { DietStrategy, WeeklyPlan } from "@/lib/algorithms";
 import { calculateMicronutrients, isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
+import { WeeklyPlan } from "@/components/WeeklyPlan";
 
 interface MacroCardProps {
   title: string;
@@ -64,86 +64,6 @@ function MacroCard({ title, icon: Icon, calories, macros, todayCalories }: Macro
         ))}
       </div>
     </div>
-  );
-}
-
-const STRATEGY_LABELS: Record<DietStrategy, string> = {
-  linear: "Lineare",
-  refeed_1_day: "Refeed 1g",
-  refeed_2_days: "Refeed 2g",
-  matador_break: "MATADOR",
-  reverse_diet: "Reverse Diet",
-};
-
-function WeeklyPlanBar({ plan }: { plan: WeeklyPlan }) {
-  const { polarizedTargets, profile } = useAppStore();
-  const isPolarized = polarizedTargets != null;
-  const maxCal = Math.max(...plan.days.map((d) => d.calories));
-
-  const schedule: boolean[] =
-    (profile?.training_schedule as boolean[] | null) ??
-    [true, false, true, false, true, false, false];
-
-  // Determine per-day calorie target based on training schedule
-  const getDayCalories = (dayIndex: number) => {
-    if (!isPolarized) return null;
-    return schedule[dayIndex]
-      ? polarizedTargets.trainingDay.calories
-      : polarizedTargets.restDay.calories;
-  };
-
-  return (
-    <Card className="glass-card border-border">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-display flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-primary" />
-            Piano Settimanale
-          </CardTitle>
-          <Badge variant="secondary" className="text-xs">
-            {STRATEGY_LABELS[plan.strategy] ?? plan.strategy}
-            {plan.isMaintenancePhase && " — Fase Mantenimento"}
-            {plan.reverseWeekNumber && ` — Settimana ${plan.reverseWeekNumber}`}
-          </Badge>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Totale settimanale: {plan.weeklyTotal.toLocaleString("it-IT")} kcal
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Day Type Selector inline preview removed; managed at Hero level */}
-
-        {/* Bar chart */}
-        <div className="flex items-end gap-1.5 h-28">
-          {plan.days.map((d, i) => {
-            const dayCal = getDayCalories(i);
-            const displayCal = dayCal ?? d.calories;
-            const pct = maxCal > 0 ? (displayCal / maxCal) * 100 : 0;
-            const isTraining = isPolarized && schedule[i];
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-[10px] font-semibold text-foreground">
-                  {displayCal}
-                </span>
-                <div
-                  className={`w-full rounded-t transition-all ${
-                    d.isRefeed ? "bg-accent" : isTraining ? "bg-primary" : "bg-muted-foreground/40"
-                  }`}
-                  style={{ height: `${pct}%`, minHeight: 4 }}
-                />
-                <span className="text-[10px] text-muted-foreground">{d.label}</span>
-              </div>
-            );
-          })}
-        </div>
-        {plan.days.some((d) => d.isRefeed) && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <RefreshCw className="h-3 w-3" />
-            <span>I giorni evidenziati sono giorni di refeed a mantenimento (extra carb)</span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 }
 
@@ -581,7 +501,7 @@ const ClientDashboard = () => {
 
       {/* Non-Linear Weekly Plan / Polarized Schedule */}
       {(weeklyPlan && (weeklyPlan.strategy !== 'linear' || isPolarized)) && (
-        <WeeklyPlanBar plan={weeklyPlan} />
+        <WeeklyPlan plan={weeklyPlan} selectedDayType={dayType} todayTarget={activeTargets.calories} />
       )}
 
       {/* Charts */}
