@@ -315,6 +315,7 @@ export default function Onboarding() {
           protein_pref: proteinPref,
           training_days_per_week: parseInt(trainingDays),
           training_schedule: schedule,
+          weekly_schedule: buildWeeklySchedule(schedule),
            track_menstrual_cycle: trackMenstrualCycle,
            target_weight: targetWeight ? parseFloat(targetWeight) : null,
       };
