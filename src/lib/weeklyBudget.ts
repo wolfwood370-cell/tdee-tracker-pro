@@ -1,10 +1,21 @@
 import type { DailyMetric, Profile } from "@/stores";
 import type { WeeklyPlan, DietStrategy } from "@/lib/algorithms";
-import type { DayType } from "@/components/DayTypeSelector";
+
+export type DayType = "training" | "rest" | "refeed";
+
+/**
+ * Returns local YYYY-MM-DD for a given Date (timezone-safe, unlike toISOString).
+ */
+export function toLocalISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 /**
  * Computes the ISO week (Monday → Sunday) start date for a given date.
- * Returns ISO date string (YYYY-MM-DD).
+ * Returns local ISO date string (YYYY-MM-DD).
  */
 export function getWeekStartISO(d: Date = new Date()): string {
   const date = new Date(d);
@@ -12,7 +23,7 @@ export function getWeekStartISO(d: Date = new Date()): string {
   const day = date.getDay(); // 0=Sun..6=Sat
   const diff = day === 0 ? 6 : day - 1; // Monday-based
   date.setDate(date.getDate() - diff);
-  return date.toISOString().slice(0, 10);
+  return toLocalISODate(date);
 }
 
 /**
@@ -23,8 +34,14 @@ export function getWeekDates(d: Date = new Date()): string[] {
   return Array.from({ length: 7 }, (_, i) => {
     const x = new Date(start);
     x.setDate(start.getDate() + i);
-    return x.toISOString().slice(0, 10);
+    return toLocalISODate(x);
   });
+}
+
+/** How many days of the current week have already elapsed (1..7, including today). */
+export function daysElapsedInWeek(now: Date = new Date()): number {
+  const day = now.getDay();
+  return day === 0 ? 7 : day; // Mon=1..Sun=7
 }
 
 /**
@@ -79,6 +96,8 @@ export interface WeeklyBudget {
   consumedKcal: number;
   /** Total weekly target derived from the WeeklyPlan (or daily target × 7) */
   totalKcal: number;
+  /** Pro-rated target up to today (avoids false "all green" mid-week) */
+  expectedSoFarKcal: number;
   /** consumed / total ratio (0-1+) */
   ratio: number;
   /** Predicted overrun in kcal if the user proceeds with `pendingType` today */
@@ -104,6 +123,8 @@ export function getWeeklyRemainingBudget(
   );
 
   const totalKcal = weeklyPlan?.weeklyTotal ?? (todayTarget ? todayTarget * 7 : 0);
+  const elapsed = daysElapsedInWeek();
+  const expectedSoFarKcal = Math.round((totalKcal * elapsed) / 7);
 
   // Estimate overrun based on slot usage
   let pendingOverrunKcal: number | null = null;
@@ -124,5 +145,5 @@ export function getWeeklyRemainingBudget(
 
   const ratio = totalKcal > 0 ? consumedKcal / totalKcal : 0;
 
-  return { consumedKcal, totalKcal, ratio, pendingOverrunKcal };
+  return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal };
 }
