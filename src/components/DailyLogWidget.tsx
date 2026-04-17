@@ -75,16 +75,15 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const isEditing = !!existingLog;
 
-  // Post-refeed physiological warning: was yesterday a refeed day?
-  const yesterdayStr = (() => {
+  // Post-refeed physiological warning: Phase 53 reads yesterday's planned day type
+  // from profile.weekly_schedule (single source of truth) instead of legacy day_type.
+  const showPostRefeedWarning = (() => {
     const y = new Date(date);
     y.setDate(y.getDate() - 1);
-    return toLocalISODate(y);
+    const yesterdayKey = (["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const)[y.getDay()];
+    const schedule = (profile as { weekly_schedule?: Record<string, string> } | null)?.weekly_schedule;
+    return schedule?.[yesterdayKey] === "refeed";
   })();
-  const yesterdayLog = dailyLogs.find(
-    (l) => l.log_date === yesterdayStr && l.user_id === user?.id
-  ) as (typeof dailyLogs[number] & { day_type?: string | null }) | undefined;
-  const showPostRefeedWarning = yesterdayLog?.day_type === "refeed";
 
   useEffect(() => {
     if (isExternalEdit) {

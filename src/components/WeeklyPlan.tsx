@@ -22,8 +22,6 @@ import {
   getWeeklySlots,
   getWeeklyUsage,
   getWeeklyRemainingBudget,
-  getWeekStartISO,
-  toLocalISODate,
   daysElapsedInWeek,
   estimateExtraDayDelta,
   parseWeeklySchedule,
@@ -178,17 +176,8 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   const overPace = !overBudget && budget.consumedKcal > budget.expectedSoFarKcal * 1.05;
   const remainingKcal = Math.max(0, budget.totalKcal - budget.consumedKcal);
 
-  // Today highlight
+  // Today highlight (single source: DayKey of today, no double check)
   const todayKey = getDayKey();
-  const weekStart = getWeekStartISO();
-  const weekDates = useMemo(() => {
-    const start = new Date(weekStart);
-    return Array.from({ length: 7 }, (_, i) => {
-      const x = new Date(start);
-      x.setDate(start.getDate() + i);
-      return toLocalISODate(x);
-    });
-  }, [weekStart]);
 
   // ── Persistence + Guardrails ──────────────────────────────
   const [pending, setPending] = useState<{ key: DayKey; newType: DayType } | null>(null);
@@ -345,11 +334,11 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
 
         {/* Per-day Strategy Rows */}
         <div className="space-y-2 pt-1">
-          {DAY_KEYS.map((key, idx) => {
+          {DAY_KEYS.map((key) => {
             const dayType = schedule[key];
             const targets = computeRowTargets(dayType);
             const micro = computeRowMicro(dayType, targets.calories);
-            const isToday = weekDates[idx] === toLocalISODate(new Date()) || key === todayKey;
+            const isToday = key === todayKey;
             const isSavingRow = saving === key;
 
             return (

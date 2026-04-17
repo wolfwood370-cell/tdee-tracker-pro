@@ -263,9 +263,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       const proteinPref = (profile?.protein_pref as ProteinPref) ?? 'moderate';
       const dietType = (profile?.diet_type as DietType) ?? 'balanced';
       const calorieDistribution = (profile?.calorie_distribution as CalorieDistribution) ?? 'stable';
-      const trainingSchedule = (profile?.training_schedule as boolean[] | null) ?? [true, false, true, false, true, false, false];
+      // Phase 53: derive trainingDays from weekly_schedule (single source of truth).
+      // Falls back to training_days_per_week if schedule is missing or empty.
+      const weeklyScheduleRaw = (profile as { weekly_schedule?: Record<string, string> } | null)?.weekly_schedule;
+      const scheduledTrainingDays = weeklyScheduleRaw
+        ? Object.values(weeklyScheduleRaw).filter((v) => v === 'training').length
+        : 0;
       const trainingDays = calorieDistribution === 'polarized'
-        ? trainingSchedule.filter(Boolean).length
+        ? (scheduledTrainingDays > 0 ? scheduledTrainingDays : (profile?.training_days_per_week ?? 4))
         : profile?.training_days_per_week ?? 4;
       const dietStrategy = (profile?.diet_strategy as DietStrategy) ?? 'linear';
 
