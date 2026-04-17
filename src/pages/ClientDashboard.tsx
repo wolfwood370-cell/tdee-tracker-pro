@@ -436,9 +436,9 @@ const ClientDashboard = () => {
         <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
       )}
 
-      {/* Non-Linear Weekly Plan / Polarized Schedule */}
-      {(weeklyPlan && (weeklyPlan.strategy !== 'linear' || isPolarized)) && (
-        <WeeklyPlan plan={weeklyPlan} selectedDayType={dayType} todayTarget={activeTargets.calories} />
+      {/* Phase 53: Strategy Center — always visible, weekly plan with per-day controls */}
+      {weeklyPlan && (
+        <WeeklyPlan plan={weeklyPlan} todayTarget={activeTargets.calories} />
       )}
 
       {/* Charts */}
