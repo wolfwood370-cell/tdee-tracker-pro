@@ -22,8 +22,6 @@ import {
   getWeeklySlots,
   getWeeklyUsage,
   getWeeklyRemainingBudget,
-  getWeekStartISO,
-  toLocalISODate,
   daysElapsedInWeek,
   estimateExtraDayDelta,
   parseWeeklySchedule,
@@ -336,11 +334,11 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
 
         {/* Per-day Strategy Rows */}
         <div className="space-y-2 pt-1">
-          {DAY_KEYS.map((key, idx) => {
+          {DAY_KEYS.map((key) => {
             const dayType = schedule[key];
             const targets = computeRowTargets(dayType);
             const micro = computeRowMicro(dayType, targets.calories);
-            const isToday = weekDates[idx] === toLocalISODate(new Date()) || key === todayKey;
+            const isToday = key === todayKey;
             const isSavingRow = saving === key;
 
             return (
