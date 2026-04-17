@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getWeeklySlots, getWeeklyUsage, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
+import { getWeeklySlots, getWeeklyUsage, toLocalISODate, estimateExtraDayDelta, type DayType } from "@/lib/weeklyBudget";
 
 export type { DayType };
 
@@ -22,7 +22,7 @@ interface DayTypeSelectorProps {
 }
 
 export function DayTypeSelector({ onChange }: DayTypeSelectorProps) {
-  const { user, profile, dailyLogs, updateLog, addLog } = useAppStore();
+  const { user, profile, dailyLogs, updateLog, addLog, weeklyPlan, targetCalories } = useAppStore();
   const todayStr = toLocalISODate(new Date());
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
 
@@ -103,19 +103,21 @@ export function DayTypeSelector({ onChange }: DayTypeSelectorProps) {
     if (persistedType === "refeed") adjUsage.refeedUsed = Math.max(0, adjUsage.refeedUsed - 1);
 
     if (newType === "refeed" && slots.refeedAllowed > 0 && adjUsage.refeedUsed >= slots.refeedAllowed) {
+      const delta = estimateExtraDayDelta("refeed", weeklyPlan, targetCalories);
       setPendingType(newType);
       setGuardrailMessage({
-        title: "Budget Settimanale Esaurito",
-        description: `Hai già utilizzato i tuoi ${slots.refeedAllowed} giorni di refeed per questa settimana. Aggiungerne un altro comprometterebbe il tuo obiettivo settimanale. Vuoi procedere comunque (sconsigliato) o mantenere il piano?`,
+        title: "Budget Settimanale a Rischio",
+        description: `Attenzione: aggiungere un altro giorno di Refeed non previsto porterà un eccesso di circa +${delta.toLocaleString("it-IT")} kcal sul tuo bilancio settimanale, rallentando il dimagrimento. Hai già usato ${slots.refeedAllowed}/${slots.refeedAllowed} refeed pianificati. Vuoi forzare la selezione?`,
       });
       return;
     }
 
     if (newType === "rest" && slots.restAllowed > 0 && adjUsage.restUsed >= slots.restAllowed) {
+      const delta = estimateExtraDayDelta("rest", weeklyPlan, targetCalories);
       setPendingType(newType);
       setGuardrailMessage({
         title: "Troppi Giorni di Riposo",
-        description: `Hai già pianificato ${slots.restAllowed} giorni di riposo questa settimana (in base ai tuoi giorni di allenamento programmati). Aggiungerne un altro potrebbe ridurre l'apporto calorico settimanale sotto il livello necessario per supportare gli allenamenti. Vuoi procedere comunque?`,
+        description: `Attenzione: aggiungere un giorno di Riposo non previsto ridurrà il tuo budget di circa ${delta.toLocaleString("it-IT")} kcal sulla settimana, aumentando il rischio di perdita di massa magra e recupero compromesso. Hai già usato ${slots.restAllowed}/${slots.restAllowed} giorni di riposo. Vuoi forzare la selezione?`,
       });
       return;
     }

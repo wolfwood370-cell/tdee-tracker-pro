@@ -10,6 +10,9 @@ import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { InBodySegmentalInputs, emptySegmentalFields, segmentalFromLog, segmentalToPayload, type SegmentalFields } from "@/components/InBodySegmentalInputs";
 import type { MenstrualPhase } from "@/lib/algorithms";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Droplets } from "lucide-react";
+import { toLocalISODate } from "@/lib/weeklyBudget";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +74,17 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   );
 
   const isEditing = !!existingLog;
+
+  // Post-refeed physiological warning: was yesterday a refeed day?
+  const yesterdayStr = (() => {
+    const y = new Date(date);
+    y.setDate(y.getDate() - 1);
+    return toLocalISODate(y);
+  })();
+  const yesterdayLog = dailyLogs.find(
+    (l) => l.log_date === yesterdayStr && l.user_id === user?.id
+  ) as (typeof dailyLogs[number] & { day_type?: string | null }) | undefined;
+  const showPostRefeedWarning = yesterdayLog?.day_type === "refeed";
 
   useEffect(() => {
     if (isExternalEdit) {
@@ -239,6 +253,16 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
             {/* Weight, Calories & Steps */}
             <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2 space-y-1.5">
+                {showPostRefeedWarning && (
+                  <Alert className="border-primary/40 bg-primary/5 mb-2">
+                    <Droplets className="h-4 w-4 text-primary" />
+                    <AlertDescription className="text-xs">
+                      <strong>💧 Effetto Refeed:</strong> È normale vedere un picco di peso oggi. I carboidrati di ieri hanno ripristinato il glicogeno muscolare, che lega acqua. Non è grasso accumulato!
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="weight" className="text-xs text-muted-foreground flex items-center gap-1">
                   <Scale className="h-3 w-3" /> Peso (kg)

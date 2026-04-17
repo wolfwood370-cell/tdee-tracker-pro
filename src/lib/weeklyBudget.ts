@@ -132,7 +132,6 @@ export function getWeeklyRemainingBudget(
     const slots = getWeeklySlots(profile);
     const usage = getWeeklyUsage(dailyLogs);
     if (usage.refeedUsed >= slots.refeedAllowed) {
-      // Each excess refeed roughly costs (refeed_cal - rest_cal)
       const refeedDay = weeklyPlan?.days.find((d) => d.isRefeed);
       const restDay = weeklyPlan?.days.find((d) => !d.isRefeed);
       const delta =
@@ -147,3 +146,40 @@ export function getWeeklyRemainingBudget(
 
   return { consumedKcal, totalKcal, expectedSoFarKcal, ratio, pendingOverrunKcal };
 }
+
+/**
+ * Estimates the kcal delta on the WEEKLY budget when forcing an extra
+ * day of `newType` (replacing what would otherwise be the default day).
+ * Positive = surplus (slows fat loss). Negative = deficit (risk of LBM loss).
+ */
+export function estimateExtraDayDelta(
+  newType: DayType,
+  weeklyPlan: WeeklyPlan | null,
+  todayTarget: number | null,
+): number {
+  if (!weeklyPlan) {
+    const base = todayTarget ?? 0;
+    if (newType === "refeed") return Math.round(base * 0.25);
+    if (newType === "rest") return -Math.round(base * 0.15);
+    return 0;
+  }
+  const refeedDay = weeklyPlan.days.find((d) => d.isRefeed);
+  const restDay = weeklyPlan.days.find((d) => !d.isRefeed && d.calories > 0);
+  const trainingDay = weeklyPlan.days.reduce(
+    (max, d) => (!d.isRefeed && d.calories > (max?.calories ?? 0) ? d : max),
+    undefined as typeof weeklyPlan.days[number] | undefined,
+  );
+  const baseline = todayTarget ?? Math.round(weeklyPlan.weeklyTotal / 7);
+
+  if (newType === "refeed") {
+    const refeedCal = refeedDay?.calories ?? Math.round(baseline * 1.25);
+    return Math.max(0, refeedCal - baseline);
+  }
+  if (newType === "rest") {
+    const restCal = restDay?.calories ?? Math.round(baseline * 0.9);
+    const trainingCal = trainingDay?.calories ?? baseline;
+    return -Math.max(0, trainingCal - restCal);
+  }
+  return 0;
+}
+
