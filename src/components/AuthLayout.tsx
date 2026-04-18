@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useAppStore } from "@/stores";
 
 interface AuthLayoutProps {
@@ -31,6 +32,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
             {children}
           </main>
         </div>
+        <PWAInstallPrompt />
       </div>
     </SidebarProvider>
   );
