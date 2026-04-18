@@ -329,6 +329,70 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* === 🎯 Obiettivo Attuale (moved from Settings) === */}
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-display font-semibold text-foreground">🎯 Obiettivo Attuale</h3>
+            {savingGoal && <span className="text-[10px] text-muted-foreground ml-auto">salvataggio…</span>}
+          </div>
+          <p className="text-[11px] text-muted-foreground -mt-1">
+            Modifica il tuo obiettivo qui; i macro sottostanti si aggiorneranno automaticamente.
+          </p>
+
+          <RadioGroup value={goalType} onValueChange={handleGoalChange} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {GOAL_TYPES.map((gt) => (
+              <label
+                key={gt.value}
+                className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer transition-colors ${
+                  goalType === gt.value ? "border-primary bg-primary/10" : "border-border hover:border-primary/40 bg-background"
+                }`}
+              >
+                <RadioGroupItem value={gt.value} />
+                <span className="text-xs text-foreground">{gt.label}</span>
+              </label>
+            ))}
+          </RadioGroup>
+
+          {goalType !== "maintenance" && (
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+                Peso Obiettivo (kg)
+              </Label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min="30"
+                max="300"
+                value={targetWeight}
+                onChange={(e) => setTargetWeight(e.target.value)}
+                onBlur={handleTargetWeightBlur}
+                placeholder="es. 72.0"
+                className="border-border bg-background h-9"
+              />
+              {targetWeightNum != null && heightCmNum != null && isUnderweightRisk(targetWeightNum, heightCmNum) && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-1">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold text-xs">⚠️ Attenzione Clinica</AlertTitle>
+                  <AlertDescription className="text-[11px] mt-1">
+                    Il peso obiettivo porterebbe a un BMI inferiore a 18.5 (sottopeso severo). Procedere senza supervisione medica può comportare gravi rischi per la salute.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {targetWeightNum != null && heightCmNum != null && !isUnderweightRisk(targetWeightNum, heightCmNum) && isObesityRisk(targetWeightNum, heightCmNum) && (
+                <Alert className="border-orange-500/50 bg-orange-500/10 mt-1">
+                  <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="font-display font-semibold text-xs text-orange-700">⚠️ Avviso Clinico</AlertTitle>
+                  <AlertDescription className="text-[11px] mt-1 text-orange-700/80">
+                    Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Weekly Budget Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
