@@ -54,6 +54,13 @@ const STRATEGY_LABELS: Record<DietStrategy, string> = {
   reverse_diet: "Reverse Diet",
 };
 
+const GOAL_TYPES = [
+  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
+  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
+  { value: "maintenance", label: "Mantenimento" },
+  { value: "weight_gain", label: "Aumento di massa magra" },
+] as const;
+
 interface WeeklyPlanProps {
   plan: WeeklyPlanType;
   /** Today's effective calorie target (used as fallback when plan is missing) */
