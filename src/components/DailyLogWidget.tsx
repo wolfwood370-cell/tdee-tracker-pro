@@ -210,8 +210,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
                 onClick={() => setAiModalOpen(true)}
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
               >
-                <Sparkles className="h-3.5 w-3.5 mr-1" />
-                AI Smart Log
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Aggiungi Pasto
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
