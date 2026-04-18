@@ -195,6 +195,9 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       setBiofeedbackLogs(bioRes.data ?? []);
       setLoading(false);
     });
+    // We intentionally re-run when the client identity OR the sheet opens.
+    // Using `client.profile` snapshot inside is correct because it's read at effect time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client?.id, open]);
 
   useEffect(() => {

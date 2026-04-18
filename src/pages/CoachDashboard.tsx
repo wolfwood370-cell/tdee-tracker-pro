@@ -31,7 +31,7 @@ import {
   type DailyTargets,
   type BiofeedbackEntry,
 } from "@/lib/compliance";
-import { getWeekDates } from "@/lib/weeklyBudget";
+import { getWeekDates, toLocalISODate } from "@/lib/weeklyBudget";
 import type { DailyMetric } from "@/stores";
 
 interface ClientRow {
@@ -251,9 +251,8 @@ const CoachDashboard = () => {
     clients.length > 0
       ? Math.round(clients.reduce((s, c) => s + c.compliance.score, 0) / clients.length)
       : 0;
-  const checkinToday = clients.filter(
-    (c) => c.lastLogDate === new Date().toISOString().slice(0, 10),
-  ).length;
+  const todayLocalIso = toLocalISODate(new Date());
+  const checkinToday = clients.filter((c) => c.lastLogDate === todayLocalIso).length;
 
   return (
     <TooltipProvider delayDuration={150}>
