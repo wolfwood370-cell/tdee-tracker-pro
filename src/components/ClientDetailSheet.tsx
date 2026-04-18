@@ -626,7 +626,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               {(() => {
                 const isBurnout = detectMetabolicBurnout(logs);
                 const breakUntil = client.profile.diet_break_until;
-                const isBreakActive = breakUntil && new Date(breakUntil) >= new Date(new Date().toISOString().slice(0, 10));
+                const isBreakActive = breakUntil && new Date(breakUntil) >= new Date(toLocalISODate(new Date()));
 
                 if (isBreakActive) {
                   const formattedDate = new Date(breakUntil).toLocaleDateString("it-IT", { day: "numeric", month: "long" });
@@ -656,7 +656,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                           onClick={async () => {
                             const breakDate = new Date();
                             breakDate.setDate(breakDate.getDate() + 3);
-                            const dateStr = breakDate.toISOString().slice(0, 10);
+                            const dateStr = toLocalISODate(breakDate);
                             const { error } = await supabase
                               .from("profiles")
                               .update({ diet_break_until: dateStr })
@@ -777,7 +777,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
 
               {/* Food Quality Badge */}
               {(() => {
-                const todayStr = new Date().toISOString().slice(0, 10);
+                const todayStr = toLocalISODate(new Date());
                 const todayLog = logs.find((l) => l.log_date === todayStr);
                 const quality = todayLog?.average_food_quality;
                 if (quality == null) return null;

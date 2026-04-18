@@ -29,7 +29,7 @@ import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { TodayDiary } from "@/components/TodayDiary";
 import { QuickWaterButton } from "@/components/QuickWaterButton";
-import { parseWeeklySchedule, getDayKey, type DayType } from "@/lib/weeklyBudget";
+import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
@@ -76,24 +76,28 @@ const ClientDashboard = () => {
         }
 
         // Phase 65: One-time welcome toast for first-time users
-        const welcomeKey = `nc-welcome-shown-${user.id}`;
-        const alreadyShown = localStorage.getItem(welcomeKey);
-        if (!alreadyShown && (data?.length ?? 0) <= 1) {
-          toast.success("Benvenuto a bordo.", {
-            description: "Il tuo metabolismo è in fase di calcolo. Registra il peso e i pasti ogni giorno per permettere all'algoritmo di adattarsi a te.",
-            duration: 6000,
-          });
-          localStorage.setItem(welcomeKey, "1");
+        try {
+          const welcomeKey = `nc-welcome-shown-${user.id}`;
+          const alreadyShown = localStorage.getItem(welcomeKey);
+          if (!alreadyShown && (data?.length ?? 0) <= 1) {
+            toast.success("Benvenuto a bordo.", {
+              description: "Il tuo metabolismo è in fase di calcolo. Registra il peso e i pasti ogni giorno per permettere all'algoritmo di adattarsi a te.",
+              duration: 6000,
+            });
+            localStorage.setItem(welcomeKey, "1");
+          }
+        } catch {
+          // localStorage non disponibile (es. modalità privata) — ignora
         }
       });
 
-    // Check biofeedback status
+    // Check biofeedback status (week start in LOCAL time, not UTC)
     const now = new Date();
     const day = now.getDay();
     const diff = day === 0 ? 6 : day - 1;
     const monday = new Date(now);
     monday.setDate(now.getDate() - diff);
-    const weekStart = monday.toISOString().slice(0, 10);
+    const weekStart = toLocalISODate(monday);
 
     supabase
       .from("biofeedback_logs")
@@ -114,7 +118,7 @@ const ClientDashboard = () => {
     }, 100);
   }, []);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toLocalISODate(new Date());
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
   const todayCalories = todayLog?.calories ?? 0;
   // Phase 60: live macros consumed today (from manual logger / future entries)

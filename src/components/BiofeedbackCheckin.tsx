@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
 import { evaluateBiofeedbackTrigger } from "@/lib/autoRegulation";
 import { AutoRegulationModal } from "@/components/AutoRegulationModal";
+import { toLocalISODate } from "@/lib/weeklyBudget";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,12 +40,14 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
   const [showAIModal, setShowAIModal] = useState(false);
 
   const getWeekStart = () => {
+    // Use LOCAL date so the week-start matches the user's clock,
+    // not UTC (which can shift the day for late-evening logs in CET).
     const now = new Date();
     const day = now.getDay();
     const diff = day === 0 ? 6 : day - 1; // Monday as week start
     const monday = new Date(now);
     monday.setDate(now.getDate() - diff);
-    return monday.toISOString().slice(0, 10);
+    return toLocalISODate(monday);
   };
 
   const handleSubmit = async () => {
