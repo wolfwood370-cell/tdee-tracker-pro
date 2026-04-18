@@ -3,8 +3,6 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
-import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, AlertTriangle as AlertTriangleIcon, Salad } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, Salad } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,13 +43,6 @@ const DIET_STRATEGIES = [
   { value: "refeed_2_days", label: "Refeed 2 giorni", desc: "2 giorni a mantenimento (Sab-Dom), deficit distribuito nei restanti 5" },
   { value: "matador_break", label: "MATADOR", desc: "Ciclo 2 sett deficit + 2 sett mantenimento" },
   { value: "reverse_diet", label: "Reverse Diet", desc: "Post-cut: +75 kcal/sett fino al TDEE" },
-];
-
-const GOAL_TYPES = [
-  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
-  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
-  { value: "maintenance", label: "Mantenimento" },
-  { value: "weight_gain", label: "Aumento di massa magra" },
 ];
 
 const DIET_TYPES = [
