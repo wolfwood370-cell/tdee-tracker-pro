@@ -235,7 +235,22 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   };
 
   const handleTargetWeightBlur = () => {
-    const parsed = targetWeight ? parseFloat(targetWeight) : null;
+    const trimmed = targetWeight.trim();
+    let parsed: number | null = null;
+    if (trimmed) {
+      const n = parseFloat(trimmed);
+      if (!isFinite(n) || n < 30 || n > 300) {
+        toast({
+          title: "Peso non valido",
+          description: "Inserisci un valore tra 30 e 300 kg.",
+          variant: "destructive",
+        });
+        // Reset display value to last persisted value
+        setTargetWeight(profile?.target_weight?.toString() ?? "");
+        return;
+      }
+      parsed = n;
+    }
     if (parsed !== (profile?.target_weight ?? null)) {
       void persistGoal({ target_weight: parsed });
     }

@@ -309,7 +309,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
             AI Smart Log
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Scansiona, descrivi un piatto o registra dalla Cassaforte
+            Scansiona con AI, registra dalla Cassaforte o inserisci manualmente
           </DialogDescription>
         </DialogHeader>
 
