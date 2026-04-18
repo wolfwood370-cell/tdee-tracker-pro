@@ -153,6 +153,17 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     qualityScore?: number,
   ) => {
     if (!user) throw new Error("No user");
+
+    // Re-read freshest meals_log + quality from DB to avoid race conditions
+    // (e.g. quick consecutive logs or parallel deletions from the diary).
+    const { data: fresh, error: readErr } = await supabase
+      .from("daily_metrics")
+      .select("meals_log, average_food_quality")
+      .eq("user_id", user.id)
+      .eq("log_date", logDate)
+      .maybeSingle();
+    if (readErr) throw readErr;
+
     const existingLog = dailyLogs.find(
       (l) => l.log_date === logDate && l.user_id === user.id,
     );
@@ -162,24 +173,22 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       id: newMealId(),
       timestamp: new Date().toISOString(),
     };
-    const prevMeals = parseMealsLog(
-      (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
-    );
+    const prevMeals = parseMealsLog(fresh?.meals_log);
     const nextMeals = [...prevMeals, meal];
     const agg = aggregatesFromMeals(nextMeals);
 
-    let newQuality: number | null | undefined = existingLog?.average_food_quality;
+    const dbQuality = fresh?.average_food_quality as number | null | undefined;
+    let newQuality: number | null | undefined = dbQuality;
     if (qualityScore != null) {
-      const existingQuality = existingLog?.average_food_quality;
       newQuality =
-        existingQuality != null
-          ? Math.round(((existingQuality + qualityScore) / 2) * 10) / 10
+        dbQuality != null
+          ? Math.round(((dbQuality + qualityScore) / 2) * 10) / 10
           : qualityScore;
     }
 
-    const { id: _id, ...existingFields } = existingLog ?? {};
+    // Minimal payload: only touch the columns we change. Upsert preserves
+    // the rest (InBody/segmental/notes/water/sodium) automatically on UPDATE.
     const upsertPayload = {
-      ...existingFields,
       user_id: user.id,
       log_date: logDate,
       meals_log: nextMeals,
@@ -297,11 +306,19 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
 
     setSavingManual(true);
     try {
+      // Race-safe: re-read latest meals_log + water_l + sodium_mg from DB.
+      const { data: fresh, error: readErr } = await supabase
+        .from("daily_metrics")
+        .select("meals_log, water_l, sodium_mg")
+        .eq("user_id", user.id)
+        .eq("log_date", logDate)
+        .maybeSingle();
+      if (readErr) throw readErr;
+
       const existingLog = dailyLogs.find(
         (l) => l.log_date === logDate && l.user_id === user.id,
       );
 
-      // Append the macro portion as a new meal entry (so it can be deleted)
       const meal: MealEntry = {
         id: newMealId(),
         name: "Voce manuale",
@@ -309,19 +326,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
         source: "manual" as MealSource,
         timestamp: new Date().toISOString(),
       };
-      const prevMeals = parseMealsLog(
-        (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
-      );
+      const prevMeals = parseMealsLog(fresh?.meals_log);
       const nextMeals = [...prevMeals, meal];
       const agg = aggregatesFromMeals(nextMeals);
 
-      // Water/sodium are NOT part of meals_log — accumulate directly on row
-      const prevWater = Number((existingLog as { water_l?: number | null } | undefined)?.water_l) || 0;
-      const prevSodium = Number((existingLog as { sodium_mg?: number | null } | undefined)?.sodium_mg) || 0;
+      const prevWater = Number(fresh?.water_l) || 0;
+      const prevSodium = Number(fresh?.sodium_mg) || 0;
 
-      const { id: _id, ...existingFields } = existingLog ?? {};
+      // Minimal payload: only touch the columns we change.
       const upsertPayload = {
-        ...existingFields,
         user_id: user.id,
         log_date: logDate,
         meals_log: nextMeals,
