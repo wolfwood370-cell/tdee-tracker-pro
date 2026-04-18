@@ -515,6 +515,65 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </div>
           ) : (
             <>
+              {/* Compliance History — last 4 weeks */}
+              {complianceHistory.length > 0 && (
+                <Card className="glass-card border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-display flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-primary" />
+                      Andamento Compliance · 4 settimane
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-end gap-3 h-32">
+                      {complianceHistory.map((w) => {
+                        const heightPct = Math.max(8, w.score); // visible floor
+                        const barColor =
+                          w.score < 60
+                            ? "bg-destructive"
+                            : w.score <= 85
+                            ? "bg-accent"
+                            : "bg-primary";
+                        return (
+                          <div
+                            key={w.weekStart}
+                            className="flex-1 flex flex-col items-center gap-1.5 group"
+                          >
+                            <div className="text-xs font-mono font-semibold text-foreground">
+                              {w.score}
+                            </div>
+                            <div className="w-full flex-1 flex items-end">
+                              <div
+                                className={`w-full rounded-t-md transition-all ${barColor} group-hover:opacity-80`}
+                                style={{ height: `${heightPct}%` }}
+                                title={`${w.label}: ${w.score}/100`}
+                              />
+                            </div>
+                            <div className="text-[10px] text-muted-foreground text-center leading-tight">
+                              {w.label}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-destructive" />
+                        Critico &lt;60
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-accent" />
+                        60-85
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-primary" />
+                        &gt;85
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Catabolism Risk Alert */}
               {catabolismRisk?.isAtRisk && (
                 <Alert variant="destructive" className="border-destructive bg-destructive/10">
