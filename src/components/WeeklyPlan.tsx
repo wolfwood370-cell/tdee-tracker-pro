@@ -408,7 +408,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
           )}
         </div>
 
-        {/* === Stile Dieta: Polarizzata vs Lineare === */}
+        {/* === Stile Alimentare: Polarizzato vs Lineare === */}
         {(() => {
           const distribution = (profile?.calorie_distribution as string) ?? "stable";
           const isPolarized = distribution === "polarized";
@@ -435,7 +435,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
             <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-xs font-display font-semibold text-foreground">
-                  Stile Dieta
+                  Stile Alimentare
                 </span>
                 <ToggleGroup
                   type="single"
