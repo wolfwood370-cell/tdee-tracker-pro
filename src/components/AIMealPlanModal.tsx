@@ -1,12 +1,17 @@
-import { useState } from "react";
-import { Sparkles, RefreshCw, ShoppingCart, Utensils, Loader2, ChefHat, RotateCw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, RefreshCw, ShoppingCart, Utensils, Loader2, ChefHat, RotateCw, Heart } from "lucide-react";
 import {
   generateMealPlanWithAI,
   replaceMealWithAI,
   type AIMealPlan,
   type AIMeal,
 } from "@/lib/aiService";
+import { parseMacrosString } from "@/lib/macroParser";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppStore } from "@/stores";
 import { toast } from "sonner";
+
+const PLAN_STORAGE_KEY = "nc-ai-meal-plan-v1";
 
 import {
   Dialog,
@@ -55,6 +60,7 @@ export function AIMealPlanModal({
   dietaryPreference = "onnivoro",
   allergies = "",
 }: AIMealPlanModalProps) {
+  const { user } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
   const [mealPlan, setMealPlan] = useState<AIMealPlan | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -65,6 +71,64 @@ export function AIMealPlanModal({
 
   // Per-meal regeneration loading state (index-based)
   const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+
+  // Saved (favorited) meal indices for heart-fill feedback
+  const [savedIndices, setSavedIndices] = useState<Set<number>>(new Set());
+  const [savingIndex, setSavingIndex] = useState<number | null>(null);
+
+  // Restore plan from localStorage on open
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = localStorage.getItem(PLAN_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as AIMealPlan;
+        if (parsed?.meals && parsed?.groceryList) {
+          setMealPlan(parsed);
+        }
+      }
+    } catch {
+      // ignore corrupt cache
+    }
+  }, [open]);
+
+  // Persist plan to localStorage on change
+  useEffect(() => {
+    if (mealPlan) {
+      try {
+        localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(mealPlan));
+      } catch {
+        // ignore quota errors
+      }
+    }
+  }, [mealPlan]);
+
+  const handleSaveFavorite = async (index: number) => {
+    if (!mealPlan || !user) return;
+    const meal = mealPlan.meals[index];
+    const macros = parseMacrosString(meal.macros);
+    setSavingIndex(index);
+    try {
+      const { error } = await supabase.from("favorite_meals").insert({
+        user_id: user.id,
+        meal_type: meal.type,
+        name: meal.name,
+        description: meal.description,
+        calories: macros.calories,
+        protein: macros.protein,
+        carbs: macros.carbs,
+        fats: macros.fats,
+      });
+      if (error) throw error;
+      setSavedIndices((prev) => new Set(prev).add(index));
+      toast.success("Pasto salvato nella Cassaforte! ❤️");
+    } catch (e) {
+      console.error("Save favorite error:", e);
+      toast.error("Errore nel salvataggio del pasto.");
+    } finally {
+      setSavingIndex(null);
+    }
+  };
 
   const fetchPlan = async () => {
     setIsLoading(true);
@@ -86,6 +150,7 @@ export function AIMealPlanModal({
         throw new Error("Risposta AI non valida");
       }
       setMealPlan(result);
+      setSavedIndices(new Set());
     } catch (e) {
       console.error("AI meal plan error:", e);
       toast.error("Errore nella generazione del piano pasti. Riprova.");
@@ -114,6 +179,12 @@ export function AIMealPlanModal({
         newMeals[index] = replacement;
         return { ...prev, meals: newMeals };
       });
+      // Replaced meal is no longer "saved"
+      setSavedIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
       toast.success(`Pasto sostituito ✨`);
     } catch (e) {
       console.error("AI replace meal error:", e);
@@ -126,6 +197,12 @@ export function AIMealPlanModal({
   const resetToConfig = () => {
     setMealPlan(null);
     setCheckedItems(new Set());
+    setSavedIndices(new Set());
+    try {
+      localStorage.removeItem(PLAN_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   };
 
   const toggleItem = (key: string) => {
