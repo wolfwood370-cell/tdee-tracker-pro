@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Sparkles } from "lucide-react";
+import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Plus } from "lucide-react";
 import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
 
 import { cn } from "@/lib/utils";
@@ -210,8 +210,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
                 onClick={() => setAiModalOpen(true)}
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
               >
-                <Sparkles className="h-3.5 w-3.5 mr-1" />
-                AI Smart Log
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Aggiungi Pasto
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">

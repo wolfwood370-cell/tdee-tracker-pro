@@ -4,9 +4,15 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,33 +96,36 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
 
   return (
     <Card className="glass-card border-border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-display flex items-center gap-2">
-          <UtensilsCrossed className="h-4 w-4 text-primary" />
-          Diario di Oggi
-          {meals.length > 0 && (
-            <Badge variant="secondary" className="ml-auto text-xs">
-              {meals.length} {meals.length === 1 ? "pasto" : "pasti"}
-            </Badge>
-          )}
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Ogni voce è eliminabile: i totali si aggiorneranno in tempo reale.
-        </p>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 md:p-3">
         {meals.length === 0 ? (
-          <div className="py-8 text-center space-y-2">
+          <div className="py-6 text-center space-y-2">
             <div className="mx-auto w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
               <UtensilsCrossed className="h-5 w-5 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium text-foreground">Nessun pasto registrato oggi</p>
+            <p className="text-sm font-medium text-foreground">
+              🍽️ Nessun Pasto Registrato
+            </p>
             <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              Usa "AI Smart Log" per aggiungere il tuo primo pasto della giornata.
+              Usa "Aggiungi Pasto" per registrare il tuo primo pasto della giornata.
             </p>
           </div>
         ) : (
-          <ul className="space-y-2">
+          <Accordion type="single" collapsible defaultValue={undefined}>
+            <AccordionItem value="meals" className="border-0">
+              <AccordionTrigger className="px-2 hover:no-underline">
+                <span className="text-sm font-display font-semibold flex items-center gap-2">
+                  <UtensilsCrossed className="h-4 w-4 text-primary" />
+                  🍽️ Pasti Registrati
+                  <Badge variant="secondary" className="text-xs">
+                    {meals.length}
+                  </Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-[11px] text-muted-foreground px-2 pb-2">
+                  Tocca il cestino per eliminare un pasto: i totali si aggiornano in tempo reale.
+                </p>
+                <ul className="space-y-2 px-1">
             {[...meals]
               .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
               .map((m) => {
@@ -183,7 +192,10 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
                   </li>
                 );
               })}
-          </ul>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
       </CardContent>
     </Card>

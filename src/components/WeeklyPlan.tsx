@@ -408,6 +408,66 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
           )}
         </div>
 
+        {/* === Stile Dieta: Polarizzata vs Lineare === */}
+        {(() => {
+          const distribution = (profile?.calorie_distribution as string) ?? "stable";
+          const isPolarized = distribution === "polarized";
+          const handleDistributionChange = async (next: "polarized" | "stable") => {
+            if (!user || !profile) return;
+            if (next === distribution) return;
+            const { data, error } = await supabase
+              .from("profiles")
+              .update({ calorie_distribution: next })
+              .eq("id", user.id)
+              .select()
+              .single();
+            if (error) {
+              toast({
+                title: "Errore",
+                description: "Impossibile salvare lo stile dieta.",
+                variant: "destructive",
+              });
+              return;
+            }
+            if (data) setProfile(data);
+          };
+          return (
+            <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs font-display font-semibold text-foreground">
+                  Stile Dieta
+                </span>
+                <ToggleGroup
+                  type="single"
+                  value={isPolarized ? "polarized" : "linear"}
+                  onValueChange={(v) => v && handleDistributionChange(v === "polarized" ? "polarized" : "stable")}
+                  className="gap-1"
+                >
+                  <ToggleGroupItem
+                    value="polarized"
+                    size="sm"
+                    className="text-[11px] px-3 h-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground border border-border"
+                  >
+                    Polarizzata
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="linear"
+                    size="sm"
+                    className="text-[11px] px-3 h-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground border border-border"
+                  >
+                    Lineare
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {isPolarized
+                  ? "Calorie diverse tra giorni di allenamento, riposo e refeed per ottimizzare la performance."
+                  : "Macro fissi ogni giorno: zero pianificazione, massima semplicità."}
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Weekly Budget Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
@@ -459,16 +519,41 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
           </div>
         </div>
 
-        {/* Slot counters */}
-        <div className="grid grid-cols-3 gap-2">
-          <SlotCounter icon={Dumbbell} label="Allenamento" used={usage.trainingUsed} allowed={slots.trainingAllowed} tone="primary" />
-          <SlotCounter icon={Moon} label="Riposo" used={usage.restUsed} allowed={slots.restAllowed} tone="muted" />
-          {slots.refeedAllowed > 0 && (
-            <SlotCounter icon={RefreshCw} label="Refeed" used={usage.refeedUsed} allowed={slots.refeedAllowed} tone="accent" />
-          )}
-        </div>
+        {/* Conditional rendering: Polarized → 7-day selector | Linear → single fixed-macro card */}
+        {((profile?.calorie_distribution as string) ?? "stable") !== "polarized" ? (
+          <LinearMacroCard
+            calories={Math.round(budget.totalKcal / 7)}
+            macros={(() => {
+              const avg = Math.round(budget.totalKcal / 7);
+              return computeDayTargets({
+                dayType: "training",
+                baselineDailyCal: avg,
+                tdee,
+                bodyWeightKg: bodyWeight,
+                proteinPref,
+                dietType,
+                lbmKg: latestLbm,
+                age: userAge,
+                polarized: null,
+              }).macros;
+            })()}
+          />
+        ) : (
+          <>
+            {/* Slot counters */}
+            <div className="grid grid-cols-3 gap-2">
+              <SlotCounter icon={Dumbbell} label="Allenamento" used={usage.trainingUsed} allowed={slots.trainingAllowed} tone="primary" />
+              <SlotCounter icon={Moon} label="Riposo" used={usage.restUsed} allowed={slots.restAllowed} tone="muted" />
+              {slots.refeedAllowed > 0 && (
+                <SlotCounter icon={RefreshCw} label="Refeed" used={usage.refeedUsed} allowed={slots.refeedAllowed} tone="accent" />
+              )}
+            </div>
+          </>
+        )}
 
         {/* Per-day Strategy Rows */}
+        {/* Per-day Strategy Rows — only in Polarized mode */}
+        {((profile?.calorie_distribution as string) ?? "stable") === "polarized" && (
         <div className="space-y-2 pt-1">
           {DAY_KEYS.map((key) => {
             const dayType = schedule[key];
@@ -539,6 +624,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
             );
           })}
         </div>
+        )}
       </CardContent>
 
       <AlertDialog open={guardrailMessage != null} onOpenChange={(open) => { if (!open) cancelPending(); }}>
@@ -583,6 +669,45 @@ function SlotCounter({ icon: Icon, label, used, allowed, tone }: SlotCounterProp
       >
         {used}/{allowed} <span className="text-[10px] font-normal text-muted-foreground">pianificati</span>
       </p>
+    </div>
+  );
+}
+
+interface LinearMacroCardProps {
+  calories: number;
+  macros: { protein: number; carbs: number; fats: number };
+}
+
+function LinearMacroCard({ calories, macros }: LinearMacroCardProps) {
+  return (
+    <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Target className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-display font-semibold text-foreground">
+          Macro Fissi Giornalieri
+        </h3>
+      </div>
+      <p className="text-[11px] text-muted-foreground -mt-1">
+        Stessi target ogni giorno della settimana — semplice e diretto.
+      </p>
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Kcal</p>
+          <p className="text-lg font-display font-bold text-foreground">{calories.toLocaleString("it-IT")}</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">P</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.protein}g</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">C</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.carbs}g</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">G</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.fats}g</p>
+        </div>
+      </div>
     </div>
   );
 }

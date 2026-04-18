@@ -376,10 +376,10 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
         <DialogHeader className="p-6 pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-display">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI Smart Log
+            Registra Pasto
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Scansiona con AI, registra dalla Cassaforte o inserisci manualmente
+            Scansiona con AI, scegli dai tuoi pasti salvati o inserisci manualmente
           </DialogDescription>
         </DialogHeader>
 
@@ -387,10 +387,10 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           <div className="px-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="ai" className="gap-1 text-xs">
-                🪄 AI
+                🪄 Scanner AI
               </TabsTrigger>
               <TabsTrigger value="vault" className="gap-1 text-xs">
-                ❤️ Pasti
+                ❤️ I Miei Pasti
               </TabsTrigger>
               <TabsTrigger value="manual" className="gap-1 text-xs">
                 ✍️ Manuale
