@@ -1,11 +1,16 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CalendarDays, Dumbbell, Moon, RefreshCw, Info } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { CalendarDays, Dumbbell, Moon, RefreshCw, Info, Target, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +53,13 @@ const STRATEGY_LABELS: Record<DietStrategy, string> = {
   matador_break: "MATADOR",
   reverse_diet: "Reverse Diet",
 };
+
+const GOAL_TYPES = [
+  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
+  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
+  { value: "maintenance", label: "Mantenimento" },
+  { value: "weight_gain", label: "Aumento di massa magra" },
+] as const;
 
 interface WeeklyPlanProps {
   plan: WeeklyPlanType;
@@ -184,6 +196,51 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   const [guardrailMessage, setGuardrailMessage] = useState<{ title: string; description: string } | null>(null);
   const [saving, setSaving] = useState<DayKey | null>(null);
 
+  // ── Current Goal (moved from Settings) ────────────────────
+  const [goalType, setGoalType] = useState<string>(profile?.goal_type ?? "sustainable_loss");
+  const [targetWeight, setTargetWeight] = useState<string>(profile?.target_weight?.toString() ?? "");
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  useEffect(() => {
+    setGoalType(profile?.goal_type ?? "sustainable_loss");
+    setTargetWeight(profile?.target_weight?.toString() ?? "");
+  }, [profile?.goal_type, profile?.target_weight]);
+
+  const heightCmNum = profile?.height_cm ?? null;
+  const targetWeightNum = targetWeight ? parseFloat(targetWeight) : null;
+
+  const persistGoal = useCallback(
+    async (next: { goal_type?: string; target_weight?: number | null }) => {
+      if (!user || !profile) return;
+      setSavingGoal(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(next)
+        .eq("id", user.id)
+        .select()
+        .single();
+      setSavingGoal(false);
+      if (error) {
+        toast({ title: "Errore", description: "Impossibile salvare l'obiettivo.", variant: "destructive" });
+        return;
+      }
+      if (data) setProfile(data);
+    },
+    [user, profile, setProfile],
+  );
+
+  const handleGoalChange = (value: string) => {
+    setGoalType(value);
+    void persistGoal({ goal_type: value });
+  };
+
+  const handleTargetWeightBlur = () => {
+    const parsed = targetWeight ? parseFloat(targetWeight) : null;
+    if (parsed !== (profile?.target_weight ?? null)) {
+      void persistGoal({ target_weight: parsed });
+    }
+  };
+
   const persistSchedule = useCallback(
     async (key: DayKey, newType: DayType) => {
       if (!user || !profile) return;
@@ -272,6 +329,70 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* === 🎯 Obiettivo Attuale (moved from Settings) === */}
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-display font-semibold text-foreground">🎯 Obiettivo Attuale</h3>
+            {savingGoal && <span className="text-[10px] text-muted-foreground ml-auto">salvataggio…</span>}
+          </div>
+          <p className="text-[11px] text-muted-foreground -mt-1">
+            Modifica il tuo obiettivo qui; i macro sottostanti si aggiorneranno automaticamente.
+          </p>
+
+          <RadioGroup value={goalType} onValueChange={handleGoalChange} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {GOAL_TYPES.map((gt) => (
+              <label
+                key={gt.value}
+                className={`flex items-center gap-2 rounded-md border p-2 cursor-pointer transition-colors ${
+                  goalType === gt.value ? "border-primary bg-primary/10" : "border-border hover:border-primary/40 bg-background"
+                }`}
+              >
+                <RadioGroupItem value={gt.value} />
+                <span className="text-xs text-foreground">{gt.label}</span>
+              </label>
+            ))}
+          </RadioGroup>
+
+          {goalType !== "maintenance" && (
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+                Peso Obiettivo (kg)
+              </Label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min="30"
+                max="300"
+                value={targetWeight}
+                onChange={(e) => setTargetWeight(e.target.value)}
+                onBlur={handleTargetWeightBlur}
+                placeholder="es. 72.0"
+                className="border-border bg-background h-9"
+              />
+              {targetWeightNum != null && heightCmNum != null && isUnderweightRisk(targetWeightNum, heightCmNum) && (
+                <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-1">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle className="font-display font-semibold text-xs">⚠️ Attenzione Clinica</AlertTitle>
+                  <AlertDescription className="text-[11px] mt-1">
+                    Il peso obiettivo porterebbe a un BMI inferiore a 18.5 (sottopeso severo). Procedere senza supervisione medica può comportare gravi rischi per la salute.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {targetWeightNum != null && heightCmNum != null && !isUnderweightRisk(targetWeightNum, heightCmNum) && isObesityRisk(targetWeightNum, heightCmNum) && (
+                <Alert className="border-orange-500/50 bg-orange-500/10 mt-1">
+                  <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="font-display font-semibold text-xs text-orange-700">⚠️ Avviso Clinico</AlertTitle>
+                  <AlertDescription className="text-[11px] mt-1 text-orange-700/80">
+                    Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Weekly Budget Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">

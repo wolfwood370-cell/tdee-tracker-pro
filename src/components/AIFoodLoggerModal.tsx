@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2 } from "lucide-react";
+import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -14,6 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,6 +55,16 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   const [favorites, setFavorites] = useState<FavoriteMeal[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [logging, setLogging] = useState<string | null>(null);
+
+  // Manual logger state
+  const [mCalories, setMCalories] = useState("");
+  const [mProtein, setMProtein] = useState("");
+  const [mCarbs, setMCarbs] = useState("");
+  const [mFats, setMFats] = useState("");
+  const [mFiber, setMFiber] = useState("");
+  const [mWater, setMWater] = useState("");
+  const [mSodium, setMSodium] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
 
   const resetState = useCallback(() => {
     setPhase("input");
@@ -211,6 +222,84 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     }
   };
 
+  // ── Manual logger: append numeric values directly to today's row ────────
+  const resetManual = () => {
+    setMCalories("");
+    setMProtein("");
+    setMCarbs("");
+    setMFats("");
+    setMFiber("");
+    setMWater("");
+    setMSodium("");
+  };
+
+  const handleManualSubmit = async () => {
+    if (!user) return;
+    const calories = parseFloat(mCalories);
+    if (!isFinite(calories) || calories <= 0) {
+      toast.error("Inserisci un valore di calorie valido (> 0).");
+      return;
+    }
+    const num = (s: string) => {
+      const n = parseFloat(s);
+      return isFinite(n) && n > 0 ? n : 0;
+    };
+    const add = {
+      calories: Math.round(calories),
+      protein: num(mProtein),
+      carbs: num(mCarbs),
+      fats: num(mFats),
+      fiber: num(mFiber),
+      water_l: num(mWater),
+      sodium_mg: num(mSodium),
+    };
+
+    setSavingManual(true);
+    try {
+      const existingLog = dailyLogs.find(
+        (l) => l.log_date === logDate && l.user_id === user.id,
+      );
+      const prev = (existingLog ?? {}) as Record<string, unknown>;
+      const sum = (key: keyof typeof add) =>
+        (Number(prev[key]) || 0) + (add[key] as number);
+
+      const { id: _id, ...existingFields } = existingLog ?? {};
+      const upsertPayload = {
+        ...existingFields,
+        user_id: user.id,
+        log_date: logDate,
+        calories: sum("calories"),
+        protein: sum("protein"),
+        carbs: sum("carbs"),
+        fats: sum("fats"),
+        fiber: sum("fiber"),
+        water_l: sum("water_l"),
+        sodium_mg: sum("sodium_mg"),
+      };
+
+      const { data, error } = await supabase
+        .from("daily_metrics")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (existingLog) updateLog(data);
+      else addLog(data);
+
+      toast.success("Valori aggiunti con successo!");
+      resetManual();
+      handleClose(false);
+    } catch (e) {
+      console.error("Manual log error:", e);
+      toast.error("Errore nel salvataggio.");
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg border-border bg-background/95 backdrop-blur-xl p-0">
@@ -226,12 +315,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
 
         <Tabs defaultValue="ai" className="w-full">
           <div className="px-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="ai" className="gap-1.5">
-                🪄 Scansione AI
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="ai" className="gap-1 text-xs">
+                🪄 AI
               </TabsTrigger>
-              <TabsTrigger value="vault" className="gap-1.5">
-                ❤️ I Miei Pasti
+              <TabsTrigger value="vault" className="gap-1 text-xs">
+                ❤️ Pasti
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="gap-1 text-xs">
+                ✍️ Manuale
               </TabsTrigger>
             </TabsList>
           </div>
@@ -560,6 +652,143 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     ))}
                   </div>
                 )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* === Manual Tab === */}
+          <TabsContent value="manual" className="mt-0">
+            <ScrollArea className="max-h-[70vh]">
+              <div className="p-6 pt-4 space-y-4">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <PencilLine className="h-3.5 w-3.5 text-primary" />
+                  Inserisci manualmente i valori del pasto. Verranno sommati al totale di oggi.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Calorie <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="1"
+                      min="0"
+                      placeholder="0 kcal"
+                      value={mCalories}
+                      onChange={(e) => setMCalories(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Proteine
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mProtein}
+                      onChange={(e) => setMProtein(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Carboidrati
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mCarbs}
+                      onChange={(e) => setMCarbs(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Grassi
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mFats}
+                      onChange={(e) => setMFats(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Fibre
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mFiber}
+                      onChange={(e) => setMFiber(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Acqua
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 L"
+                      value={mWater}
+                      onChange={(e) => setMWater(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Sodio
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="1"
+                      min="0"
+                      placeholder="0 mg"
+                      value={mSodium}
+                      onChange={(e) => setMSodium(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleManualSubmit}
+                  disabled={savingManual || !mCalories.trim()}
+                  className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-lg"
+                >
+                  {savingManual ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Aggiungi ai Macro di Oggi
+                </Button>
+
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Solo le calorie sono obbligatorie. Gli altri valori saranno trattati come 0 se vuoti.
+                </p>
               </div>
             </ScrollArea>
           </TabsContent>

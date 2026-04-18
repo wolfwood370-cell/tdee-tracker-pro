@@ -104,6 +104,11 @@ const ClientDashboard = () => {
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayLog = dailyLogs.find((l) => l.log_date === todayStr);
   const todayCalories = todayLog?.calories ?? 0;
+  // Phase 60: live macros consumed today (from manual logger / future entries)
+  const todayLogAny = todayLog as Record<string, unknown> | undefined;
+  const todayProtein = Number(todayLogAny?.protein) || 0;
+  const todayCarbs = Number(todayLogAny?.carbs) || 0;
+  const todayFats = Number(todayLogAny?.fats) || 0;
 
   const calories = targetCalories ?? 2450;
   const macros = targetMacros ?? { protein: 185, carbs: 280, fats: 78 };
@@ -358,9 +363,9 @@ const ClientDashboard = () => {
               {/* Macro Rings */}
               <div className="flex flex-col items-center justify-center py-2 gap-2">
                 <MacroRings
-                  protein={{ current: 0, target: activeTargets.macros.protein }}
-                  carbs={{ current: 0, target: activeTargets.macros.carbs }}
-                  fats={{ current: 0, target: activeTargets.macros.fats }}
+                  protein={{ current: todayProtein, target: activeTargets.macros.protein }}
+                  carbs={{ current: todayCarbs, target: activeTargets.macros.carbs }}
+                  fats={{ current: todayFats, target: activeTargets.macros.fats }}
                   calories={{ current: todayCalories, target: activeTargets.calories }}
                   onPerfect={handlePerfectMacros}
                 />
@@ -372,9 +377,9 @@ const ClientDashboard = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {[
                   { label: "Calorie", value: todayCalories > 0 ? todayCalories.toLocaleString("it-IT") : "—", target: activeTargets.calories.toLocaleString("it-IT"), icon: Flame, color: "text-destructive", pct: calPct },
-                  { label: "Proteine", value: "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: 0 },
-                  { label: "Carboidrati", value: "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: 0 },
-                  { label: "Grassi", value: "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: 0 },
+                  { label: "Proteine", value: todayProtein > 0 ? `${Math.round(todayProtein)}g` : "—", target: `${activeTargets.macros.protein}g`, icon: Target, color: "text-primary", pct: activeTargets.macros.protein > 0 ? Math.min(100, Math.round((todayProtein / activeTargets.macros.protein) * 100)) : 0 },
+                  { label: "Carboidrati", value: todayCarbs > 0 ? `${Math.round(todayCarbs)}g` : "—", target: `${activeTargets.macros.carbs}g`, icon: Utensils, color: "text-accent-foreground", pct: activeTargets.macros.carbs > 0 ? Math.min(100, Math.round((todayCarbs / activeTargets.macros.carbs) * 100)) : 0 },
+                  { label: "Grassi", value: todayFats > 0 ? `${Math.round(todayFats)}g` : "—", target: `${activeTargets.macros.fats}g`, icon: TrendingUp, color: "text-muted-foreground", pct: activeTargets.macros.fats > 0 ? Math.min(100, Math.round((todayFats / activeTargets.macros.fats) * 100)) : 0 },
                 ].map((metric) => (
                   <div key={metric.label} className="bg-secondary/50 rounded-lg p-3 md:p-4 space-y-2">
                     <div className="flex items-center gap-2">

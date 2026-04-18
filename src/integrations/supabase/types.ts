@@ -64,6 +64,7 @@ export type Database = {
           bfm: number | null
           bmr_inbody: number | null
           calories: number | null
+          carbs: number | null
           day_type: string | null
           fat_la_kg: number | null
           fat_la_pct: number | null
@@ -75,6 +76,8 @@ export type Database = {
           fat_rl_pct: number | null
           fat_tr_kg: number | null
           fat_tr_pct: number | null
+          fats: number | null
+          fiber: number | null
           id: string
           is_interpolated: boolean
           lean_la_kg: number | null
@@ -91,11 +94,14 @@ export type Database = {
           menstrual_phase: string | null
           notes: string | null
           pbf: number | null
+          protein: number | null
           smm: number | null
+          sodium_mg: number | null
           steps: number | null
           tbw: number | null
           user_id: string
           vfa: number | null
+          water_l: number | null
           weight: number | null
         }
         Insert: {
@@ -103,6 +109,7 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          carbs?: number | null
           day_type?: string | null
           fat_la_kg?: number | null
           fat_la_pct?: number | null
@@ -114,6 +121,8 @@ export type Database = {
           fat_rl_pct?: number | null
           fat_tr_kg?: number | null
           fat_tr_pct?: number | null
+          fats?: number | null
+          fiber?: number | null
           id?: string
           is_interpolated?: boolean
           lean_la_kg?: number | null
@@ -130,11 +139,14 @@ export type Database = {
           menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
+          protein?: number | null
           smm?: number | null
+          sodium_mg?: number | null
           steps?: number | null
           tbw?: number | null
           user_id: string
           vfa?: number | null
+          water_l?: number | null
           weight?: number | null
         }
         Update: {
@@ -142,6 +154,7 @@ export type Database = {
           bfm?: number | null
           bmr_inbody?: number | null
           calories?: number | null
+          carbs?: number | null
           day_type?: string | null
           fat_la_kg?: number | null
           fat_la_pct?: number | null
@@ -153,6 +166,8 @@ export type Database = {
           fat_rl_pct?: number | null
           fat_tr_kg?: number | null
           fat_tr_pct?: number | null
+          fats?: number | null
+          fiber?: number | null
           id?: string
           is_interpolated?: boolean
           lean_la_kg?: number | null
@@ -169,11 +184,14 @@ export type Database = {
           menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
+          protein?: number | null
           smm?: number | null
+          sodium_mg?: number | null
           steps?: number | null
           tbw?: number | null
           user_id?: string
           vfa?: number | null
+          water_l?: number | null
           weight?: number | null
         }
         Relationships: [

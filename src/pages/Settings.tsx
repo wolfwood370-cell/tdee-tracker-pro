@@ -3,8 +3,6 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "@/hooks/use-toast";
-import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, AlertTriangle as AlertTriangleIcon, Salad } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, Salad } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,13 +45,6 @@ const DIET_STRATEGIES = [
   { value: "reverse_diet", label: "Reverse Diet", desc: "Post-cut: +75 kcal/sett fino al TDEE" },
 ];
 
-const GOAL_TYPES = [
-  { value: "sustainable_loss", label: "Perdita di peso sostenibile" },
-  { value: "aggressive_minicut", label: "Mini-cut aggressivo" },
-  { value: "maintenance", label: "Mantenimento" },
-  { value: "weight_gain", label: "Aumento di massa magra" },
-];
-
 const DIET_TYPES = [
   { value: "balanced", label: "Bilanciata" },
   { value: "low_fat", label: "Low Fat" },
@@ -76,7 +67,6 @@ export default function Settings() {
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [activityLevel, setActivityLevel] = useState("1.2");
-  const [goalType, setGoalType] = useState("sustainable_loss");
   const [dietType, setDietType] = useState("balanced");
   const [proteinPref, setProteinPref] = useState("moderate");
   const [calorieDistribution, setCalorieDistribution] = useState("stable");
@@ -85,7 +75,6 @@ export default function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
-  const [targetWeight, setTargetWeight] = useState("");
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
 
@@ -96,14 +85,12 @@ export default function Settings() {
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
-      setGoalType(profile.goal_type ?? "sustainable_loss");
       setDietType(profile.diet_type ?? "balanced");
       setProteinPref(profile.protein_pref ?? "moderate");
       setCalorieDistribution(profile.calorie_distribution ?? "stable");
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
-      setTargetWeight(profile.target_weight?.toString() ?? "");
       setDietaryPreference(profile.dietary_preference ?? "onnivoro");
       setAllergies(profile.allergies ?? "");
     }
@@ -141,7 +128,6 @@ export default function Settings() {
           birth_date: birthDate || null,
           height_cm: heightCm ? parseFloat(heightCm) : null,
           activity_level: parseFloat(activityLevel),
-          goal_type: goalType,
           diet_type: dietType,
           protein_pref: proteinPref,
           calorie_distribution: calorieDistribution,
@@ -164,7 +150,6 @@ export default function Settings() {
             return out;
           })(),
            track_menstrual_cycle: trackMenstrualCycle,
-           target_weight: targetWeight ? parseFloat(targetWeight) : null,
            dietary_preference: dietaryPreference,
            allergies: allergies.trim() || null,
       };
@@ -296,64 +281,7 @@ export default function Settings() {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Goal Type */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Obiettivo
-            </Label>
-            <RadioGroup value={goalType} onValueChange={setGoalType} className="grid grid-cols-1 gap-2">
-              {GOAL_TYPES.map((gt) => (
-                <label
-                  key={gt.value}
-                  className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                    goalType === gt.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  <RadioGroupItem value={gt.value} />
-                  <span className="text-sm text-foreground">{gt.label}</span>
-                </label>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Target Weight */}
-          {goalType !== 'maintenance' && (
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                Peso Obiettivo (kg)
-              </Label>
-              <Input
-                type="number"
-                step="0.1"
-                min="30"
-                max="300"
-                value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
-                placeholder="es. 72.0"
-                className="border-border"
-              />
-              {targetWeight && heightCm && isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
-                <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-2">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle className="font-display font-semibold text-sm">⚠️ Attenzione Clinica</AlertTitle>
-                  <AlertDescription className="text-xs mt-1">
-                    Il peso obiettivo inserito porterebbe a un Indice di Massa Corporea (BMI) inferiore a 18.5, classificato come sottopeso severo. Procedere con questo obiettivo senza supervisione medica può comportare gravi rischi per la salute.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {targetWeight && heightCm && !isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && isObesityRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
-                <Alert className="border-orange-500/50 bg-orange-500/10 mt-2">
-                  <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
-                  <AlertTitle className="font-display font-semibold text-sm text-orange-700">⚠️ Avviso Clinico</AlertTitle>
-                  <AlertDescription className="text-xs mt-1 text-orange-700/80">
-                    Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Sebbene il BMI non distingua tra massa muscolare e grassa, superare questa soglia richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
+          {/* Diet Type — moved up after removing Goal section (now in Strategy tab) */}
 
           {/* Diet Type */}
           <div className="space-y-2">
