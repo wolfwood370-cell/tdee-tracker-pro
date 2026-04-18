@@ -56,6 +56,16 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [logging, setLogging] = useState<string | null>(null);
 
+  // Manual logger state
+  const [mCalories, setMCalories] = useState("");
+  const [mProtein, setMProtein] = useState("");
+  const [mCarbs, setMCarbs] = useState("");
+  const [mFats, setMFats] = useState("");
+  const [mFiber, setMFiber] = useState("");
+  const [mWater, setMWater] = useState("");
+  const [mSodium, setMSodium] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
+
   const resetState = useCallback(() => {
     setPhase("input");
     setTextInput("");
