@@ -315,12 +315,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
 
         <Tabs defaultValue="ai" className="w-full">
           <div className="px-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="ai" className="gap-1.5">
-                🪄 Scansione AI
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="ai" className="gap-1 text-xs">
+                🪄 AI
               </TabsTrigger>
-              <TabsTrigger value="vault" className="gap-1.5">
-                ❤️ I Miei Pasti
+              <TabsTrigger value="vault" className="gap-1 text-xs">
+                ❤️ Pasti
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="gap-1 text-xs">
+                ✍️ Manuale
               </TabsTrigger>
             </TabsList>
           </div>
