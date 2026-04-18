@@ -49,11 +49,19 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
     if (!user || !todayLog) return;
     setDeletingId(mealId);
     try {
-      const nextMeals = meals.filter((m) => m.id !== mealId);
+      // Re-read latest meals_log from DB to avoid clobbering concurrent additions.
+      const { data: fresh, error: readErr } = await supabase
+        .from("daily_metrics")
+        .select("meals_log")
+        .eq("user_id", user.id)
+        .eq("log_date", logDate)
+        .maybeSingle();
+      if (readErr) throw readErr;
+      const currentMeals = parseMealsLog(fresh?.meals_log);
+      const nextMeals = currentMeals.filter((m) => m.id !== mealId);
       const agg = aggregatesFromMeals(nextMeals);
-      const { id: _id, ...rest } = todayLog;
+      // Minimal payload: only update changed columns; others stay intact.
       const payload = {
-        ...rest,
         user_id: user.id,
         log_date: logDate,
         meals_log: nextMeals,

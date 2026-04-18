@@ -18,19 +18,25 @@ export function QuickWaterButton({ logDate, incrementL = 0.25 }: QuickWaterButto
 
   const todayLog = dailyLogs.find((l) => l.log_date === logDate && l.user_id === user?.id);
   const currentL = Number((todayLog as { water_l?: number | null } | undefined)?.water_l) || 0;
+  const mlLabel = Math.round(incrementL * 1000);
 
   const handleAdd = async () => {
-    if (!user) return;
+    if (!user || busy) return;
     setBusy(true);
     try {
-      const next = Math.round((currentL + incrementL) * 100) / 100;
-      const { id: _id, ...rest } = todayLog ?? {};
-      const payload = {
-        ...rest,
-        user_id: user.id,
-        log_date: logDate,
-        water_l: next,
-      };
+      // Re-read latest value from DB to avoid losing rapid concurrent clicks.
+      const { data: fresh, error: readErr } = await supabase
+        .from("daily_metrics")
+        .select("water_l")
+        .eq("user_id", user.id)
+        .eq("log_date", logDate)
+        .maybeSingle();
+      if (readErr) throw readErr;
+      const baseL = Number(fresh?.water_l) || 0;
+      const next = Math.round((baseL + incrementL) * 100) / 100;
+
+      // Minimal payload: upsert only updates provided columns; others stay intact.
+      const payload = { user_id: user.id, log_date: logDate, water_l: next };
       const { data, error } = await supabase
         .from("daily_metrics")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,7 +46,7 @@ export function QuickWaterButton({ logDate, incrementL = 0.25 }: QuickWaterButto
       if (error) throw error;
       if (todayLog) updateLog(data);
       else addLog(data);
-      toast.success(`+${incrementL * 1000} ml 💧`, {
+      toast.success(`+${mlLabel} ml 💧`, {
         description: `Totale oggi: ${next.toFixed(2)} L`,
       });
     } catch (e) {
@@ -63,7 +69,7 @@ export function QuickWaterButton({ logDate, incrementL = 0.25 }: QuickWaterButto
       ) : (
         <GlassWater className="h-4 w-4 text-primary" />
       )}
-      + 💧 {incrementL * 1000} ml
+      + 💧 {mlLabel} ml
       <span className="text-xs text-muted-foreground ml-1 font-mono">
         ({currentL.toFixed(2)} L)
       </span>
