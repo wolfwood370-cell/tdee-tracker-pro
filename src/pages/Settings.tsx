@@ -281,8 +281,6 @@ export default function Settings() {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Diet Type — moved up after removing Goal section (now in Strategy tab) */}
-
           {/* Diet Type */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
