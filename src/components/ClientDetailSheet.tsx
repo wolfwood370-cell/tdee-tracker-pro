@@ -76,7 +76,7 @@ import {
   type DailyTargets,
   type BiofeedbackEntry,
 } from "@/lib/compliance";
-import { getWeekStartISO } from "@/lib/weeklyBudget";
+import { getWeekStartISO, toLocalISODate } from "@/lib/weeklyBudget";
 
 const STRATEGY_OPTIONS: { value: DietStrategy; label: string }[] = [
   { value: "linear", label: "Lineare" },
