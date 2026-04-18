@@ -19,6 +19,7 @@ import {
   Search,
   Eye,
   Filter,
+  Info,
 } from "lucide-react";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
