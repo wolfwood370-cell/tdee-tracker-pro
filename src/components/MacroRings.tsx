@@ -146,20 +146,24 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-          <span>Proteine {Math.round(proteinPct * 100)}%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-          <span>Carb {Math.round(carbsPct * 100)}%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(38, 92%, 50%)" }} />
-          <span>Grassi {Math.round(fatsPct * 100)}%</span>
-        </div>
+      {/* Detailed legend: consumed / target per macro */}
+      <div className="grid grid-cols-3 gap-2 mt-4 w-full max-w-sm">
+        {[
+          { label: "Proteine", color: "hsl(var(--primary))", current: protein.current, target: protein.target, pct: proteinPct },
+          { label: "Carb", color: "hsl(142, 71%, 45%)", current: carbs.current, target: carbs.target, pct: carbsPct },
+          { label: "Grassi", color: "hsl(38, 92%, 50%)", current: fats.current, target: fats.target, pct: fatsPct },
+        ].map((m) => (
+          <div key={m.label} className="rounded-lg bg-secondary/40 border border-border p-2 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{m.label}</span>
+            </div>
+            <p className="text-sm font-bold text-foreground tabular-nums">
+              {Math.round(m.current)}<span className="text-muted-foreground font-normal">/{Math.round(m.target)}g</span>
+            </p>
+            <p className="text-[10px] text-muted-foreground">{Math.round(m.pct * 100)}%</p>
+          </div>
+        ))}
       </div>
     </div>
   );
