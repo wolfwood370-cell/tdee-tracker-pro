@@ -183,3 +183,4 @@ export const LogHistoryTable = forwardRef<HTMLDivElement, LogHistoryTableProps>(
     </div>
   );
 });
+LogHistoryTable.displayName = "LogHistoryTable";
