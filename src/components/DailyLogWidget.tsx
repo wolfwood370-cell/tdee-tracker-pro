@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Sparkles } from "lucide-react";
+import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Plus } from "lucide-react";
 import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
 
 import { cn } from "@/lib/utils";
