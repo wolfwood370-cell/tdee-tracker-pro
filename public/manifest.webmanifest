@@ -1,6 +1,6 @@
 {
-  "name": "TDEE Tracker Pro",
-  "short_name": "TDEE Pro",
+  "name": "NC Smart Nutrition",
+  "short_name": "NC Smart",
   "description": "Il tuo Coach Metabolico",
   "start_url": "/",
   "scope": "/",
@@ -10,13 +10,13 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
