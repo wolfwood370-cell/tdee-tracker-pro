@@ -552,6 +552,8 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
         )}
 
         {/* Per-day Strategy Rows */}
+        {/* Per-day Strategy Rows — only in Polarized mode */}
+        {((profile?.calorie_distribution as string) ?? "stable") === "polarized" && (
         <div className="space-y-2 pt-1">
           {DAY_KEYS.map((key) => {
             const dayType = schedule[key];
@@ -622,6 +624,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
             );
           })}
         </div>
+        )}
       </CardContent>
 
       <AlertDialog open={guardrailMessage != null} onOpenChange={(open) => { if (!open) cancelPending(); }}>
