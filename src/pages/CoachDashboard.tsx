@@ -1,34 +1,46 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, TrendingUp, Activity, BarChart3, Search, Eye } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Users,
+  TrendingUp,
+  Activity,
+  AlertTriangle,
+  Search,
+  Eye,
+  Filter,
+} from "lucide-react";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
+import {
+  calculateComplianceScore,
+  statusBadgeMeta,
+  type ComplianceResult,
+  type ComplianceStatus,
+  type DailyTargets,
+  type BiofeedbackEntry,
+} from "@/lib/compliance";
+import { getWeekDates } from "@/lib/weeklyBudget";
+import type { DailyMetric } from "@/stores";
 
 interface ClientRow {
   id: string;
   displayName: string;
   profile: Tables<"profiles">;
   lastLogDate: string | null;
-  logsLast7: number;
-}
-
-function getAdherenceBadge(lastLogDate: string | null) {
-  if (!lastLogDate) {
-    return <Badge variant="destructive">Nessun log</Badge>;
-  }
-  const daysSince = Math.floor(
-    (Date.now() - new Date(lastLogDate).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  if (daysSince <= 1) return <Badge className="bg-primary text-primary-foreground border-0">Attivo</Badge>;
-  if (daysSince <= 3) return <Badge className="bg-accent text-accent-foreground border-0">Attenzione</Badge>;
-  return <Badge variant="destructive">Azione richiesta</Badge>;
+  recentTdee: number | null;
+  compliance: ComplianceResult;
 }
 
 function calcAge(birthDate: string | null): string {
@@ -36,10 +48,44 @@ function calcAge(birthDate: string | null): string {
   return String(differenceInYears(new Date(), parseISO(birthDate)));
 }
 
+/**
+ * Build per-day-type calorie targets for a client.
+ * Strategy: prefer manual override → fallback to a heuristic based on
+ * adaptive TDEE (if available) and goal_rate.
+ */
+function buildDailyTargets(
+  profile: Tables<"profiles">,
+  adaptiveTdee: number | null,
+): DailyTargets {
+  // Manual override path
+  if (profile.manual_override_active && profile.manual_calories) {
+    return {
+      default: profile.manual_calories,
+      training: profile.manual_calories,
+      rest: profile.manual_calories,
+      refeed: Math.round(profile.manual_calories * 1.15),
+    };
+  }
+
+  // Adaptive heuristic: TDEE - (goal_rate * 7700 / 7) for daily delta
+  const tdee = adaptiveTdee ?? 2000; // safe fallback
+  const goalRate = profile.goal_rate ?? 0;
+  const dailyDelta = Math.round((goalRate * 7700) / 7);
+  const linear = Math.max(1200, tdee + dailyDelta);
+
+  return {
+    default: linear,
+    training: linear,
+    rest: linear,
+    refeed: Math.round(tdee), // refeed = at maintenance
+  };
+}
+
 const CoachDashboard = () => {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterCritical, setFilterCritical] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -71,48 +117,109 @@ const CoachDashboard = () => {
 
       if (profErr) throw profErr;
 
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weekAgoStr = weekAgo.toISOString().slice(0, 10);
+      // Pull current-week logs for ALL clients in one query
+      const weekDates = getWeekDates();
+      const weekStart = weekDates[0];
+      const weekEnd = weekDates[6];
 
-      const { data: recentLogs, error: logErr } = await supabase
+      const { data: weekLogs, error: logErr } = await supabase
         .from("daily_metrics")
-        .select("user_id, log_date")
+        .select("*")
         .in("user_id", clientIds)
-        .gte("log_date", weekAgoStr)
-        .order("log_date", { ascending: false });
+        .gte("log_date", weekStart)
+        .lte("log_date", weekEnd);
 
       if (logErr) throw logErr;
 
-      // Fetch only the most recent log per client (1 per client max)
+      // Latest log per client (for "last activity")
       const { data: allLatest, error: latestErr } = await supabase
         .from("daily_metrics")
         .select("user_id, log_date")
         .in("user_id", clientIds)
         .order("log_date", { ascending: false })
-        .limit(clientIds.length * 2);
+        .limit(clientIds.length * 14);
 
       if (latestErr) throw latestErr;
 
-      const latestLogMap = new Map<string, string>();
-      const logs7Map = new Map<string, number>();
+      // Adaptive TDEE: most recent weekly_analytics per client
+      const { data: analytics, error: anErr } = await supabase
+        .from("weekly_analytics")
+        .select("user_id, adaptive_tdee, week_start_date")
+        .in("user_id", clientIds)
+        .order("week_start_date", { ascending: false });
+      if (anErr) throw anErr;
 
-      for (const log of allLatest ?? []) {
-        if (!latestLogMap.has(log.user_id)) {
-          latestLogMap.set(log.user_id, log.log_date);
+      // Recent biofeedback (last 2 entries per client) — pull last ~30 days
+      const thirtyAgo = new Date();
+      thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+      const thirtyAgoStr = thirtyAgo.toISOString().slice(0, 10);
+      const { data: biofeedback, error: bioErr } = await supabase
+        .from("biofeedback_logs")
+        .select("user_id, hunger_score, energy_score, sleep_score, performance_score, created_at")
+        .in("user_id", clientIds)
+        .gte("week_start_date", thirtyAgoStr)
+        .order("created_at", { ascending: false });
+      if (bioErr) throw bioErr;
+
+      // Index data by client
+      const logsByClient = new Map<string, DailyMetric[]>();
+      for (const l of weekLogs ?? []) {
+        const arr = logsByClient.get(l.user_id) ?? [];
+        arr.push(l as DailyMetric);
+        logsByClient.set(l.user_id, arr);
+      }
+
+      const latestByClient = new Map<string, string>();
+      for (const l of allLatest ?? []) {
+        if (!latestByClient.has(l.user_id)) latestByClient.set(l.user_id, l.log_date);
+      }
+
+      const tdeeByClient = new Map<string, number>();
+      for (const a of analytics ?? []) {
+        if (!tdeeByClient.has(a.user_id) && a.adaptive_tdee != null) {
+          tdeeByClient.set(a.user_id, a.adaptive_tdee);
         }
       }
-      for (const log of recentLogs ?? []) {
-        logs7Map.set(log.user_id, (logs7Map.get(log.user_id) ?? 0) + 1);
+
+      const bioByClient = new Map<string, BiofeedbackEntry[]>();
+      for (const b of biofeedback ?? []) {
+        const arr = bioByClient.get(b.user_id) ?? [];
+        if (arr.length < 2) {
+          arr.push(b as BiofeedbackEntry);
+          bioByClient.set(b.user_id, arr);
+        }
       }
 
-      const rows: ClientRow[] = (profiles ?? []).map((p) => ({
-        id: p.id,
-        displayName: p.full_name || p.id.slice(0, 8) + "…",
-        profile: p,
-        lastLogDate: latestLogMap.get(p.id) ?? null,
-        logsLast7: logs7Map.get(p.id) ?? 0,
-      }));
+      const rows: ClientRow[] = (profiles ?? []).map((p) => {
+        const tdee = tdeeByClient.get(p.id) ?? null;
+        const targets = buildDailyTargets(p, tdee);
+        const compliance = calculateComplianceScore(
+          logsByClient.get(p.id) ?? [],
+          p,
+          targets,
+          bioByClient.get(p.id) ?? [],
+        );
+        return {
+          id: p.id,
+          displayName: p.full_name || p.id.slice(0, 8) + "…",
+          profile: p,
+          lastLogDate: latestByClient.get(p.id) ?? null,
+          recentTdee: tdee,
+          compliance,
+        };
+      });
+
+      // Sort: critical first, then warning, then healthy. Within each, by score asc.
+      const statusRank: Record<ComplianceStatus, number> = {
+        critical: 0,
+        warning: 1,
+        healthy: 2,
+      };
+      rows.sort((a, b) => {
+        const rs = statusRank[a.compliance.status] - statusRank[b.compliance.status];
+        if (rs !== 0) return rs;
+        return a.compliance.score - b.compliance.score;
+      });
 
       setClients(rows);
     } catch (e) {
@@ -123,191 +230,280 @@ const CoachDashboard = () => {
   }
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return clients;
-    const q = search.toLowerCase();
-    return clients.filter(
-      (c) =>
-        c.displayName.toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q)
-    );
-  }, [clients, search]);
+    let out = clients;
+    if (filterCritical) {
+      out = out.filter((c) => c.compliance.status === "critical");
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      out = out.filter(
+        (c) =>
+          c.displayName.toLowerCase().includes(q) || c.id.toLowerCase().includes(q),
+      );
+    }
+    return out;
+  }, [clients, search, filterCritical]);
 
-  const activeCount = clients.filter((c) => {
-    if (!c.lastLogDate) return false;
-    const days = Math.floor(
-      (Date.now() - new Date(c.lastLogDate).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return days <= 1;
-  }).length;
-
-  const avgAdherence =
+  // Stats
+  const criticalCount = clients.filter((c) => c.compliance.status === "critical").length;
+  const healthyCount = clients.filter((c) => c.compliance.status === "healthy").length;
+  const avgScore =
     clients.length > 0
-      ? Math.round(
-          (clients.reduce((s, c) => s + c.logsLast7, 0) /
-            (clients.length * 7)) *
-            100
-        )
+      ? Math.round(clients.reduce((s, c) => s + c.compliance.score, 0) / clients.length)
       : 0;
-
   const checkinToday = clients.filter(
-    (c) => c.lastLogDate === new Date().toISOString().slice(0, 10)
+    (c) => c.lastLogDate === new Date().toISOString().slice(0, 10),
   ).length;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">
-          Dashboard Coach
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Gestisci e monitora i tuoi clienti
-        </p>
-      </div>
+    <TooltipProvider delayDuration={150}>
+      <div className="space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">
+            Triage Clinico
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Sistema di priorità: i clienti critici sono in cima
+          </p>
+        </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { label: "Clienti Totali", value: String(clients.length), icon: Users },
-          { label: "Aderenza Media", value: `${avgAdherence}%`, icon: TrendingUp },
-          { label: "Check-in Oggi", value: String(checkinToday), icon: Activity },
-          { label: "Clienti Attivi", value: String(activeCount), icon: BarChart3 },
-        ].map((stat) => (
-          <Card key={stat.label} className="glass-card border-border">
-            <CardContent className="p-4 md:p-5">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <stat.icon className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-xl md:text-2xl font-display font-bold text-foreground">
-                {stat.value}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Client Roster */}
-      <Card className="glass-card border-border">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-lg font-display">Lista Clienti</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Cerca cliente..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 border-border"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 py-3">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-12" />
-                  <Skeleton className="h-4 w-12" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                  <div className="ml-auto">
-                    <Skeleton className="h-8 w-20" />
-                  </div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {[
+            {
+              label: "Clienti Totali",
+              value: String(clients.length),
+              icon: Users,
+              tone: "default",
+            },
+            {
+              label: "🔴 Urgenti",
+              value: String(criticalCount),
+              icon: AlertTriangle,
+              tone: criticalCount > 0 ? "destructive" : "default",
+            },
+            {
+              label: "🟢 In Target",
+              value: String(healthyCount),
+              icon: TrendingUp,
+              tone: "default",
+            },
+            {
+              label: "Score Medio",
+              value: `${avgScore}/100`,
+              icon: Activity,
+              tone: "default",
+            },
+          ].map((stat) => (
+            <Card
+              key={stat.label}
+              className={`glass-card border-border ${
+                stat.tone === "destructive" && criticalCount > 0
+                  ? "ring-2 ring-destructive/40"
+                  : ""
+              }`}
+            >
+              <CardContent className="p-4 md:p-5">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <stat.icon
+                    className={`h-5 w-5 ${
+                      stat.tone === "destructive" && criticalCount > 0
+                        ? "text-destructive"
+                        : "text-primary"
+                    }`}
+                  />
                 </div>
-              ))}
+                <p className="text-xl md:text-2xl font-display font-bold text-foreground">
+                  {stat.value}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Triage list */}
+        <Card className="glass-card border-border">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <CardTitle className="text-lg font-display">
+                Lista Clienti{" "}
+                <span className="text-xs font-sans text-muted-foreground font-normal">
+                  · {checkinToday} check-in oggi
+                </span>
+              </CardTitle>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  size="sm"
+                  variant={filterCritical ? "destructive" : "outline"}
+                  onClick={() => setFilterCritical((v) => !v)}
+                  className="gap-1.5"
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  Solo Urgenti
+                  {criticalCount > 0 && !filterCritical && (
+                    <Badge
+                      variant="destructive"
+                      className="ml-1 h-5 px-1.5 text-[10px]"
+                    >
+                      {criticalCount}
+                    </Badge>
+                  )}
+                </Button>
+                <div className="relative flex-1 sm:w-56">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cerca cliente..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 border-border"
+                  />
+                </div>
+              </div>
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground">
-                {search ? "Nessun cliente trovato" : "Nessun cliente ancora"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {search
-                  ? "Prova con un termine diverso"
-                  : "I clienti appariranno qui una volta registrati"}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto -mx-6 px-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead className="hidden sm:table-cell">Età</TableHead>
-                    <TableHead className="hidden sm:table-cell">Sesso</TableHead>
-                    <TableHead className="hidden md:table-cell">Goal Rate</TableHead>
-                    <TableHead className="hidden md:table-cell">Log (7gg)</TableHead>
-                    <TableHead>Stato</TableHead>
-                    <TableHead className="text-right">Azioni</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((client) => (
-                    <TableRow
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Users className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground">
+                  {search
+                    ? "Nessun cliente trovato"
+                    : filterCritical
+                    ? "Nessun cliente in stato critico — ottimo lavoro!"
+                    : "Nessun cliente ancora"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {filtered.map((client) => {
+                  const meta = statusBadgeMeta(client.compliance.status);
+                  return (
+                    <Card
                       key={client.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      className={`border cursor-pointer transition-all hover:shadow-md ${
+                        client.compliance.status === "critical"
+                          ? "border-destructive/40 bg-destructive/5 hover:bg-destructive/10"
+                          : client.compliance.status === "warning"
+                          ? "border-accent/40 bg-accent/5 hover:bg-accent/10"
+                          : "border-border bg-secondary/20 hover:bg-secondary/40"
+                      }`}
                       onClick={() => {
                         setSelectedClient(client);
                         setSheetOpen(true);
                       }}
                     >
-                      <TableCell className="font-medium text-foreground">
-                        <div>
-                          <p className="text-sm">{client.displayName}</p>
-                          <p className="text-xs text-muted-foreground font-mono">
-                            {client.id.slice(0, 8)}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {calcAge(client.profile.birth_date)}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell capitalize">
-                        {client.profile.sex ?? "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {client.profile.goal_rate != null
-                          ? `${client.profile.goal_rate > 0 ? "+" : ""}${client.profile.goal_rate} kg/sett`
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">{client.logsLast7}/7</TableCell>
-                      <TableCell>
-                        {getAdherenceBadge(client.lastLogDate)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="hover:bg-primary/10 hover:text-primary transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedClient(client);
-                            setSheetOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Dettagli</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge className={`${meta.className} text-xs`}>
+                                    {meta.emoji} {meta.label}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="space-y-1 text-xs">
+                                    <p className="font-semibold">
+                                      Score: {client.compliance.score}/100
+                                    </p>
+                                    <p>• {client.compliance.reasons.adherence}</p>
+                                    <p>• {client.compliance.reasons.consistency}</p>
+                                    <p>• {client.compliance.reasons.biofeedback}</p>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                              <h3 className="font-display font-semibold text-foreground truncate">
+                                {client.displayName}
+                              </h3>
+                            </div>
 
-      <ClientDetailSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        client={selectedClient}
-        onClientDeleted={fetchClients}
-      />
-    </div>
+                            <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                              {client.compliance.primaryReason}
+                            </p>
+
+                            <div className="flex items-center gap-3 mt-2.5 text-xs flex-wrap">
+                              <span className="text-muted-foreground">
+                                Aderenza:{" "}
+                                <span className="font-semibold text-foreground">
+                                  {client.compliance.adherencePct}%
+                                </span>
+                              </span>
+                              <span className="text-muted-foreground">
+                                Log:{" "}
+                                <span className="font-semibold text-foreground">
+                                  {client.compliance.loggedDays}/
+                                  {client.compliance.plannedDays} giorni
+                                </span>
+                              </span>
+                              {client.recentTdee != null && (
+                                <span className="text-muted-foreground">
+                                  TDEE:{" "}
+                                  <span className="font-semibold text-foreground">
+                                    {Math.round(client.recentTdee)} kcal
+                                  </span>
+                                </span>
+                              )}
+                              {client.profile.birth_date && (
+                                <span className="text-muted-foreground hidden sm:inline">
+                                  {calcAge(client.profile.birth_date)}{" "}
+                                  {client.profile.sex ?? ""}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <div
+                              className={`text-2xl font-display font-bold ${
+                                client.compliance.status === "critical"
+                                  ? "text-destructive"
+                                  : client.compliance.status === "warning"
+                                  ? "text-accent-foreground"
+                                  : "text-primary"
+                              }`}
+                            >
+                              {client.compliance.score}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 hover:bg-primary/10 hover:text-primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClient(client);
+                                setSheetOpen(true);
+                              }}
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1" />
+                              Dettagli
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <ClientDetailSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          client={selectedClient}
+          onClientDeleted={fetchClients}
+        />
+      </div>
+    </TooltipProvider>
   );
 };
 
