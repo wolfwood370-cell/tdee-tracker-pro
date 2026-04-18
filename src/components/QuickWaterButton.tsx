@@ -46,7 +46,7 @@ export function QuickWaterButton({ logDate, incrementL = 0.25 }: QuickWaterButto
       if (error) throw error;
       if (todayLog) updateLog(data);
       else addLog(data);
-      toast.success(`+${mlLabel} ml 💧`, {
+      toast.success(`+${mlLabel} ml`, {
         description: `Totale oggi: ${next.toFixed(2)} L`,
       });
     } catch (e) {
@@ -69,7 +69,7 @@ export function QuickWaterButton({ logDate, incrementL = 0.25 }: QuickWaterButto
       ) : (
         <GlassWater className="h-4 w-4 text-primary" />
       )}
-      + 💧 {mlLabel} ml
+      +{mlLabel} ml
       <span className="text-xs text-muted-foreground ml-1 font-mono">
         ({currentL.toFixed(2)} L)
       </span>
