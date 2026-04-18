@@ -354,16 +354,35 @@ export function AIMealPlanModal({
                                   <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
                                     {meal.type}
                                   </Badge>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleReplaceMeal(i)}
-                                    disabled={replacingIndex !== null}
-                                    className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                                  >
-                                    <RotateCw className="h-3 w-3" />
-                                    🔄 Cambia
-                                  </Button>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleSaveFavorite(i)}
+                                      disabled={savingIndex !== null || savedIndices.has(i)}
+                                      className="h-7 px-2 text-xs gap-1 text-rose-500 hover:text-rose-500 hover:bg-rose-500/10"
+                                      aria-label="Salva nella Cassaforte"
+                                    >
+                                      {savingIndex === i ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Heart
+                                          className="h-3 w-3"
+                                          fill={savedIndices.has(i) ? "currentColor" : "none"}
+                                        />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleReplaceMeal(i)}
+                                      disabled={replacingIndex !== null}
+                                      className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                                    >
+                                      <RotateCw className="h-3 w-3" />
+                                      🔄 Cambia
+                                    </Button>
+                                  </div>
                                 </div>
                                 <h4 className="font-display font-semibold text-base text-foreground leading-tight">
                                   {meal.name}
