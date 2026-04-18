@@ -360,7 +360,7 @@ export function AIMealPlanModal({
                                       size="sm"
                                       onClick={() => handleSaveFavorite(i)}
                                       disabled={savingIndex !== null || savedIndices.has(i)}
-                                      className="h-7 px-2 text-xs gap-1 text-rose-500 hover:text-rose-500 hover:bg-rose-500/10"
+                                      className="h-7 px-2 text-xs gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
                                       aria-label="Salva nella Cassaforte"
                                     >
                                       {savingIndex === i ? (
