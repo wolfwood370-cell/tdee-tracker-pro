@@ -143,7 +143,9 @@ Per ogni pasto:
 - description: breve descrizione con ingredienti principali e grammature
 - macros: stringa formato "XXX kcal | XXg P | XXg C | XXg G"
 
-Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati", "Ortaggi", "Frutta", "Grassi", "Latticini", "Altro").`;
+Per la lista della spesa, raggruppa per categoria (es. "Proteine", "Carboidrati", "Ortaggi", "Frutta", "Grassi", "Latticini", "Altro").
+
+Sei un assistente matematico e nutrizionale. I pasti che generi sono ESCLUSIVAMENTE ESEMPI TEORICI per far combaciare i macronutrienti richiesti dall'utente. Usa sempre un tono probabilistico (es. 'Un'idea potrebbe essere...', 'Circa 100g di...') e non formulare MAI i pasti come se fossero prescrizioni mediche o diete assolute.`;
 
       messages = [
         { role: "system", content: systemPrompt },
@@ -220,7 +222,9 @@ VINCOLI:
 
 Il pasto deve essere DIVERSO da quello sostituito ma con macro equivalenti. Italiano, emoji nel nome, descrizione con grammature.
 
-Rispondi ESCLUSIVAMENTE con un oggetto JSON con: type, name, description, macros (formato "XXX kcal | XXg P | XXg C | XXg G").`;
+Rispondi ESCLUSIVAMENTE con un oggetto JSON con: type, name, description, macros (formato "XXX kcal | XXg P | XXg C | XXg G").
+
+Sei un assistente matematico e nutrizionale. I pasti che generi sono ESCLUSIVAMENTE ESEMPI TEORICI per far combaciare i macronutrienti richiesti dall'utente. Usa sempre un tono probabilistico (es. 'Un'idea potrebbe essere...', 'Circa 100g di...') e non formulare MAI i pasti come se fossero prescrizioni mediche o diete assolute.`;
 
       messages = [
         { role: "system", content: systemPrompt },
