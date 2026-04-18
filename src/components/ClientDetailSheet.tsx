@@ -70,6 +70,13 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { detectMetabolicBurnout } from "@/lib/autoRegulation";
 import type { Tables } from "@/integrations/supabase/types";
 import type { SmoothedLog } from "@/lib/algorithms";
+import {
+  calculateComplianceScore,
+  statusBadgeMeta,
+  type DailyTargets,
+  type BiofeedbackEntry,
+} from "@/lib/compliance";
+import { getWeekStartISO } from "@/lib/weeklyBudget";
 
 const STRATEGY_OPTIONS: { value: DietStrategy; label: string }[] = [
   { value: "linear", label: "Lineare" },
@@ -200,6 +207,70 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     setSmoothed(s);
     setTdee(calculateAdaptiveTDEE(s, 14, client?.profile?.created_at));
   }, [logs, client?.profile?.created_at]);
+
+  /**
+   * Compliance History (last 4 weeks, on-the-fly).
+   * Uses the same calculateComplianceScore engine but rewinds `now` to each
+   * week's Sunday to recompute against historical data.
+   */
+  const complianceHistory = useMemo(() => {
+    if (!client || logs.length === 0) return [] as Array<{ weekStart: string; score: number; status: ReturnType<typeof statusBadgeMeta>; label: string }>;
+
+    // Build per-day-type targets (same heuristic as Coach Dashboard)
+    const profile = client.profile;
+    let targets: DailyTargets;
+    if (profile.manual_override_active && profile.manual_calories) {
+      targets = {
+        default: profile.manual_calories,
+        training: profile.manual_calories,
+        rest: profile.manual_calories,
+        refeed: Math.round(profile.manual_calories * 1.15),
+      };
+    } else {
+      const tdeeFallback = tdee ?? 2000;
+      const goalRate = profile.goal_rate ?? 0;
+      const dailyDelta = Math.round((goalRate * 7700) / 7);
+      const linear = Math.max(1200, tdeeFallback + dailyDelta);
+      targets = {
+        default: linear,
+        training: linear,
+        rest: linear,
+        refeed: Math.round(tdeeFallback),
+      };
+    }
+
+    const today = new Date();
+    const weeks: Array<{ weekStart: string; score: number; status: ReturnType<typeof statusBadgeMeta>; label: string }> = [];
+
+    for (let i = 3; i >= 0; i--) {
+      const ref = new Date(today);
+      ref.setDate(today.getDate() - i * 7);
+      const weekStart = getWeekStartISO(ref);
+
+      // Filter biofeedback to entries on or before this reference date
+      const refIso = ref.toISOString().slice(0, 10);
+      const bio: BiofeedbackEntry[] = (biofeedbackLogs ?? [])
+        .filter((b) => b.created_at.slice(0, 10) <= refIso)
+        .slice(0, 2)
+        .map((b) => ({
+          hunger_score: b.hunger_score,
+          energy_score: b.energy_score,
+          sleep_score: b.sleep_score,
+          performance_score: b.performance_score,
+          created_at: b.created_at,
+        }));
+
+      const result = calculateComplianceScore(logs, profile, targets, bio, ref);
+      weeks.push({
+        weekStart,
+        score: result.score,
+        status: statusBadgeMeta(result.status),
+        label: i === 0 ? "Questa sett." : `${i} sett. fa`,
+      });
+    }
+    return weeks;
+  }, [client, logs, biofeedbackLogs, tdee]);
+
 
   if (!client) return null;
 
@@ -394,15 +465,16 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </div>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => {
                   onOpenChange(false);
                   navigate("/messages");
                 }}
+                className="gap-1.5"
               >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Chat
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Invia Messaggio di Supporto</span>
+                <span className="sm:hidden">Messaggio</span>
               </Button>
               {smoothed.length > 0 && (
                 <Button
@@ -443,6 +515,65 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </div>
           ) : (
             <>
+              {/* Compliance History — last 4 weeks */}
+              {complianceHistory.length > 0 && (
+                <Card className="glass-card border-border">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-display flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-primary" />
+                      Andamento Compliance · 4 settimane
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-end gap-3 h-32">
+                      {complianceHistory.map((w) => {
+                        const heightPct = Math.max(8, w.score); // visible floor
+                        const barColor =
+                          w.score < 60
+                            ? "bg-destructive"
+                            : w.score <= 85
+                            ? "bg-accent"
+                            : "bg-primary";
+                        return (
+                          <div
+                            key={w.weekStart}
+                            className="flex-1 flex flex-col items-center gap-1.5 group"
+                          >
+                            <div className="text-xs font-mono font-semibold text-foreground">
+                              {w.score}
+                            </div>
+                            <div className="w-full flex-1 flex items-end">
+                              <div
+                                className={`w-full rounded-t-md transition-all ${barColor} group-hover:opacity-80`}
+                                style={{ height: `${heightPct}%` }}
+                                title={`${w.label}: ${w.score}/100`}
+                              />
+                            </div>
+                            <div className="text-[10px] text-muted-foreground text-center leading-tight">
+                              {w.label}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-destructive" />
+                        Critico &lt;60
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-accent" />
+                        60-85
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-sm bg-primary" />
+                        &gt;85
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Catabolism Risk Alert */}
               {catabolismRisk?.isAtRisk && (
                 <Alert variant="destructive" className="border-destructive bg-destructive/10">
