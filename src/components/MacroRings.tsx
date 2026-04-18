@@ -89,13 +89,13 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
     <div className={cn("flex flex-col items-center", className)}>
       <div className="relative w-48 h-48 md:w-56 md:h-56">
         <svg viewBox="0 0 200 200" className="w-full h-full">
-          {/* Outer: Protein (Blue) */}
+          {/* Outer: Protein (Red) */}
           <Ring
             radius={90}
             strokeWidth={10}
             progress={proteinPct}
-            color="hsl(var(--primary))"
-            glowColor="hsl(210, 100%, 65%)"
+            color="hsl(var(--destructive))"
+            glowColor="hsl(0, 85%, 65%)"
             label="Proteine"
           />
           {/* Middle: Carbs (Green) */}
@@ -149,7 +149,7 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
       {/* Detailed legend: consumed / target per macro */}
       <div className="grid grid-cols-3 gap-2 mt-4 w-full max-w-sm">
         {[
-          { label: "Proteine", color: "hsl(var(--primary))", current: protein.current, target: protein.target, pct: proteinPct },
+          { label: "Proteine", color: "hsl(var(--destructive))", current: protein.current, target: protein.target, pct: proteinPct },
           { label: "Carb", color: "hsl(142, 71%, 45%)", current: carbs.current, target: carbs.target, pct: carbsPct },
           { label: "Grassi", color: "hsl(38, 92%, 50%)", current: fats.current, target: fats.target, pct: fatsPct },
         ].map((m) => (
