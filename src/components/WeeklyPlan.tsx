@@ -196,6 +196,51 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   const [guardrailMessage, setGuardrailMessage] = useState<{ title: string; description: string } | null>(null);
   const [saving, setSaving] = useState<DayKey | null>(null);
 
+  // ── Current Goal (moved from Settings) ────────────────────
+  const [goalType, setGoalType] = useState<string>(profile?.goal_type ?? "sustainable_loss");
+  const [targetWeight, setTargetWeight] = useState<string>(profile?.target_weight?.toString() ?? "");
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  useEffect(() => {
+    setGoalType(profile?.goal_type ?? "sustainable_loss");
+    setTargetWeight(profile?.target_weight?.toString() ?? "");
+  }, [profile?.goal_type, profile?.target_weight]);
+
+  const heightCmNum = profile?.height_cm ?? null;
+  const targetWeightNum = targetWeight ? parseFloat(targetWeight) : null;
+
+  const persistGoal = useCallback(
+    async (next: { goal_type?: string; target_weight?: number | null }) => {
+      if (!user || !profile) return;
+      setSavingGoal(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(next)
+        .eq("id", user.id)
+        .select()
+        .single();
+      setSavingGoal(false);
+      if (error) {
+        toast({ title: "Errore", description: "Impossibile salvare l'obiettivo.", variant: "destructive" });
+        return;
+      }
+      if (data) setProfile(data);
+    },
+    [user, profile, setProfile],
+  );
+
+  const handleGoalChange = (value: string) => {
+    setGoalType(value);
+    void persistGoal({ goal_type: value });
+  };
+
+  const handleTargetWeightBlur = () => {
+    const parsed = targetWeight ? parseFloat(targetWeight) : null;
+    if (parsed !== (profile?.target_weight ?? null)) {
+      void persistGoal({ target_weight: parsed });
+    }
+  };
+
   const persistSchedule = useCallback(
     async (key: DayKey, newType: DayType) => {
       if (!user || !profile) return;
