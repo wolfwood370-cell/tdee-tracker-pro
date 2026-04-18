@@ -195,6 +195,9 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       setBiofeedbackLogs(bioRes.data ?? []);
       setLoading(false);
     });
+    // We intentionally re-run when the client identity OR the sheet opens.
+    // Using `client.profile` snapshot inside is correct because it's read at effect time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client?.id, open]);
 
   useEffect(() => {
@@ -247,10 +250,12 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       ref.setDate(today.getDate() - i * 7);
       const weekStart = getWeekStartISO(ref);
 
-      // Filter biofeedback to entries on or before this reference date
+      // Filter biofeedback to entries on or before this reference date,
+      // then sort by created_at DESC to get the truly most-recent 2 entries.
       const refIso = ref.toISOString().slice(0, 10);
       const bio: BiofeedbackEntry[] = (biofeedbackLogs ?? [])
         .filter((b) => b.created_at.slice(0, 10) <= refIso)
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
         .slice(0, 2)
         .map((b) => ({
           hunger_score: b.hunger_score,
