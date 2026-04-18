@@ -141,9 +141,9 @@ const ClientDashboard = () => {
   // Active targets for TODAY based on weekly_schedule
   const activeTargets = useMemo(() => {
     const labels: Record<DayType, string> = {
-      training: "🏋️ Allenamento",
-      rest: "🛋️ Riposo",
-      refeed: "🍝 Refeed",
+      training: "Allenamento",
+      rest: "Riposo",
+      refeed: "Refeed",
     };
     // Use a sensible bodyweight fallback so target differentiation by dayType
     // works even before the user has logged a weight (rest = -10%, refeed = TDEE).
@@ -241,7 +241,7 @@ const ClientDashboard = () => {
         return (
           <Alert className="border-emerald-500/50 bg-emerald-500/10 ring-1 ring-emerald-400/20">
             <Leaf className="h-4 w-4 text-emerald-600" />
-            <AlertTitle className="font-display text-emerald-700 dark:text-emerald-400">🌴 Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
+            <AlertTitle className="font-display text-emerald-700 dark:text-emerald-400">Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
             <AlertDescription className="text-sm text-emerald-700/80 dark:text-emerald-300/80 mt-1">
               Il tuo metabolismo aveva bisogno di respirare. Goditi i carboidrati extra per resettare gli ormoni, si torna in deficit a breve!
             </AlertDescription>
@@ -268,13 +268,13 @@ const ClientDashboard = () => {
       <Tabs defaultValue="action" className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1">
           <TabsTrigger value="action" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            🔥 Oggi
+            Oggi
           </TabsTrigger>
           <TabsTrigger value="strategy" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            📅 Strategia
+            Strategia
           </TabsTrigger>
           <TabsTrigger value="analytics" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            📊 Analisi
+            Analisi
           </TabsTrigger>
         </TabsList>
 
@@ -301,24 +301,24 @@ const ClientDashboard = () => {
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="text-xs">🎯 Ottimizzato con dati clinici InBody</p>
+                        <p className="text-xs">Ottimizzato con dati clinici InBody</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
                 {tefDelta > 0 && (
                   <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
-                    🔥 TEF: +{tefDelta} kcal
+                    TEF: +{tefDelta} kcal
                   </Badge>
                 )}
                 {userAge != null && userAge >= 45 && (
                   <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
-                    🛡️ Over-45
+                    Over-45
                   </Badge>
                 )}
                  {activeMenstrualPhase === 'luteal' && (
                   <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
-                    🌸 Fase Luteale: +150 kcal
+                    Fase Luteale: +150 kcal
                   </Badge>
                 )}
                 {goalETA && (
@@ -330,19 +330,19 @@ const ClientDashboard = () => {
                     }
                   >
                     <Hourglass className="h-3 w-3 mr-1" />
-                    {goalETA.startsWith("Blocco Clinico") ? `⚠️ ${goalETA}` : `ETA: ${goalETA}`}
+                    {goalETA.startsWith("Blocco Clinico") ? goalETA : `ETA: ${goalETA}`}
                   </Badge>
                 )}
                 {profile?.target_weight && profile?.height_cm && isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
                   <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
                     <ShieldAlert className="h-3 w-3 mr-1" />
-                    🛑 Avviso Medico: Target Sottopeso
+                    Avviso Medico: Target Sottopeso
                   </Badge>
                 )}
                 {profile?.target_weight && profile?.height_cm && !isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && isObesityRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
                   <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
                     <ShieldAlert className="h-3 w-3 mr-1" />
-                    ⚠️ Avviso Medico: Target BMI ≥ 30
+                    Avviso Medico: Target BMI ≥ 30
                   </Badge>
                 )}
                 <span className="ml-auto text-xs text-muted-foreground">
@@ -372,7 +372,7 @@ const ClientDashboard = () => {
                   onPerfect={handlePerfectMacros}
                 />
                 <Badge variant="secondary" className="text-xs">
-                  🎯 Target di Oggi: {activeTargets.label}
+                  Target di Oggi: {activeTargets.label}
                 </Badge>
               </div>
 
@@ -403,17 +403,17 @@ const ClientDashboard = () => {
               <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
                 <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
                   <GlassWater className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">💧 Acqua:</span>
+                  <span className="text-xs text-muted-foreground">Acqua:</span>
                   <span className="text-xs font-semibold text-foreground">{microTargets.waterL} L</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
                   <Droplets className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">🧂 Elettroliti:</span>
+                  <span className="text-xs text-muted-foreground">Elettroliti:</span>
                   <span className="text-xs font-semibold text-foreground">{microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
                   <Leaf className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">🌾 Fibre:</span>
+                  <span className="text-xs text-muted-foreground">Fibre:</span>
                   <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
                  </div>
                 {(() => {
@@ -426,7 +426,7 @@ const ClientDashboard = () => {
                       isGood ? 'bg-emerald-500/10' : isMid ? 'bg-amber-500/10' : 'bg-red-500/10'
                     }`}>
                       <Leaf className={`h-3.5 w-3.5 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
-                      <span className="text-xs text-muted-foreground">🍃 Qualità:</span>
+                      <span className="text-xs text-muted-foreground">Qualità:</span>
                       <span className={`text-xs font-semibold ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`}>
                         {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
                       </span>
@@ -452,7 +452,7 @@ const ClientDashboard = () => {
           <Card className="glass-card border-border">
             <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">💧</span>
+                <GlassWater className="h-6 w-6 text-primary" />
                 <div>
                   <p className="text-sm font-display font-semibold text-foreground">Idratazione Rapida</p>
                   <p className="text-xs text-muted-foreground">
