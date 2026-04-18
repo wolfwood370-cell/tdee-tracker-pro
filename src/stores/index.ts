@@ -24,6 +24,7 @@ import {
   type CatabolismRiskResult,
   type MenstrualPhase,
 } from '@/lib/algorithms';
+import { toLocalISODate } from '@/lib/weeklyBudget';
 
 // Re-export useful types
 export type Profile = Tables<'profiles'>;
@@ -300,7 +301,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       // Diet Break Override: force maintenance + extra carbs
       const dietBreakUntil = profile?.diet_break_until;
-      const isDietBreakActive = dietBreakUntil && new Date(dietBreakUntil) >= new Date(new Date().toISOString().slice(0, 10));
+      const isDietBreakActive = dietBreakUntil && new Date(dietBreakUntil) >= new Date(toLocalISODate(new Date()));
       if (isDietBreakActive) {
         targetCal = tdee; // cancel deficit, go to maintenance
       }
