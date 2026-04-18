@@ -208,6 +208,70 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     setTdee(calculateAdaptiveTDEE(s, 14, client?.profile?.created_at));
   }, [logs, client?.profile?.created_at]);
 
+  /**
+   * Compliance History (last 4 weeks, on-the-fly).
+   * Uses the same calculateComplianceScore engine but rewinds `now` to each
+   * week's Sunday to recompute against historical data.
+   */
+  const complianceHistory = useMemo(() => {
+    if (!client || logs.length === 0) return [] as Array<{ weekStart: string; score: number; status: ReturnType<typeof statusBadgeMeta>; label: string }>;
+
+    // Build per-day-type targets (same heuristic as Coach Dashboard)
+    const profile = client.profile;
+    let targets: DailyTargets;
+    if (profile.manual_override_active && profile.manual_calories) {
+      targets = {
+        default: profile.manual_calories,
+        training: profile.manual_calories,
+        rest: profile.manual_calories,
+        refeed: Math.round(profile.manual_calories * 1.15),
+      };
+    } else {
+      const tdeeFallback = tdee ?? 2000;
+      const goalRate = profile.goal_rate ?? 0;
+      const dailyDelta = Math.round((goalRate * 7700) / 7);
+      const linear = Math.max(1200, tdeeFallback + dailyDelta);
+      targets = {
+        default: linear,
+        training: linear,
+        rest: linear,
+        refeed: Math.round(tdeeFallback),
+      };
+    }
+
+    const today = new Date();
+    const weeks: Array<{ weekStart: string; score: number; status: ReturnType<typeof statusBadgeMeta>; label: string }> = [];
+
+    for (let i = 3; i >= 0; i--) {
+      const ref = new Date(today);
+      ref.setDate(today.getDate() - i * 7);
+      const weekStart = getWeekStartISO(ref);
+
+      // Filter biofeedback to entries on or before this reference date
+      const refIso = ref.toISOString().slice(0, 10);
+      const bio: BiofeedbackEntry[] = (biofeedbackLogs ?? [])
+        .filter((b) => b.created_at.slice(0, 10) <= refIso)
+        .slice(0, 2)
+        .map((b) => ({
+          hunger_score: b.hunger_score,
+          energy_score: b.energy_score,
+          sleep_score: b.sleep_score,
+          performance_score: b.performance_score,
+          created_at: b.created_at,
+        }));
+
+      const result = calculateComplianceScore(logs, profile, targets, bio, ref);
+      weeks.push({
+        weekStart,
+        score: result.score,
+        status: statusBadgeMeta(result.status),
+        label: i === 0 ? "Questa sett." : `${i} sett. fa`,
+      });
+    }
+    return weeks;
+  }, [client, logs, biofeedbackLogs, tdee]);
+
+
   if (!client) return null;
 
   const goalType = (client.profile.goal_type as GoalType) ?? "sustainable_loss";
