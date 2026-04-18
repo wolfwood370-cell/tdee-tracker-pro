@@ -1,11 +1,16 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CalendarDays, Dumbbell, Moon, RefreshCw, Info } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { CalendarDays, Dumbbell, Moon, RefreshCw, Info, Target, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { isUnderweightRisk, isObesityRisk } from "@/lib/algorithms";
 import {
   AlertDialog,
   AlertDialogAction,
