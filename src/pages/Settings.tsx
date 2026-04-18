@@ -67,7 +67,6 @@ export default function Settings() {
   const [birthDate, setBirthDate] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [activityLevel, setActivityLevel] = useState("1.2");
-  const [goalType, setGoalType] = useState("sustainable_loss");
   const [dietType, setDietType] = useState("balanced");
   const [proteinPref, setProteinPref] = useState("moderate");
   const [calorieDistribution, setCalorieDistribution] = useState("stable");
@@ -76,7 +75,6 @@ export default function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
-  const [targetWeight, setTargetWeight] = useState("");
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
 
@@ -87,14 +85,12 @@ export default function Settings() {
       setBirthDate(profile.birth_date ?? "");
       setHeightCm(profile.height_cm?.toString() ?? "");
       setActivityLevel(profile.activity_level?.toString() ?? "1.2");
-      setGoalType(profile.goal_type ?? "sustainable_loss");
       setDietType(profile.diet_type ?? "balanced");
       setProteinPref(profile.protein_pref ?? "moderate");
       setCalorieDistribution(profile.calorie_distribution ?? "stable");
       setTrainingDays((profile.training_days_per_week ?? 4).toString());
       setDietStrategy(profile.diet_strategy ?? "linear");
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
-      setTargetWeight(profile.target_weight?.toString() ?? "");
       setDietaryPreference(profile.dietary_preference ?? "onnivoro");
       setAllergies(profile.allergies ?? "");
     }
@@ -132,7 +128,6 @@ export default function Settings() {
           birth_date: birthDate || null,
           height_cm: heightCm ? parseFloat(heightCm) : null,
           activity_level: parseFloat(activityLevel),
-          goal_type: goalType,
           diet_type: dietType,
           protein_pref: proteinPref,
           calorie_distribution: calorieDistribution,
@@ -155,7 +150,6 @@ export default function Settings() {
             return out;
           })(),
            track_menstrual_cycle: trackMenstrualCycle,
-           target_weight: targetWeight ? parseFloat(targetWeight) : null,
            dietary_preference: dietaryPreference,
            allergies: allergies.trim() || null,
       };
