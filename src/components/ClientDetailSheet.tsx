@@ -70,6 +70,13 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { detectMetabolicBurnout } from "@/lib/autoRegulation";
 import type { Tables } from "@/integrations/supabase/types";
 import type { SmoothedLog } from "@/lib/algorithms";
+import {
+  calculateComplianceScore,
+  statusBadgeMeta,
+  type DailyTargets,
+  type BiofeedbackEntry,
+} from "@/lib/compliance";
+import { getWeekStartISO } from "@/lib/weeklyBudget";
 
 const STRATEGY_OPTIONS: { value: DietStrategy; label: string }[] = [
   { value: "linear", label: "Lineare" },
