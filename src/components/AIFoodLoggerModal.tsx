@@ -285,37 +285,53 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       const n = parseFloat(s);
       return isFinite(n) && n > 0 ? n : 0;
     };
-    const add = {
+    const macroEntry = {
       calories: Math.round(calories),
       protein: num(mProtein),
       carbs: num(mCarbs),
       fats: num(mFats),
       fiber: num(mFiber),
-      water_l: num(mWater),
-      sodium_mg: num(mSodium),
     };
+    const extraWater = num(mWater);
+    const extraSodium = num(mSodium);
 
     setSavingManual(true);
     try {
       const existingLog = dailyLogs.find(
         (l) => l.log_date === logDate && l.user_id === user.id,
       );
-      const prev = (existingLog ?? {}) as Record<string, unknown>;
-      const sum = (key: keyof typeof add) =>
-        (Number(prev[key]) || 0) + (add[key] as number);
+
+      // Append the macro portion as a new meal entry (so it can be deleted)
+      const meal: MealEntry = {
+        id: newMealId(),
+        name: "Voce manuale",
+        ...macroEntry,
+        source: "manual" as MealSource,
+        timestamp: new Date().toISOString(),
+      };
+      const prevMeals = parseMealsLog(
+        (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
+      );
+      const nextMeals = [...prevMeals, meal];
+      const agg = aggregatesFromMeals(nextMeals);
+
+      // Water/sodium are NOT part of meals_log — accumulate directly on row
+      const prevWater = Number((existingLog as { water_l?: number | null } | undefined)?.water_l) || 0;
+      const prevSodium = Number((existingLog as { sodium_mg?: number | null } | undefined)?.sodium_mg) || 0;
 
       const { id: _id, ...existingFields } = existingLog ?? {};
       const upsertPayload = {
         ...existingFields,
         user_id: user.id,
         log_date: logDate,
-        calories: sum("calories"),
-        protein: sum("protein"),
-        carbs: sum("carbs"),
-        fats: sum("fats"),
-        fiber: sum("fiber"),
-        water_l: sum("water_l"),
-        sodium_mg: sum("sodium_mg"),
+        meals_log: nextMeals,
+        calories: agg.calories,
+        protein: agg.protein,
+        carbs: agg.carbs,
+        fats: agg.fats,
+        fiber: agg.fiber,
+        water_l: extraWater > 0 ? Math.round((prevWater + extraWater) * 100) / 100 : prevWater,
+        sodium_mg: extraSodium > 0 ? Math.round(prevSodium + extraSodium) : prevSodium,
       };
 
       const { data, error } = await supabase
