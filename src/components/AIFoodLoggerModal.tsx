@@ -125,7 +125,9 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
 
   /**
    * Add the given meal kcal/quality to today's daily_metrics.
-   * Used by both AI-confirmed result and one-click favorite logging.
+   * CRITICAL: preserves ALL existing fields (InBody segmental, notes, etc.)
+   * by spreading the existing log first, then overriding only delta fields.
+   * Without this, upsert with onConflict would null-out unspecified columns.
    */
   const appendCaloriesToDay = async (calories: number, qualityScore?: number) => {
     if (!user) throw new Error("No user");
@@ -137,19 +139,20 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     let newQuality: number | null | undefined = existingLog?.average_food_quality;
     if (qualityScore != null) {
       const existingQuality = existingLog?.average_food_quality;
-      const mealCount = existingQuality != null ? 2 : 1;
       newQuality =
         existingQuality != null
-          ? Math.round(((existingQuality * (mealCount - 1) + qualityScore) / mealCount) * 10) / 10
+          ? Math.round(((existingQuality + qualityScore) / 2) * 10) / 10
           : qualityScore;
     }
 
-    const upsertPayload: Record<string, unknown> = {
+    // Spread existing log to preserve InBody/segmental/notes/etc.
+    // Strip PK 'id' so upsert resolves on (user_id, log_date) cleanly.
+    const { id: _id, ...existingFields } = existingLog ?? {};
+    const upsertPayload = {
+      ...existingFields,
       user_id: user.id,
       log_date: logDate,
       calories: newCalories,
-      weight: existingLog?.weight ?? null,
-      steps: existingLog?.steps ?? null,
       average_food_quality: newQuality ?? null,
     };
 
