@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface MacroRingsProps {
@@ -79,9 +79,14 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
     return allInRange && calories.current > 0;
   }, [proteinPct, carbsPct, fatsPct, calories.current]);
 
+  // Fire onPerfect only on transitions from false → true to avoid repeated triggers.
+  const wasPerfectRef = useRef(false);
   useEffect(() => {
-    if (isPerfect && onPerfect) {
-      onPerfect();
+    if (isPerfect && !wasPerfectRef.current) {
+      wasPerfectRef.current = true;
+      onPerfect?.();
+    } else if (!isPerfect && wasPerfectRef.current) {
+      wasPerfectRef.current = false;
     }
   }, [isPerfect, onPerfect]);
 
