@@ -655,6 +655,143 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
               </div>
             </ScrollArea>
           </TabsContent>
+
+          {/* === Manual Tab === */}
+          <TabsContent value="manual" className="mt-0">
+            <ScrollArea className="max-h-[70vh]">
+              <div className="p-6 pt-4 space-y-4">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <PencilLine className="h-3.5 w-3.5 text-primary" />
+                  Inserisci manualmente i valori del pasto. Verranno sommati al totale di oggi.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Calorie <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="1"
+                      min="0"
+                      placeholder="0 kcal"
+                      value={mCalories}
+                      onChange={(e) => setMCalories(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Proteine
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mProtein}
+                      onChange={(e) => setMProtein(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Carboidrati
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mCarbs}
+                      onChange={(e) => setMCarbs(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Grassi
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mFats}
+                      onChange={(e) => setMFats(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Fibre
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 g"
+                      value={mFiber}
+                      onChange={(e) => setMFiber(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Acqua
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      min="0"
+                      placeholder="0 L"
+                      value={mWater}
+                      onChange={(e) => setMWater(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                      Sodio
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="1"
+                      min="0"
+                      placeholder="0 mg"
+                      value={mSodium}
+                      onChange={(e) => setMSodium(e.target.value)}
+                      className="border-border h-10"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleManualSubmit}
+                  disabled={savingManual || !mCalories.trim()}
+                  className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-lg"
+                >
+                  {savingManual ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Aggiungi ai Macro di Oggi
+                </Button>
+
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Solo le calorie sono obbligatorie. Gli altri valori saranno trattati come 0 se vuoti.
+                </p>
+              </div>
+            </ScrollArea>
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
