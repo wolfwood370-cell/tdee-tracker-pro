@@ -26,6 +26,11 @@ export function ProgressEntryForm({ onSaved }: Props) {
 
   // Photos (local preview + File objects)
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({});
+  // Ref mirror so the unmount cleanup sees the latest set of object URLs (closure fix).
+  const photosRef = useRef(photos);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
   const fileRefs = {
     front: useRef<HTMLInputElement>(null),
     back: useRef<HTMLInputElement>(null),
@@ -35,7 +40,7 @@ export function ProgressEntryForm({ onSaved }: Props) {
   // Cleanup object URLs on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
-      Object.values(photos).forEach((p) => URL.revokeObjectURL(p.preview));
+      Object.values(photosRef.current).forEach((p) => URL.revokeObjectURL(p.preview));
     };
   }, []);
 

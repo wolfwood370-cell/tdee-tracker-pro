@@ -71,13 +71,16 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
   const remaining = calories.target - calories.current;
 
   // Check if all macros are within range (90-110%)
+  // Note: we intentionally depend on `calories.current` (a primitive) rather than
+  // the `calories` object to avoid re-running on every render due to new prop refs.
+  const caloriesCurrent = calories.current;
   const isPerfect = useMemo(() => {
     const allInRange =
       proteinPct >= 0.9 && proteinPct <= 1.1 &&
       carbsPct >= 0.9 && carbsPct <= 1.1 &&
       fatsPct >= 0.9 && fatsPct <= 1.1;
-    return allInRange && calories.current > 0;
-  }, [proteinPct, carbsPct, fatsPct, calories.current]);
+    return allInRange && caloriesCurrent > 0;
+  }, [proteinPct, carbsPct, fatsPct, caloriesCurrent]);
 
   // Fire onPerfect only on transitions from false → true to avoid repeated triggers.
   const wasPerfectRef = useRef(false);

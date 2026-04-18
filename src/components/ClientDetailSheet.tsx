@@ -414,7 +414,6 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     try {
       const { error } = await supabase
         .from("profiles")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update({
           goal_type: editGoalType,
           diet_strategy: editDietStrategy,
