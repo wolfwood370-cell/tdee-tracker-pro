@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Camera, Sparkles, X, Loader2, CheckCircle2, Leaf } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -16,11 +16,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AIFoodLoggerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   logDate: string;
+}
+
+interface FavoriteMeal {
+  id: string;
+  meal_type: string;
+  name: string;
+  description: string | null;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
 }
 
 type Phase = "input" | "analyzing" | "result";
@@ -33,6 +49,11 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<AIParsedMeal | null>(null);
+
+  // Vault state
+  const [favorites, setFavorites] = useState<FavoriteMeal[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [logging, setLogging] = useState<string | null>(null);
 
   const resetState = useCallback(() => {
     setPhase("input");
@@ -61,6 +82,32 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch favorites when modal opens
+  useEffect(() => {
+    if (!open || !user) return;
+    let cancelled = false;
+    const fetchFavorites = async () => {
+      setFavoritesLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("favorite_meals")
+          .select("id, meal_type, name, description, calories, protein, carbs, fats")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        if (!cancelled) setFavorites(data ?? []);
+      } catch (e) {
+        console.error("Fetch favorites error:", e);
+      } finally {
+        if (!cancelled) setFavoritesLoading(false);
+      }
+    };
+    fetchFavorites();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, user]);
+
   const handleAnalyze = async () => {
     if (!textInput.trim() && !selectedFile) return;
     setPhase("analyzing");
@@ -76,51 +123,55 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     }
   };
 
+  /**
+   * Add the given meal kcal/quality to today's daily_metrics.
+   * Used by both AI-confirmed result and one-click favorite logging.
+   */
+  const appendCaloriesToDay = async (calories: number, qualityScore?: number) => {
+    if (!user) throw new Error("No user");
+    const existingLog = dailyLogs.find(
+      (l) => l.log_date === logDate && l.user_id === user.id,
+    );
+    const newCalories = (existingLog?.calories ?? 0) + calories;
+
+    let newQuality: number | null | undefined = existingLog?.average_food_quality;
+    if (qualityScore != null) {
+      const existingQuality = existingLog?.average_food_quality;
+      const mealCount = existingQuality != null ? 2 : 1;
+      newQuality =
+        existingQuality != null
+          ? Math.round(((existingQuality * (mealCount - 1) + qualityScore) / mealCount) * 10) / 10
+          : qualityScore;
+    }
+
+    const upsertPayload: Record<string, unknown> = {
+      user_id: user.id,
+      log_date: logDate,
+      calories: newCalories,
+      weight: existingLog?.weight ?? null,
+      steps: existingLog?.steps ?? null,
+      average_food_quality: newQuality ?? null,
+    };
+
+    const { data, error } = await supabase
+      .from("daily_metrics")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (existingLog) updateLog(data);
+    else addLog(data);
+  };
+
   const handleConfirm = async () => {
     if (!result || !user) return;
-
-    const existingLog = dailyLogs.find(
-      (l) => l.log_date === logDate && l.user_id === user.id
-    );
-
-    const newCalories = (existingLog?.calories ?? 0) + result.calories;
-
-    // Calculate rolling average food quality
-    const existingQuality = existingLog?.average_food_quality;
-    const mealCount = existingQuality != null ? 2 : 1; // simplified: assume at least 1 prior meal if quality exists
-    const newQuality = existingQuality != null
-      ? Math.round(((existingQuality * (mealCount - 1) + result.qualityScore) / mealCount) * 10) / 10
-      : result.qualityScore;
-
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const upsertPayload: Record<string, unknown> = {
-        user_id: user.id,
-        log_date: logDate,
-        calories: newCalories,
-        weight: existingLog?.weight ?? null,
-        steps: existingLog?.steps ?? null,
-        average_food_quality: newQuality,
-      };
-
-      const { data, error } = await supabase
-        .from("daily_metrics")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (existingLog) {
-        updateLog(data);
-      } else {
-        addLog(data);
-      }
-
+      await appendCaloriesToDay(result.calories, result.qualityScore);
       toast.success(
         `Pasto loggato con successo! Precisione stimata: ${result.confidenceScore}%`,
-        { description: `${result.foodName} — ${result.calories} kcal` }
+        { description: `${result.foodName} — ${result.calories} kcal` },
       );
       handleClose(false);
     } catch (e) {
@@ -129,189 +180,387 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     }
   };
 
+  const handleLogFavorite = async (fav: FavoriteMeal) => {
+    setLogging(fav.id);
+    try {
+      await appendCaloriesToDay(fav.calories);
+      toast.success(`${fav.name} registrato!`, {
+        description: `+${fav.calories} kcal`,
+      });
+      handleClose(false);
+    } catch (e) {
+      console.error("Log favorite error:", e);
+      toast.error("Errore nel salvataggio del pasto.");
+    } finally {
+      setLogging(null);
+    }
+  };
+
+  const handleDeleteFavorite = async (id: string) => {
+    try {
+      const { error } = await supabase.from("favorite_meals").delete().eq("id", id);
+      if (error) throw error;
+      setFavorites((prev) => prev.filter((f) => f.id !== id));
+      toast.success("Pasto rimosso dalla Cassaforte.");
+    } catch (e) {
+      console.error("Delete favorite error:", e);
+      toast.error("Errore nella rimozione.");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg border-border bg-background/95 backdrop-blur-xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg border-border bg-background/95 backdrop-blur-xl p-0">
+        <DialogHeader className="p-6 pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-display">
             <Sparkles className="h-5 w-5 text-primary" />
             AI Smart Log
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Scansiona un piatto o descrivi cosa hai mangiato per calcolare i macronutrienti con l'AI
+            Scansiona, descrivi un piatto o registra dalla Cassaforte
           </DialogDescription>
         </DialogHeader>
 
-        {phase === "input" && (
-          <div className="space-y-5">
-            {/* Image Upload Zone */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">📸 Scansiona Piatto</Label>
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                className="relative border-2 border-dashed border-primary/30 rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-primary/60 hover:bg-primary/5"
-                onClick={() => document.getElementById("ai-file-input")?.click()}
-              >
-                {previewUrl ? (
-                  <div className="relative">
-                    <img src={previewUrl} alt="Preview" className="max-h-40 mx-auto rounded-lg object-cover" />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); }}
-                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Camera className="h-6 w-6 text-primary" />
+        <Tabs defaultValue="ai" className="w-full">
+          <div className="px-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="ai" className="gap-1.5">
+                🪄 Scansione AI
+              </TabsTrigger>
+              <TabsTrigger value="vault" className="gap-1.5">
+                ❤️ I Miei Pasti
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* === AI Scan Tab === */}
+          <TabsContent value="ai" className="mt-0">
+            <ScrollArea className="max-h-[70vh]">
+              <div className="p-6 pt-4">
+                {phase === "input" && (
+                  <div className="space-y-5">
+                    {/* Image Upload Zone */}
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">
+                        📸 Scansiona Piatto
+                      </Label>
+                      <div
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={handleDrop}
+                        className="relative border-2 border-dashed border-primary/30 rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-primary/60 hover:bg-primary/5"
+                        onClick={() => document.getElementById("ai-file-input")?.click()}
+                      >
+                        {previewUrl ? (
+                          <div className="relative">
+                            <img
+                              src={previewUrl}
+                              alt="Preview"
+                              className="max-h-40 mx-auto rounded-lg object-cover"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedFile(null);
+                                setPreviewUrl(null);
+                              }}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Camera className="h-6 w-6 text-primary" />
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Trascina una foto o{" "}
+                              <span className="text-primary font-medium">
+                                clicca per caricare
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                        <input
+                          id="ai-file-input"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileSelect(file);
+                          }}
+                        />
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Trascina una foto o <span className="text-primary font-medium">clicca per caricare</span>
-                    </p>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-xs text-muted-foreground font-medium">oppure</span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+
+                    {/* Text Input */}
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">
+                        🎤 Descrivi cosa hai mangiato...
+                      </Label>
+                      <Textarea
+                        placeholder="es. 200g di petto di pollo con 80g di riso basmati e insalata mista"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        className="border-border min-h-[80px] resize-none text-base"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleAnalyze}
+                      disabled={!textInput.trim() && !selectedFile}
+                      className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-lg"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Analizza con AI
+                    </Button>
                   </div>
                 )}
-                <input
-                  id="ai-file-input"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileSelect(file);
-                  }}
-                />
-              </div>
-            </div>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground font-medium">oppure</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            {/* Text Input */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">🎤 Descrivi cosa hai mangiato...</Label>
-              <Textarea
-                placeholder="es. 200g di petto di pollo con 80g di riso basmati e insalata mista"
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                className="border-border min-h-[80px] resize-none"
-              />
-            </div>
-
-            {/* Submit */}
-            <Button
-              onClick={handleAnalyze}
-              disabled={!textInput.trim() && !selectedFile}
-              className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-lg"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Analizza con AI
-            </Button>
-          </div>
-        )}
-
-        {phase === "analyzing" && (
-          <div className="py-10 flex flex-col items-center gap-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                <Sparkles className="h-8 w-8 text-primary animate-spin" style={{ animationDuration: "3s" }} />
-              </div>
-            </div>
-            <div className="text-center space-y-1">
-              <p className="font-medium text-foreground">Analisi in corso...</p>
-              <p className="text-sm text-muted-foreground">
-                L'Intelligenza Artificiale sta calcolando i macronutrienti
-              </p>
-            </div>
-            <div className="flex gap-1">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {phase === "result" && result && (
-          <div className="space-y-5">
-            {/* Parsed Result */}
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-foreground">{result.foodName}</span>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-foreground">{result.calories}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">kcal</p>
-                </div>
-                <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-primary">{result.protein}g</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Proteine</p>
-                </div>
-                <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-accent-foreground">{result.carbs}g</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Carbs</p>
-                </div>
-                <div className="rounded-lg bg-background p-2 border border-border">
-                  <p className="text-lg font-bold text-destructive">{result.fats}g</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Grassi</p>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center">
-                Precisione stimata: <span className="font-semibold text-primary">{result.confidenceScore}%</span>
-              </p>
-
-              {/* Quality Score */}
-              <div className={`flex items-center gap-2 rounded-lg p-2.5 border ${
-                result.qualityScore >= 8 ? 'bg-emerald-500/10 border-emerald-500/30' :
-                result.qualityScore >= 5 ? 'bg-amber-500/10 border-amber-500/30' :
-                'bg-red-500/10 border-red-500/30'
-              }`}>
-                <Leaf className={`h-4 w-4 ${
-                  result.qualityScore >= 8 ? 'text-emerald-600' :
-                  result.qualityScore >= 5 ? 'text-amber-600' :
-                  'text-red-600'
-                }`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold">Qualità Nutrizionale: {result.qualityScore}/10</span>
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                      result.qualityScore >= 8 ? 'bg-emerald-500/20 text-emerald-700' :
-                      result.qualityScore >= 5 ? 'bg-amber-500/20 text-amber-700' :
-                      'bg-red-500/20 text-red-700'
-                    }`}>
-                      {result.qualityScore >= 8 ? 'Ottima' : result.qualityScore >= 5 ? 'Discreta' : 'Bassa'}
-                    </span>
+                {phase === "analyzing" && (
+                  <div className="py-10 flex flex-col items-center gap-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                        <Sparkles
+                          className="h-8 w-8 text-primary animate-spin"
+                          style={{ animationDuration: "3s" }}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className="font-medium text-foreground">Analisi in corso...</p>
+                      <p className="text-sm text-muted-foreground">
+                        L'Intelligenza Artificiale sta calcolando i macronutrienti
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 rounded-full bg-primary animate-bounce"
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{result.qualityFeedback}</p>
-                </div>
-              </div>
-            </div>
+                )}
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => { resetState(); }}>
-                Riprova
-              </Button>
-              <Button className="flex-1 bg-gradient-to-r from-primary to-primary/80" onClick={handleConfirm}>
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-                Conferma e Salva
-              </Button>
-            </div>
-          </div>
-        )}
+                {phase === "result" && result && (
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                        <span className="font-semibold text-foreground">{result.foodName}</span>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 text-center">
+                        <div className="rounded-lg bg-background p-2 border border-border">
+                          <p className="text-lg font-bold text-foreground">{result.calories}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            kcal
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-background p-2 border border-border">
+                          <p className="text-lg font-bold text-primary">{result.protein}g</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Proteine
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-background p-2 border border-border">
+                          <p className="text-lg font-bold text-accent-foreground">
+                            {result.carbs}g
+                          </p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Carbs
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-background p-2 border border-border">
+                          <p className="text-lg font-bold text-destructive">{result.fats}g</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Grassi
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground text-center">
+                        Precisione stimata:{" "}
+                        <span className="font-semibold text-primary">
+                          {result.confidenceScore}%
+                        </span>
+                      </p>
+
+                      <div
+                        className={`flex items-center gap-2 rounded-lg p-2.5 border ${
+                          result.qualityScore >= 8
+                            ? "bg-emerald-500/10 border-emerald-500/30"
+                            : result.qualityScore >= 5
+                              ? "bg-amber-500/10 border-amber-500/30"
+                              : "bg-red-500/10 border-red-500/30"
+                        }`}
+                      >
+                        <Leaf
+                          className={`h-4 w-4 ${
+                            result.qualityScore >= 8
+                              ? "text-emerald-600"
+                              : result.qualityScore >= 5
+                                ? "text-amber-600"
+                                : "text-red-600"
+                          }`}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold">
+                              Qualità Nutrizionale: {result.qualityScore}/10
+                            </span>
+                            <span
+                              className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                                result.qualityScore >= 8
+                                  ? "bg-emerald-500/20 text-emerald-700"
+                                  : result.qualityScore >= 5
+                                    ? "bg-amber-500/20 text-amber-700"
+                                    : "bg-red-500/20 text-red-700"
+                              }`}
+                            >
+                              {result.qualityScore >= 8
+                                ? "Ottima"
+                                : result.qualityScore >= 5
+                                  ? "Discreta"
+                                  : "Bassa"}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {result.qualityFeedback}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          resetState();
+                        }}
+                      >
+                        Riprova
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-primary to-primary/80"
+                        onClick={handleConfirm}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Conferma e Salva
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* === Vault Tab === */}
+          <TabsContent value="vault" className="mt-0">
+            <ScrollArea className="max-h-[70vh]">
+              <div className="p-6 pt-4 space-y-4">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Heart className="h-3.5 w-3.5 text-destructive" fill="currentColor" />
+                  Registra i tuoi pasti preferiti con un clic, senza attese.
+                </p>
+
+                {favoritesLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Card key={i} className="border-border bg-secondary/20">
+                        <CardContent className="p-4 space-y-2">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-5 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : favorites.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <div className="mx-auto w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
+                      <Heart className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">
+                      Nessun pasto in Cassaforte
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                      Genera un piano pasti AI e tocca il cuore ❤️ sui tuoi preferiti per
+                      registrarli al volo.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {favorites.map((fav) => (
+                      <Card
+                        key={fav.id}
+                        className="border-border bg-secondary/20 hover:bg-secondary/40 transition-colors"
+                      >
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] uppercase tracking-wide"
+                            >
+                              {fav.meal_type}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFavorite(fav.id)}
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                              aria-label="Rimuovi"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <h4 className="font-display font-semibold text-base text-foreground leading-tight">
+                            {fav.name}
+                          </h4>
+                          {fav.description && (
+                            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                              {fav.description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between gap-2 pt-1">
+                            <Badge variant="default" className="text-[11px] font-mono">
+                              {fav.calories} kcal · {fav.protein}P · {fav.carbs}C · {fav.fats}G
+                            </Badge>
+                            <Button
+                              size="sm"
+                              onClick={() => handleLogFavorite(fav)}
+                              disabled={logging !== null}
+                              className="h-8 gap-1"
+                            >
+                              {logging === fav.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Plus className="h-3.5 w-3.5" />
+                              )}
+                              Registra
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
