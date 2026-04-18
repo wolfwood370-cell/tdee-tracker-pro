@@ -74,7 +74,7 @@ export const PWAInstallPrompt = () => {
         <Smartphone className="h-5 w-5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground">📱 Installa NC Smart Nutrition!</p>
+        <p className="text-sm font-semibold text-foreground">📱 Installa NC Nutrition!</p>
         <p className="text-xs text-muted-foreground mt-0.5">
           {isIOS
             ? "Tocca Condividi → \"Aggiungi a Home\" per un'esperienza nativa."
