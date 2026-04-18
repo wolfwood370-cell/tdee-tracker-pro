@@ -672,3 +672,42 @@ function SlotCounter({ icon: Icon, label, used, allowed, tone }: SlotCounterProp
     </div>
   );
 }
+
+interface LinearMacroCardProps {
+  calories: number;
+  macros: { protein: number; carbs: number; fats: number };
+}
+
+function LinearMacroCard({ calories, macros }: LinearMacroCardProps) {
+  return (
+    <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Target className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-display font-semibold text-foreground">
+          Macro Fissi Giornalieri
+        </h3>
+      </div>
+      <p className="text-[11px] text-muted-foreground -mt-1">
+        Stessi target ogni giorno della settimana — semplice e diretto.
+      </p>
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Kcal</p>
+          <p className="text-lg font-display font-bold text-foreground">{calories.toLocaleString("it-IT")}</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">P</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.protein}g</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">C</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.carbs}g</p>
+        </div>
+        <div className="bg-background/60 rounded-lg p-2.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">G</p>
+          <p className="text-lg font-display font-bold text-foreground">{macros.fats}g</p>
+        </div>
+      </div>
+    </div>
+  );
+}
