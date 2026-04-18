@@ -287,64 +287,7 @@ export default function Settings() {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Goal Type */}
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Obiettivo
-            </Label>
-            <RadioGroup value={goalType} onValueChange={setGoalType} className="grid grid-cols-1 gap-2">
-              {GOAL_TYPES.map((gt) => (
-                <label
-                  key={gt.value}
-                  className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                    goalType === gt.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  <RadioGroupItem value={gt.value} />
-                  <span className="text-sm text-foreground">{gt.label}</span>
-                </label>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Target Weight */}
-          {goalType !== 'maintenance' && (
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                Peso Obiettivo (kg)
-              </Label>
-              <Input
-                type="number"
-                step="0.1"
-                min="30"
-                max="300"
-                value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
-                placeholder="es. 72.0"
-                className="border-border"
-              />
-              {targetWeight && heightCm && isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
-                <Alert variant="destructive" className="border-destructive bg-destructive/10 mt-2">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle className="font-display font-semibold text-sm">⚠️ Attenzione Clinica</AlertTitle>
-                  <AlertDescription className="text-xs mt-1">
-                    Il peso obiettivo inserito porterebbe a un Indice di Massa Corporea (BMI) inferiore a 18.5, classificato come sottopeso severo. Procedere con questo obiettivo senza supervisione medica può comportare gravi rischi per la salute.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {targetWeight && heightCm && !isUnderweightRisk(parseFloat(targetWeight), parseFloat(heightCm)) && isObesityRisk(parseFloat(targetWeight), parseFloat(heightCm)) && (
-                <Alert className="border-orange-500/50 bg-orange-500/10 mt-2">
-                  <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
-                  <AlertTitle className="font-display font-semibold text-sm text-orange-700">⚠️ Avviso Clinico</AlertTitle>
-                  <AlertDescription className="text-xs mt-1 text-orange-700/80">
-                    Il peso obiettivo porterebbe a un BMI ≥ 30 (Obesità). Sebbene il BMI non distingua tra massa muscolare e grassa, superare questa soglia richiede attenzione per prevenire insulino-resistenza e stress cardiovascolare.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
+          {/* Diet Type — moved up after removing Goal section (now in Strategy tab) */}
 
           {/* Diet Type */}
           <div className="space-y-2">
