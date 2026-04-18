@@ -222,6 +222,84 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     }
   };
 
+  // ── Manual logger: append numeric values directly to today's row ────────
+  const resetManual = () => {
+    setMCalories("");
+    setMProtein("");
+    setMCarbs("");
+    setMFats("");
+    setMFiber("");
+    setMWater("");
+    setMSodium("");
+  };
+
+  const handleManualSubmit = async () => {
+    if (!user) return;
+    const calories = parseFloat(mCalories);
+    if (!isFinite(calories) || calories <= 0) {
+      toast.error("Inserisci un valore di calorie valido (> 0).");
+      return;
+    }
+    const num = (s: string) => {
+      const n = parseFloat(s);
+      return isFinite(n) && n > 0 ? n : 0;
+    };
+    const add = {
+      calories: Math.round(calories),
+      protein: num(mProtein),
+      carbs: num(mCarbs),
+      fats: num(mFats),
+      fiber: num(mFiber),
+      water_l: num(mWater),
+      sodium_mg: num(mSodium),
+    };
+
+    setSavingManual(true);
+    try {
+      const existingLog = dailyLogs.find(
+        (l) => l.log_date === logDate && l.user_id === user.id,
+      );
+      const prev = (existingLog ?? {}) as Record<string, unknown>;
+      const sum = (key: keyof typeof add) =>
+        (Number(prev[key]) || 0) + (add[key] as number);
+
+      const { id: _id, ...existingFields } = existingLog ?? {};
+      const upsertPayload = {
+        ...existingFields,
+        user_id: user.id,
+        log_date: logDate,
+        calories: sum("calories"),
+        protein: sum("protein"),
+        carbs: sum("carbs"),
+        fats: sum("fats"),
+        fiber: sum("fiber"),
+        water_l: sum("water_l"),
+        sodium_mg: sum("sodium_mg"),
+      };
+
+      const { data, error } = await supabase
+        .from("daily_metrics")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (existingLog) updateLog(data);
+      else addLog(data);
+
+      toast.success("Valori aggiunti con successo!");
+      resetManual();
+      handleClose(false);
+    } catch (e) {
+      console.error("Manual log error:", e);
+      toast.error("Errore nel salvataggio.");
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg border-border bg-background/95 backdrop-blur-xl p-0">
