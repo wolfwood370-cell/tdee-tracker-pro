@@ -91,6 +91,7 @@ export type Database = {
           lean_tr_kg: number | null
           lean_tr_pct: number | null
           log_date: string
+          meals_log: Json
           menstrual_phase: string | null
           notes: string | null
           pbf: number | null
@@ -136,6 +137,7 @@ export type Database = {
           lean_tr_kg?: number | null
           lean_tr_pct?: number | null
           log_date: string
+          meals_log?: Json
           menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
@@ -181,6 +183,7 @@ export type Database = {
           lean_tr_kg?: number | null
           lean_tr_pct?: number | null
           log_date?: string
+          meals_log?: Json
           menstrual_phase?: string | null
           notes?: string | null
           pbf?: number | null
