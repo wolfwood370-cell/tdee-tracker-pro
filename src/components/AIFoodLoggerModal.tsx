@@ -654,16 +654,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     ))}
                   </div>
                 ) : favorites.length === 0 ? (
-                  <div className="py-12 text-center space-y-2">
-                    <div className="mx-auto w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
-                      <Heart className="h-6 w-6 text-muted-foreground" />
+                  <div className="py-12 text-center space-y-3">
+                    <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Heart className="h-6 w-6 text-primary" />
                     </div>
-                    <p className="text-sm font-medium text-foreground">
-                      Nessun pasto in Cassaforte
+                    <p className="text-sm font-display font-semibold text-foreground">
+                      La tua cassaforte è vuota
                     </p>
-                    <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                      Genera un piano pasti AI e tocca il cuore ❤️ sui tuoi preferiti per
-                      registrarli al volo.
+                    <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+                      Quando generi un pasto perfetto con l'AI, clicca sul cuore ❤️ per salvarlo qui e riutilizzarlo con un tap.
                     </p>
                   </div>
                 ) : (

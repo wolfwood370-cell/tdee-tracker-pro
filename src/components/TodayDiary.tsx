@@ -98,15 +98,15 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
     <Card className="glass-card border-border">
       <CardContent className="p-2 md:p-3">
         {meals.length === 0 ? (
-          <div className="py-6 text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-              <UtensilsCrossed className="h-5 w-5 text-muted-foreground" />
+          <div className="py-8 text-center space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-sm font-medium text-foreground">
-              🍽️ Nessun Pasto Registrato
+            <p className="text-sm font-display font-semibold text-foreground">
+              Il tuo diario è vuoto
             </p>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              Usa "Aggiungi Pasto" per registrare il tuo primo pasto della giornata.
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              Tocca il tasto <span className="font-semibold text-foreground">"+"</span> per aggiungere un pasto o lascia che l'AI incastri i macro per te.
             </p>
           </div>
         ) : (

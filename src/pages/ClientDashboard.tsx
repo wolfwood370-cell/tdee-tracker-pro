@@ -74,6 +74,17 @@ const ClientDashboard = () => {
         if (data && data.length > 0) {
           setLogs(data);
         }
+
+        // Phase 65: One-time welcome toast for first-time users
+        const welcomeKey = `nc-welcome-shown-${user.id}`;
+        const alreadyShown = localStorage.getItem(welcomeKey);
+        if (!alreadyShown && (data?.length ?? 0) <= 1) {
+          toast.success("Benvenuto a bordo.", {
+            description: "Il tuo metabolismo è in fase di calcolo. Registra il peso e i pasti ogni giorno per permettere all'algoritmo di adattarsi a te.",
+            duration: 6000,
+          });
+          localStorage.setItem(welcomeKey, "1");
+        }
       });
 
     // Check biofeedback status

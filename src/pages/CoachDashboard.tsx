@@ -19,6 +19,7 @@ import {
   Search,
   Eye,
   Filter,
+  Info,
 } from "lucide-react";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
@@ -292,6 +293,7 @@ const CoachDashboard = () => {
               value: `${avgScore}/100`,
               icon: Activity,
               tone: "default",
+              tooltip: "Basato su aderenza calorica, costanza nel tracciamento e parametri di biofeedback (fame, sonno, energie).",
             },
           ].map((stat) => (
             <Card
@@ -311,6 +313,18 @@ const CoachDashboard = () => {
                         : "text-primary"
                     }`}
                   />
+                  {stat.tooltip && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" aria-label="Info compliance score" className="text-muted-foreground hover:text-foreground transition-colors">
+                          <Info className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+                        {stat.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
                 <p className="text-xl md:text-2xl font-display font-bold text-foreground">
                   {stat.value}
