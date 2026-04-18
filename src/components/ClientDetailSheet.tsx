@@ -465,15 +465,16 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </div>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => {
                   onOpenChange(false);
                   navigate("/messages");
                 }}
+                className="gap-1.5"
               >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Chat
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Invia Messaggio di Supporto</span>
+                <span className="sm:hidden">Messaggio</span>
               </Button>
               {smoothed.length > 0 && (
                 <Button
