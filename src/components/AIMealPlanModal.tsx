@@ -220,7 +220,7 @@ export function AIMealPlanModal({
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="font-display flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
-            Idee Pasti e Spesa AI
+            Le tue idee pasto AI
           </DialogTitle>
           <DialogDescription className="text-xs">
             Target: {targetCalories} kcal · {protein}g P · {carbs}g C · {fats}g G
@@ -236,7 +236,7 @@ export function AIMealPlanModal({
                   <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
                     <ChefHat className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="font-display text-lg font-semibold">Configura il tuo Menù</h3>
+                  <h3 className="font-display text-lg font-semibold">Configura le tue idee pasto</h3>
                   <p className="text-sm text-muted-foreground max-w-sm">
                     Personalizza il piano in base alle tue esigenze. L'AI rispetterà preferenze e allergie del tuo profilo.
                   </p>
@@ -286,7 +286,7 @@ export function AIMealPlanModal({
 
                 <Button onClick={fetchPlan} size="lg" className="w-full gap-2">
                   <Sparkles className="h-4 w-4" />
-                  Genera Menù
+                  Genera Idee Pasto AI
                 </Button>
               </div>
             )}
@@ -297,7 +297,7 @@ export function AIMealPlanModal({
                 <div className="flex items-center gap-3 text-sm text-foreground">
                   <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
                   <span className="animate-pulse">
-                    👩‍🍳 Gemini sta elaborando il tuo menù perfetto...
+                    L'AI sta elaborando le tue idee pasto...
                   </span>
                 </div>
                 <div className="space-y-3 pt-2">
@@ -322,7 +322,7 @@ export function AIMealPlanModal({
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="menu" className="gap-1.5">
                       <Utensils className="h-3.5 w-3.5" />
-                      🍽️ Menù
+                      Idee Pasto
                     </TabsTrigger>
                     <TabsTrigger value="grocery" className="gap-1.5">
                       <ShoppingCart className="h-3.5 w-3.5" />
