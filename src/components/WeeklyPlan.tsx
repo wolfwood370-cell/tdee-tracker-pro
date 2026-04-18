@@ -434,8 +434,21 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
           return (
             <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-xs font-display font-semibold text-foreground">
+                <span className="text-xs font-display font-semibold text-foreground flex items-center gap-1.5">
                   Stile Alimentare
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" aria-label="Info stile alimentare" className="text-muted-foreground hover:text-foreground transition-colors">
+                          <Info className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+                        <p><span className="font-semibold">Lineare:</span> Stesse calorie ogni giorno.</p>
+                        <p><span className="font-semibold">Polarizzata:</span> Più calorie nei giorni di allenamento, meno nei giorni di riposo.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </span>
                 <ToggleGroup
                   type="single"
