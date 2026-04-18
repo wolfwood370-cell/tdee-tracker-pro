@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2 } from "lucide-react";
+import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -14,6 +14,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
