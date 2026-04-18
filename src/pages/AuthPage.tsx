@@ -76,7 +76,7 @@ const AuthPage = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-display font-bold text-foreground">NC Smart Nutrition</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">NC Nutrition</h1>
           </div>
           <p className="text-muted-foreground text-sm">by NC Personal Trainer</p>
         </div>
@@ -100,7 +100,7 @@ const AuthPage = () => {
           {/* Logo mobile */}
           <div className="lg:hidden flex items-center gap-3 justify-center mb-8">
             <Activity className="h-7 w-7 text-primary" />
-            <h1 className="text-xl font-display font-bold text-foreground">NC Smart Nutrition</h1>
+            <h1 className="text-xl font-display font-bold text-foreground">NC Nutrition</h1>
           </div>
 
           {view === "recovery" ? (
@@ -210,7 +210,7 @@ const AuthPage = () => {
                 <Card className="glass-card border-border">
                   <CardHeader className="space-y-1">
                     <CardTitle className="text-xl font-display">Crea un account</CardTitle>
-                    <CardDescription>Inizia a monitorare i tuoi progressi con NC Smart Nutrition</CardDescription>
+                    <CardDescription>Inizia a monitorare i tuoi progressi con NC Nutrition</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
