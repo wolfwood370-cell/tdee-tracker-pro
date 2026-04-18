@@ -27,6 +27,8 @@ import {
 } from "@/lib/algorithms";
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
+import { TodayDiary } from "@/components/TodayDiary";
+import { QuickWaterButton } from "@/components/QuickWaterButton";
 import { parseWeeklySchedule, getDayKey, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -445,6 +447,28 @@ const ClientDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Quick Hydration */}
+          <Card className="glass-card border-border">
+            <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">💧</span>
+                <div>
+                  <p className="text-sm font-display font-semibold text-foreground">Idratazione Rapida</p>
+                  <p className="text-xs text-muted-foreground">
+                    Target: {microTargets.waterL} L · Tocca per registrare un sorso
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <QuickWaterButton logDate={todayStr} incrementL={0.25} />
+                <QuickWaterButton logDate={todayStr} incrementL={0.5} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Today's Diary (deletable meal entries) */}
+          <TodayDiary logDate={todayStr} />
 
           {/* Daily Log */}
           <div ref={logWidgetRef}>

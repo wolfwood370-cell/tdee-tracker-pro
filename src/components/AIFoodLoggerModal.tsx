@@ -5,6 +5,13 @@ import { toast } from "sonner";
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
+import {
+  parseMealsLog,
+  aggregatesFromMeals,
+  newMealId,
+  type MealEntry,
+  type MealSource,
+} from "@/lib/mealsLog";
 
 import {
   Dialog,
@@ -135,17 +142,31 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   };
 
   /**
-   * Add the given meal kcal/quality to today's daily_metrics.
-   * CRITICAL: preserves ALL existing fields (InBody segmental, notes, etc.)
-   * by spreading the existing log first, then overriding only delta fields.
-   * Without this, upsert with onConflict would null-out unspecified columns.
+   * Phase 61 — Append a meal entry to today's `meals_log` JSONB and recompute
+   * aggregate columns as a perfect SUM of the array. This guarantees totals
+   * stay in lockstep with the diary list (so deletions decrement correctly).
+   *
+   * Preserves ALL existing fields (InBody/segmental/notes) via spread.
    */
-  const appendCaloriesToDay = async (calories: number, qualityScore?: number) => {
+  const appendMealEntry = async (
+    entry: Omit<MealEntry, "id" | "timestamp">,
+    qualityScore?: number,
+  ) => {
     if (!user) throw new Error("No user");
     const existingLog = dailyLogs.find(
       (l) => l.log_date === logDate && l.user_id === user.id,
     );
-    const newCalories = (existingLog?.calories ?? 0) + calories;
+
+    const meal: MealEntry = {
+      ...entry,
+      id: newMealId(),
+      timestamp: new Date().toISOString(),
+    };
+    const prevMeals = parseMealsLog(
+      (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
+    );
+    const nextMeals = [...prevMeals, meal];
+    const agg = aggregatesFromMeals(nextMeals);
 
     let newQuality: number | null | undefined = existingLog?.average_food_quality;
     if (qualityScore != null) {
@@ -156,14 +177,17 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           : qualityScore;
     }
 
-    // Spread existing log to preserve InBody/segmental/notes/etc.
-    // Strip PK 'id' so upsert resolves on (user_id, log_date) cleanly.
     const { id: _id, ...existingFields } = existingLog ?? {};
     const upsertPayload = {
       ...existingFields,
       user_id: user.id,
       log_date: logDate,
-      calories: newCalories,
+      meals_log: nextMeals,
+      calories: agg.calories,
+      protein: agg.protein,
+      carbs: agg.carbs,
+      fats: agg.fats,
+      fiber: agg.fiber,
       average_food_quality: newQuality ?? null,
     };
 
@@ -182,7 +206,17 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   const handleConfirm = async () => {
     if (!result || !user) return;
     try {
-      await appendCaloriesToDay(result.calories, result.qualityScore);
+      await appendMealEntry(
+        {
+          name: result.foodName,
+          calories: result.calories,
+          protein: result.protein,
+          carbs: result.carbs,
+          fats: result.fats,
+          source: "ai" as MealSource,
+        },
+        result.qualityScore,
+      );
       toast.success(
         `Pasto loggato con successo! Precisione stimata: ${result.confidenceScore}%`,
         { description: `${result.foodName} — ${result.calories} kcal` },
@@ -197,7 +231,14 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   const handleLogFavorite = async (fav: FavoriteMeal) => {
     setLogging(fav.id);
     try {
-      await appendCaloriesToDay(fav.calories);
+      await appendMealEntry({
+        name: fav.name,
+        calories: fav.calories,
+        protein: fav.protein,
+        carbs: fav.carbs,
+        fats: fav.fats,
+        source: "vault" as MealSource,
+      });
       toast.success(`${fav.name} registrato!`, {
         description: `+${fav.calories} kcal`,
       });
@@ -244,37 +285,53 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       const n = parseFloat(s);
       return isFinite(n) && n > 0 ? n : 0;
     };
-    const add = {
+    const macroEntry = {
       calories: Math.round(calories),
       protein: num(mProtein),
       carbs: num(mCarbs),
       fats: num(mFats),
       fiber: num(mFiber),
-      water_l: num(mWater),
-      sodium_mg: num(mSodium),
     };
+    const extraWater = num(mWater);
+    const extraSodium = num(mSodium);
 
     setSavingManual(true);
     try {
       const existingLog = dailyLogs.find(
         (l) => l.log_date === logDate && l.user_id === user.id,
       );
-      const prev = (existingLog ?? {}) as Record<string, unknown>;
-      const sum = (key: keyof typeof add) =>
-        (Number(prev[key]) || 0) + (add[key] as number);
+
+      // Append the macro portion as a new meal entry (so it can be deleted)
+      const meal: MealEntry = {
+        id: newMealId(),
+        name: "Voce manuale",
+        ...macroEntry,
+        source: "manual" as MealSource,
+        timestamp: new Date().toISOString(),
+      };
+      const prevMeals = parseMealsLog(
+        (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
+      );
+      const nextMeals = [...prevMeals, meal];
+      const agg = aggregatesFromMeals(nextMeals);
+
+      // Water/sodium are NOT part of meals_log — accumulate directly on row
+      const prevWater = Number((existingLog as { water_l?: number | null } | undefined)?.water_l) || 0;
+      const prevSodium = Number((existingLog as { sodium_mg?: number | null } | undefined)?.sodium_mg) || 0;
 
       const { id: _id, ...existingFields } = existingLog ?? {};
       const upsertPayload = {
         ...existingFields,
         user_id: user.id,
         log_date: logDate,
-        calories: sum("calories"),
-        protein: sum("protein"),
-        carbs: sum("carbs"),
-        fats: sum("fats"),
-        fiber: sum("fiber"),
-        water_l: sum("water_l"),
-        sodium_mg: sum("sodium_mg"),
+        meals_log: nextMeals,
+        calories: agg.calories,
+        protein: agg.protein,
+        carbs: agg.carbs,
+        fats: agg.fats,
+        fiber: agg.fiber,
+        water_l: extraWater > 0 ? Math.round((prevWater + extraWater) * 100) / 100 : prevWater,
+        sodium_mg: extraSodium > 0 ? Math.round(prevSodium + extraSodium) : prevSodium,
       };
 
       const { data, error } = await supabase
