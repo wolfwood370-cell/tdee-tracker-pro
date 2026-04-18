@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { Trash2, Pencil, FileText } from "lucide-react";
@@ -39,8 +39,8 @@ interface LogHistoryTableProps {
   onEditLog?: (logDate: string, weight: number | null, calories: number | null, extra?: Record<string, unknown>) => void;
 }
 
-export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
-  const { dailyLogs, deleteLog } = useAppStore();
+export const LogHistoryTable = forwardRef<HTMLDivElement, LogHistoryTableProps>(function LogHistoryTable({ onEditLog }, ref) {
+  const { dailyLogs, deleteLog, addLog } = useAppStore();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -52,6 +52,8 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
     if (!deleteId) return;
     setIsDeleting(true);
 
+    // Snapshot for rollback in case of API failure.
+    const snapshot = dailyLogs.find((l) => l.id === deleteId);
     deleteLog(deleteId);
 
     const { error } = await supabase
@@ -60,6 +62,8 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
       .eq("id", deleteId);
 
     if (error) {
+      // Rollback optimistic delete on failure to keep store consistent.
+      if (snapshot) addLog(snapshot);
       toast({ title: "Errore", description: "Impossibile eliminare il record.", variant: "destructive" });
     } else {
       toast({ title: "Record eliminato ✓" });
@@ -70,14 +74,16 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
   };
 
   const handleEdit = (log: typeof sorted[0]) => {
-    const { id, user_id, log_date, weight, calories, is_interpolated, notes, ...extra } = log;
+    // Strip identity/system columns; pass all remaining fields as edit context.
+    const { id: _id, user_id: _uid, log_date: _ld, weight: _w, calories: _c, is_interpolated: _ii, notes: _n, ...extra } = log;
+    void _id; void _uid; void _ld; void _w; void _c; void _ii; void _n;
     onEditLog?.(log.log_date, log.weight, log.calories, extra);
   };
 
   if (sorted.length === 0) return null;
 
   return (
-    <>
+    <div ref={ref}>
       <Card className="glass-card border-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display">Storico Log</CardTitle>
@@ -174,6 +180,6 @@ export function LogHistoryTable({ onEditLog }: LogHistoryTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
-}
+});
