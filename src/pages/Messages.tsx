@@ -461,6 +461,7 @@ const Messages = () => {
                 <ChatWindow
                   recipientId={selectedRecipient.recipientId}
                   recipientName={selectedRecipient.recipientName}
+                  complianceStatus={recipientStatus}
                   className="flex-1 min-h-0"
                 />
               </>
