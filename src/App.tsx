@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAppStore } from "@/stores";
 import { useAuth } from "@/hooks/useAuth";
 import AuthPage from "./pages/AuthPage";
+import LandingPage from "./pages/LandingPage";
 import ClientDashboard from "./pages/ClientDashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import ResetPassword from "./pages/ResetPassword";
@@ -62,6 +63,16 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
+        element={
+          user ? (
+            <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />
+          ) : (
+            <LandingPage />
+          )
+        }
+      />
+      <Route
+        path="/login"
         element={
           user ? (
             <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />
