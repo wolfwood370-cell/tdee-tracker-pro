@@ -546,6 +546,32 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
+          {pendingCheckin && (
+            <Alert className="border-primary/50 bg-primary/5 ring-1 ring-primary/20">
+              <MessageSquareText className="h-4 w-4 text-primary" />
+              <AlertTitle className="font-display text-foreground flex items-center justify-between gap-2 flex-wrap">
+                <span>Check-in in attesa di revisione</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {format(parseISO(pendingCheckin.created_at), "d MMM yyyy, HH:mm", { locale: it })}
+                </span>
+              </AlertTitle>
+              <AlertDescription className="text-sm text-foreground/80 mt-2 space-y-3">
+                <p className="whitespace-pre-wrap leading-relaxed bg-background/60 rounded-md p-3 border border-border">
+                  {pendingCheckin.feedback_text}
+                </p>
+                <Button
+                  size="sm"
+                  onClick={handleMarkCheckinReviewed}
+                  disabled={markingReviewed}
+                  className="gap-1.5"
+                >
+                  {markingReviewed ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  ✅ Segna come Revisionato
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {loading ? (
             <div className="space-y-6">
               <Card className="glass-card border-border">
