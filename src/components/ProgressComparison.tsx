@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { MEASUREMENT_GROUPS, REDUCTION_POSITIVE_KEYS } from "@/types/progress";
 import type { ProgressEntry } from "@/types/progress";
 import { useAppStore } from "@/stores";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowDown, ArrowUp, Camera } from "lucide-react";
 
 interface Props {
@@ -41,6 +42,39 @@ export function ProgressComparison({ entries }: Props) {
 
   const entryA = sorted.find((e) => e.id === dateA);
   const entryB = sorted.find((e) => e.id === dateB);
+
+  // Sign storage paths into temporary URLs (bucket is private).
+  // Legacy rows may already contain a full http(s) URL — pass those through.
+  const [signedUrls, setSignedUrls] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const candidates: Array<string | null | undefined> = [];
+    if (entryA) candidates.push(entryA.photo_front, entryA.photo_side, entryA.photo_back);
+    if (entryB) candidates.push(entryB.photo_front, entryB.photo_side, entryB.photo_back);
+    const paths = candidates.filter((p): p is string => !!p && !p.startsWith("http"));
+    if (paths.length === 0) {
+      setSignedUrls({});
+      return;
+    }
+    (async () => {
+      const map: Record<string, string | null> = {};
+      await Promise.all(
+        paths.map(async (p) => {
+          const { data } = await supabase.storage.from("progress-photos").createSignedUrl(p, 60 * 60);
+          map[p] = data?.signedUrl ?? null;
+        }),
+      );
+      if (!cancelled) setSignedUrls(map);
+    })();
+    return () => { cancelled = true; };
+  }, [entryA, entryB]);
+
+  const resolvePhoto = (raw: string | null | undefined): string | null => {
+    if (!raw) return null;
+    if (raw.startsWith("http")) return raw;
+    return signedUrls[raw] ?? null;
+  };
 
   if (sorted.length < 2) {
     return (
@@ -128,8 +162,8 @@ export function ProgressComparison({ entries }: Props) {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   {(["front", "side", "back"] as const).map((pos) => {
-                    const photoA = entryA[`photo_${pos}`];
-                    const photoB = entryB[`photo_${pos}`];
+                    const photoA = resolvePhoto(entryA[`photo_${pos}`]);
+                    const photoB = resolvePhoto(entryB[`photo_${pos}`]);
                     if (!photoA && !photoB) return null;
                     const posLabel = pos === "front" ? "Fronte" : pos === "side" ? "Lato" : "Retro";
                     return (

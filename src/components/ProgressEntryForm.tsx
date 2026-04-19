@@ -68,8 +68,8 @@ export function ProgressEntryForm({ onSaved }: Props) {
       console.error("Upload error:", error);
       return null;
     }
-    const { data } = supabase.storage.from("progress-photos").getPublicUrl(path);
-    return data.publicUrl;
+    // Bucket is private — store the storage path; render with a signed URL on read.
+    return path;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

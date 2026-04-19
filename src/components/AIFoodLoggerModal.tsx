@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, forwardRef } from "react";
 import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,7 +55,7 @@ interface FavoriteMeal {
 
 type Phase = "input" | "analyzing" | "result";
 
-export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerModalProps) {
+export const AIFoodLoggerModal = forwardRef<HTMLDivElement, AIFoodLoggerModalProps>(function AIFoodLoggerModal({ open, onOpenChange, logDate }, _ref) {
   const { user, profile, setProfile, dailyLogs, addLog, updateLog } = useAppStore();
 
   const [phase, setPhase] = useState<Phase>("input");
@@ -1113,4 +1113,4 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       </DialogContent>
     </Dialog>
   );
-}
+});
