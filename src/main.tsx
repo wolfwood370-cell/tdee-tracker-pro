@@ -1,8 +1,13 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
 
 // Register Service Worker ONLY in production (published domain).
 // Avoids breaking the Lovable preview iframe and live reload.
