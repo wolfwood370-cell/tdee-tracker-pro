@@ -318,6 +318,7 @@ export default function Onboarding() {
           weekly_schedule: buildWeeklySchedule(schedule),
            track_menstrual_cycle: trackMenstrualCycle,
            target_weight: targetWeight ? parseFloat(targetWeight) : null,
+           onboarding_completed: true,
       };
       const { data, error } = await supabase
         .from("profiles")
