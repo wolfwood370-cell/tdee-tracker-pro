@@ -339,6 +339,7 @@ export type Database = {
           full_name: string | null
           goal_rate: number | null
           goal_type: string
+          health_data_consent: boolean
           height_cm: number | null
           id: string
           last_activity_date: string | null
@@ -347,11 +348,13 @@ export type Database = {
           manual_fats: number | null
           manual_override_active: boolean
           manual_protein: number | null
+          marketing_consent: boolean
           protein_pref: string
           push_subscription: Json | null
           sex: string | null
           subscription_status: string
           target_weight: number | null
+          terms_accepted: boolean
           track_menstrual_cycle: boolean
           training_days_per_week: number
           training_schedule: Json
@@ -373,6 +376,7 @@ export type Database = {
           full_name?: string | null
           goal_rate?: number | null
           goal_type?: string
+          health_data_consent?: boolean
           height_cm?: number | null
           id: string
           last_activity_date?: string | null
@@ -381,11 +385,13 @@ export type Database = {
           manual_fats?: number | null
           manual_override_active?: boolean
           manual_protein?: number | null
+          marketing_consent?: boolean
           protein_pref?: string
           push_subscription?: Json | null
           sex?: string | null
           subscription_status?: string
           target_weight?: number | null
+          terms_accepted?: boolean
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
@@ -407,6 +413,7 @@ export type Database = {
           full_name?: string | null
           goal_rate?: number | null
           goal_type?: string
+          health_data_consent?: boolean
           height_cm?: number | null
           id?: string
           last_activity_date?: string | null
@@ -415,11 +422,13 @@ export type Database = {
           manual_fats?: number | null
           manual_override_active?: boolean
           manual_protein?: number | null
+          marketing_consent?: boolean
           protein_pref?: string
           push_subscription?: Json | null
           sex?: string | null
           subscription_status?: string
           target_weight?: number | null
+          terms_accepted?: boolean
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json

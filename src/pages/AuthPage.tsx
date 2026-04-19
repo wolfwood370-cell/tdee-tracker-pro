@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, ArrowRight, Lock, Mail, User } from "lucide-react";
@@ -15,6 +16,9 @@ const AuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptHealth, setAcceptHealth] = useState(false);
+  const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -32,8 +36,16 @@ const AuthPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptTerms || !acceptHealth) {
+      toast({
+        title: "Consensi obbligatori",
+        description: "Devi accettare i Termini e il consenso al trattamento dei dati sanitari.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,6 +59,17 @@ const AuthPage = () => {
         : error.message;
       toast({ title: "Errore di registrazione", description: msg, variant: "destructive" });
     } else {
+      // Persist consents on the freshly-created profile (handle_new_user trigger has just inserted it)
+      if (data.user?.id) {
+        await supabase
+          .from("profiles")
+          .update({
+            terms_accepted: true,
+            health_data_consent: true,
+            marketing_consent: acceptMarketing,
+          })
+          .eq("id", data.user.id);
+      }
       toast({ title: "Account creato!", description: "Controlla la tua email (anche nello spam) per la verifica." });
       setView("login");
     }
@@ -260,7 +283,56 @@ const AuthPage = () => {
                           />
                         </div>
                       </div>
-                      <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      <div className="space-y-3 pt-1">
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="reg-terms"
+                            checked={acceptTerms}
+                            onCheckedChange={(v) => setAcceptTerms(v === true)}
+                            className="mt-0.5"
+                          />
+                          <Label htmlFor="reg-terms" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
+                            Accetto i{" "}
+                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              Termini e Condizioni
+                            </a>{" "}
+                            e la{" "}
+                            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              Privacy Policy
+                            </a>
+                            . <span className="text-destructive">*</span>
+                          </Label>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="reg-health"
+                            checked={acceptHealth}
+                            onCheckedChange={(v) => setAcceptHealth(v === true)}
+                            className="mt-0.5"
+                          />
+                          <Label htmlFor="reg-health" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
+                            Consento al trattamento dei miei dati sanitari e biometrici
+                            (peso, macro, biofeedback) per le finalità del servizio.{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="reg-marketing"
+                            checked={acceptMarketing}
+                            onCheckedChange={(v) => setAcceptMarketing(v === true)}
+                            className="mt-0.5"
+                          />
+                          <Label htmlFor="reg-marketing" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
+                            Voglio ricevere aggiornamenti e consigli via email (opzionale).
+                          </Label>
+                        </div>
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting || !acceptTerms || !acceptHealth}
+                      >
                         {isSubmitting ? "Creazione account..." : "Crea Account"}
                       </Button>
                     </form>

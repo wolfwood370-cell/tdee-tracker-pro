@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { Camera, Loader2, Upload } from "lucide-react";
+import { Camera, Loader2, ShieldCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+const PHOTO_DISCLAIMER_KEY = "nc_photo_disclaimer_ack_v1";
 
 type Slot = "front" | "side" | "back";
 
@@ -36,6 +38,17 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
     back: null,
   });
   const [uploading, setUploading] = useState(false);
+  const [disclaimerAck, setDisclaimerAck] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem(PHOTO_DISCLAIMER_KEY) === "1"
+  );
+  const ackDisclaimer = () => {
+    try {
+      localStorage.setItem(PHOTO_DISCLAIMER_KEY, "1");
+    } catch {
+      // ignore storage errors (private mode)
+    }
+    setDisclaimerAck(true);
+  };
   const inputRefs = {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
@@ -126,6 +139,32 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
       setUploading(false);
     }
   };
+
+  if (!disclaimerAck) {
+    return (
+      <Card className="glass-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-display flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            Foto sensibili — informativa
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Stai caricando immagini sensibili. Queste foto sono visibili solo a te
+            e al tuo coach in forma crittografata. Caricando le foto, confermi di
+            aver compreso la nostra politica sui dati biometrici.
+          </p>
+          <Button
+            onClick={ackDisclaimer}
+            className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
+          >
+            Ho capito
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="glass-card border-border">
