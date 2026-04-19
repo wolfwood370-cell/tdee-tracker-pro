@@ -32,7 +32,8 @@ export function generateEngineInsight({
 }: GenerateArgs): EngineInsight {
   const weightLogs = recentMetrics
     .filter((l) => l.weight != null)
-    .sort((a, b) => new Date(a.log_date).getTime() - new Date(b.log_date).getTime());
+    .sort((a, b) => new Date(a.log_date).getTime() - new Date(b.log_date).getTime())
+    .slice(-7); // only the most recent 7 weighed days
 
   if (weightLogs.length < 3 || currentTDEE == null) {
     return {
@@ -44,8 +45,7 @@ export function generateEngineInsight({
     };
   }
 
-  // Use up to last 7 entries with a weight value
-  const window = weightLogs.slice(-7);
+  const window = weightLogs;
   const first = window[0];
   const last = window[window.length - 1];
   const days = Math.max(
