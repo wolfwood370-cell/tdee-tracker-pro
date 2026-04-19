@@ -67,6 +67,16 @@ function AppRoutes() {
           user ? (
             <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />
           ) : (
+            <LandingPage />
+          )
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          user ? (
+            <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />
+          ) : (
             <AuthPage />
           )
         }
