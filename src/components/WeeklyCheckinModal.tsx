@@ -36,8 +36,8 @@ export function WeeklyCheckinModal({ open, onOpenChange, userId, onSubmitted }: 
         .insert({ user_id: userId, feedback_text: text, status: "pending" });
       if (error) throw error;
 
-      toast.success("Check-in inviato con successo", {
-        description: "Il coach lo revisionerà a breve.",
+      toast.success("Inviato! Il coach leggerà presto il tuo aggiornamento.", {
+        description: "Grazie per la condivisione.",
       });
       setFeedback("");
       onOpenChange(false);
@@ -55,7 +55,7 @@ export function WeeklyCheckinModal({ open, onOpenChange, userId, onSubmitted }: 
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display">Check-in Settimanale</DialogTitle>
+          <DialogTitle className="font-display">Check-in Settimanale con il Coach</DialogTitle>
           <DialogDescription>
             Una breve riflessione sulla settimana aiuta il coach a calibrare la tua strategia.
           </DialogDescription>
@@ -85,7 +85,7 @@ export function WeeklyCheckinModal({ open, onOpenChange, userId, onSubmitted }: 
           </Button>
           <Button onClick={handleSubmit} disabled={submitting} className="gap-1.5">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Invia Check-in al Coach
+            Invia al Coach
           </Button>
         </DialogFooter>
       </DialogContent>

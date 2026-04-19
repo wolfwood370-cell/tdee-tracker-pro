@@ -194,7 +194,7 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
                 Invio...
               </>
             ) : (
-              "Invia Check-in"
+              "Salva Parametri"
             )}
           </Button>
         </CardContent>
