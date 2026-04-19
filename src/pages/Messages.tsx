@@ -147,7 +147,8 @@ const Messages = () => {
         .order("created_at", { ascending: false });
 
       // Build message map
-      const msgMap = new Map<string, { lastMsg: typeof msgs extends Array<infer M> | null ? M : never; unread: number }>();
+      type MsgRow = NonNullable<typeof msgs>[number];
+      const msgMap = new Map<string, { lastMsg: MsgRow; unread: number }>();
       for (const msg of msgs ?? []) {
         const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
         if (!msgMap.has(partnerId)) {
