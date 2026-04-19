@@ -34,8 +34,13 @@ export default function Privacy() {
           <section className="space-y-3">
             <h2 className="text-2xl font-semibold">1. Titolare del Trattamento</h2>
             <p className="text-muted-foreground">
-              Il titolare del trattamento dei dati è Nicolò Castello,
-              contattabile all'indirizzo email{" "}
+              Il titolare del trattamento dei dati è{" "}
+              <strong className="text-foreground">Nicolò Castello</strong>, con
+              sede legale in{" "}
+              <strong className="text-foreground">
+                Via Fratelli Cervi, 8 — Bagnoli di Sopra (PD)
+              </strong>
+              , contattabile all'indirizzo email{" "}
               <a
                 href="mailto:nctrainingsystems@gmail.com"
                 className="text-primary hover:underline"

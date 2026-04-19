@@ -108,6 +108,23 @@ export default function Terms() {
               continuato dell'app costituisce accettazione dei nuovi termini.
             </p>
           </section>
+
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold">6. Titolare e Contatti</h2>
+            <p className="text-muted-foreground">
+              Titolare del servizio:{" "}
+              <strong className="text-foreground">Nicolò Castello</strong> —
+              Sede legale: Via Fratelli Cervi, 8, Bagnoli di Sopra (PD). Per
+              qualsiasi comunicazione relativa ai presenti Termini scrivere a{" "}
+              <a
+                href="mailto:nctrainingsystems@gmail.com"
+                className="text-primary hover:underline"
+              >
+                nctrainingsystems@gmail.com
+              </a>
+              .
+            </p>
+          </section>
         </div>
       </div>
     </div>
