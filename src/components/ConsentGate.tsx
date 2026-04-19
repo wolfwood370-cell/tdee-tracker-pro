@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
  * Used by ClientDashboard as a hard guard before any health data is processed.
  */
 export function ConsentGate() {
-  const { user, profile, fetchProfile } = useAppStore();
+  const { user, profile, setProfile } = useAppStore();
   const [terms, setTerms] = useState(false);
   const [health, setHealth] = useState(false);
   const [marketing, setMarketing] = useState(false);
@@ -25,19 +25,21 @@ export function ConsentGate() {
   const canSubmit = terms && health && !submitting;
 
   const handleConfirm = async () => {
-    if (!user || !canSubmit) return;
+    if (!user || !profile || !canSubmit) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({
           terms_accepted: true,
           health_data_consent: true,
           marketing_consent: marketing,
         })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select()
+        .single();
       if (error) throw error;
-      await fetchProfile(user.id);
+      if (data) setProfile(data);
       toast.success("Consensi registrati.");
     } catch (e) {
       console.error(e);
