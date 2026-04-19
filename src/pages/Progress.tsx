@@ -13,7 +13,6 @@ export default function Progress() {
   const { user } = useAppStore();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("new");
   const [photoRefresh, setPhotoRefresh] = useState(0);
 
   const fetchEntries = useCallback(async () => {
