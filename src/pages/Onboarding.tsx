@@ -467,6 +467,7 @@ export default function Onboarding() {
     );
   }
 
+  return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-6 animate-fade-in">
         {/* Logo */}
@@ -477,26 +478,22 @@ export default function Onboarding() {
           </span>
         </div>
 
-        {/* Progress */}
-        <div className="flex items-center gap-1 px-2">
-          {STEPS.map((s, i) => (
-            <div key={s} className="flex-1 flex flex-col items-center gap-1">
-              <div
-                className={`h-1.5 w-full rounded-full transition-colors ${
-                  i <= step ? "bg-primary" : "bg-muted"
-                }`}
-              />
-              <span
-                className={`text-[10px] leading-tight text-center ${
-                  i <= step
-                    ? "text-primary font-medium"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {s}
-              </span>
-            </div>
-          ))}
+        {/* Top progress bar */}
+        <div className="space-y-2 px-2">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={false}
+              animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span className="font-medium text-primary">{STEPS[step]}</span>
+            <span>
+              Passo {step + 1} di {STEPS.length}
+            </span>
+          </div>
         </div>
 
         <Card className="glass-card border-border">
