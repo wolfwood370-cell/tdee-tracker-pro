@@ -388,7 +388,85 @@ export default function Onboarding() {
     }
   };
 
-  return (
+  // Loader text cycling + delayed save when "analyzing"
+  useEffect(() => {
+    if (!isAnalyzing) return;
+    const messages = [
+      "Analisi della composizione corporea...",
+      "Calcolo del TDEE adattivo...",
+      "Sincronizzazione della gerarchia dei macronutrienti...",
+      "Generazione del piano nutrizionale...",
+    ];
+    setLoadingText(messages[0]);
+    let i = 0;
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length;
+      setLoadingText(messages[i]);
+    }, 1500);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      saveProfile();
+    }, 4500);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAnalyzing]);
+
+  const handleComplete = () => {
+    if (!canNext()) return;
+    setIsAnalyzing(true);
+  };
+
+  // ─── Analyzing screen ───
+  if (isAnalyzing) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="flex flex-col items-center gap-8 text-center"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30"
+          >
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
+            <Activity className="relative h-10 w-10 text-primary" />
+          </motion.div>
+          <div className="space-y-3">
+            <h2 className="font-display text-2xl font-semibold text-foreground">
+              Stiamo costruendo il tuo piano
+            </h2>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={loadingText}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.35 }}
+                className="text-sm text-muted-foreground min-h-[1.25rem]"
+              >
+                {loadingText}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+          <div className="h-1 w-56 overflow-hidden rounded-full bg-muted">
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              className="h-full w-1/2 bg-primary"
+            />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-6 animate-fade-in">
         {/* Logo */}
