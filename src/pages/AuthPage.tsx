@@ -14,7 +14,13 @@ import { Link } from "react-router-dom";
 type AuthView = "login" | "register" | "recovery";
 
 const AuthPage = () => {
-  const [view, setView] = useState<AuthView>("login");
+  const [searchParams] = useSearchParams();
+  const [view, setView] = useState<AuthView>(searchParams.get("signup") === "true" ? "register" : "login");
+
+  useEffect(() => {
+    if (searchParams.get("signup") === "true") setView("register");
+  }, [searchParams]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
