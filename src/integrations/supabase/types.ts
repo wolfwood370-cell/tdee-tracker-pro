@@ -470,6 +470,39 @@ export type Database = {
         }
         Relationships: []
       }
+      progress_photos: {
+        Row: {
+          back_url: string | null
+          created_at: string
+          date: string
+          front_url: string | null
+          id: string
+          side_url: string | null
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          back_url?: string | null
+          created_at?: string
+          date: string
+          front_url?: string | null
+          id?: string
+          side_url?: string | null
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          back_url?: string | null
+          created_at?: string
+          date?: string
+          front_url?: string | null
+          id?: string
+          side_url?: string | null
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
