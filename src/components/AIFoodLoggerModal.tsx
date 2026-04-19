@@ -52,7 +52,7 @@ interface FavoriteMeal {
 type Phase = "input" | "analyzing" | "result";
 
 export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerModalProps) {
-  const { user, dailyLogs, addLog, updateLog } = useAppStore();
+  const { user, profile, setProfile, dailyLogs, addLog, updateLog } = useAppStore();
 
   const [phase, setPhase] = useState<Phase>("input");
   const [textInput, setTextInput] = useState("");
