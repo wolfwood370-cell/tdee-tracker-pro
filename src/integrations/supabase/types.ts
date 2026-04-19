@@ -309,6 +309,7 @@ export type Database = {
           manual_override_active: boolean
           manual_protein: number | null
           protein_pref: string
+          push_subscription: Json | null
           sex: string | null
           subscription_status: string
           target_weight: number | null
@@ -342,6 +343,7 @@ export type Database = {
           manual_override_active?: boolean
           manual_protein?: number | null
           protein_pref?: string
+          push_subscription?: Json | null
           sex?: string | null
           subscription_status?: string
           target_weight?: number | null
@@ -375,6 +377,7 @@ export type Database = {
           manual_override_active?: boolean
           manual_protein?: number | null
           protein_pref?: string
+          push_subscription?: Json | null
           sex?: string | null
           subscription_status?: string
           target_weight?: number | null
