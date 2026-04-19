@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,7 +180,22 @@ export default function Onboarding() {
   const { user, setProfile, addLog } = useAppStore();
 
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [loadingText, setLoadingText] = useState(
+    "Inizializzazione motore metabolico..."
+  );
+
+  const goNext = () => {
+    setDirection(1);
+    setStep((s) => s + 1);
+  };
+  const goBack = () => {
+    setDirection(-1);
+    setStep((s) => s - 1);
+  };
+
 
   // Track whether the user manually changed smart-default fields
   const userTouchedDistribution = useRef(false);
@@ -372,6 +388,85 @@ export default function Onboarding() {
     }
   };
 
+  // Loader text cycling + delayed save when "analyzing"
+  useEffect(() => {
+    if (!isAnalyzing) return;
+    const messages = [
+      "Analisi della composizione corporea...",
+      "Calcolo del TDEE adattivo...",
+      "Sincronizzazione della gerarchia dei macronutrienti...",
+      "Generazione del piano nutrizionale...",
+    ];
+    setLoadingText(messages[0]);
+    let i = 0;
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length;
+      setLoadingText(messages[i]);
+    }, 1500);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      saveProfile();
+    }, 4500);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAnalyzing]);
+
+  const handleComplete = () => {
+    if (!canNext()) return;
+    setIsAnalyzing(true);
+  };
+
+  // ─── Analyzing screen ───
+  if (isAnalyzing) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="flex flex-col items-center gap-8 text-center"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30"
+          >
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
+            <Activity className="relative h-10 w-10 text-primary" />
+          </motion.div>
+          <div className="space-y-3">
+            <h2 className="font-display text-2xl font-semibold text-foreground">
+              Stiamo costruendo il tuo piano
+            </h2>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={loadingText}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.35 }}
+                className="text-sm text-muted-foreground min-h-[1.25rem]"
+              >
+                {loadingText}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+          <div className="h-1 w-56 overflow-hidden rounded-full bg-muted">
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              className="h-full w-1/2 bg-primary"
+            />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-6 animate-fade-in">
@@ -383,26 +478,22 @@ export default function Onboarding() {
           </span>
         </div>
 
-        {/* Progress */}
-        <div className="flex items-center gap-1 px-2">
-          {STEPS.map((s, i) => (
-            <div key={s} className="flex-1 flex flex-col items-center gap-1">
-              <div
-                className={`h-1.5 w-full rounded-full transition-colors ${
-                  i <= step ? "bg-primary" : "bg-muted"
-                }`}
-              />
-              <span
-                className={`text-[10px] leading-tight text-center ${
-                  i <= step
-                    ? "text-primary font-medium"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {s}
-              </span>
-            </div>
-          ))}
+        {/* Top progress bar */}
+        <div className="space-y-2 px-2">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={false}
+              animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span className="font-medium text-primary">{STEPS[step]}</span>
+            <span>
+              Passo {step + 1} di {STEPS.length}
+            </span>
+          </div>
         </div>
 
         <Card className="glass-card border-border">
@@ -421,6 +512,16 @@ export default function Onboarding() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={step}
+                custom={direction}
+                initial={{ opacity: 0, x: direction > 0 ? 24 : -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction > 0 ? -24 : 24 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="space-y-4"
+              >
             {/* ─── Step 0: Biometrics ─── */}
             {step === 0 && (
               <>
@@ -890,13 +991,15 @@ export default function Onboarding() {
                 </div>
               </div>
             )}
+              </motion.div>
+            </AnimatePresence>
 
             {/* ─── Navigation ─── */}
             <div className="flex gap-3 pt-2">
               {step > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => setStep(step - 1)}
+                  onClick={goBack}
                   className="flex-1"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -905,7 +1008,7 @@ export default function Onboarding() {
               )}
               {step < STEPS.length - 1 ? (
                 <Button
-                  onClick={() => setStep(step + 1)}
+                  onClick={goNext}
                   disabled={!canNext()}
                   className="flex-1"
                 >
@@ -914,7 +1017,7 @@ export default function Onboarding() {
                 </Button>
               ) : (
                 <Button
-                  onClick={saveProfile}
+                  onClick={handleComplete}
                   disabled={!canNext() || submitting}
                   className="flex-1"
                 >
