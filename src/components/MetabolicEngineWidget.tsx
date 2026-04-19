@@ -23,11 +23,10 @@ export const MetabolicEngineWidget = () => {
   const meta = STATUS_META[insight.status];
   const Icon = meta.icon;
 
-  // Stable timestamp: refreshed when the insight payload changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Stable timestamp: refreshed only when the underlying data changes.
   const lastUpdate = useMemo(
     () => new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
-    [insight],
+    [currentTDEE, dynamicGoalRate, dailyLogs.length],
   );
 
   return (
