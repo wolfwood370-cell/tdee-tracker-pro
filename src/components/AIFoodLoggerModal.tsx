@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine } from "lucide-react";
+import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -48,6 +48,9 @@ interface FavoriteMeal {
   protein: number;
   carbs: number;
   fats: number;
+  is_global: boolean;
+  user_id: string;
+  ingredients?: string | null;
 }
 
 type Phase = "input" | "analyzing" | "result";
@@ -110,13 +113,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     const fetchFavorites = async () => {
       setFavoritesLoading(true);
       try {
-        const { data, error } = await supabase
+        // RLS auto-filters: returns own meals + all is_global=true rows.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase as any)
           .from("favorite_meals")
-          .select("id, meal_type, name, description, calories, protein, carbs, fats")
-          .eq("user_id", user.id)
+          .select("id, meal_type, name, description, calories, protein, carbs, fats, is_global, user_id, ingredients")
+          .order("is_global", { ascending: false })
           .order("created_at", { ascending: false });
         if (error) throw error;
-        if (!cancelled) setFavorites(data ?? []);
+        if (!cancelled) setFavorites((data ?? []) as FavoriteMeal[]);
       } catch (e) {
         console.error("Fetch favorites error:", e);
       } finally {
