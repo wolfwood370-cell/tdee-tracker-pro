@@ -462,6 +462,31 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     }
   };
 
+  const handleMarkCheckinReviewed = async () => {
+    if (!pendingCheckin) return;
+    setMarkingReviewed(true);
+    try {
+      const updateClient = supabase as unknown as {
+        from: (t: string) => {
+          update: (row: Record<string, unknown>) => {
+            eq: (col: string, val: string) => Promise<{ error: unknown }>;
+          };
+        };
+      };
+      const { error } = await updateClient
+        .from("weekly_checkins")
+        .update({ status: "reviewed" })
+        .eq("id", pendingCheckin.id);
+      if (error) throw error;
+      toast({ title: "Check-in revisionato ✓", description: "Rimosso dalla coda di triage." });
+      setPendingCheckin(null);
+    } catch (e) {
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
+    } finally {
+      setMarkingReviewed(false);
+    }
+  };
+
   const handleSaveNote = async () => {
     if (!client) return;
     setSavingNote(true);
