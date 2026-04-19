@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, ArrowRight, Lock, Mail, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type AuthView = "login" | "register" | "recovery";
 
@@ -293,13 +294,13 @@ const AuthPage = () => {
                           />
                           <Label htmlFor="reg-terms" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
                             Accetto i{" "}
-                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            <Link to="/terms" className="text-primary hover:underline">
                               Termini e Condizioni
-                            </a>{" "}
+                            </Link>{" "}
                             e la{" "}
-                            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            <Link to="/privacy" className="text-primary hover:underline">
                               Privacy Policy
-                            </a>
+                            </Link>
                             . <span className="text-destructive">*</span>
                           </Label>
                         </div>
