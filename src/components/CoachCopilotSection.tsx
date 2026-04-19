@@ -165,7 +165,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
                   ) : (
                     <>
                       <Copy className="h-3 w-3" />
-                      📋 Copia Messaggio
+                      Copia Messaggio
                     </>
                   )}
                 </Button>
