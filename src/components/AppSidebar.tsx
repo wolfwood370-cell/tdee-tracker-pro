@@ -1,9 +1,11 @@
-import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle, TrendingUp } from "lucide-react";
+import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle, TrendingUp, WifiOff } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAppStore } from "@/stores";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useSyncStore } from "@/stores/syncStore";
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +39,8 @@ export function AppSidebar() {
   const { user, logout } = useAppStore();
   const { theme, toggleTheme } = useTheme();
   const unreadCount = useUnreadMessages();
+  const isOnline = useNetworkStatus();
+  const queueLength = useSyncStore((s) => s.syncQueue.length);
 
   const items = user?.role === "coach" ? coachNav : clientNav;
 
@@ -52,6 +56,23 @@ export function AppSidebar() {
             </span>
           )}
         </div>
+
+        {/* Phase 72: Offline indicator */}
+        {!isOnline && (
+          <div className="px-3">
+            <Badge
+              variant="outline"
+              className="w-full justify-center gap-1.5 bg-warning/10 text-warning border-warning/40 py-1"
+            >
+              <WifiOff className="h-3 w-3" />
+              {!collapsed && (
+                <span className="text-[11px] font-medium">
+                  Offline{queueLength > 0 ? ` · ${queueLength} in coda` : ""}
+                </span>
+              )}
+            </Badge>
+          </div>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>Navigazione</SidebarGroupLabel>
