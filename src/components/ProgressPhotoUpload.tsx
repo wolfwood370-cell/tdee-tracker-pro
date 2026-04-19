@@ -79,14 +79,14 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
       const weight = log?.weight ?? null;
 
       // Fetch existing row for that date
-      const { data: existing } = await (supabase as any)
+      const { data: existing } = await supabase
         .from("progress_photos")
         .select("id, front_url, side_url, back_url")
         .eq("user_id", user.id)
         .eq("date", date)
         .maybeSingle();
 
-      const payload: Record<string, unknown> = {
+      const payload = {
         user_id: user.id,
         date,
         weight,
@@ -96,13 +96,13 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
       };
 
       if (existing?.id) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("progress_photos")
           .update(payload)
           .eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("progress_photos")
           .insert(payload);
         if (error) throw error;
