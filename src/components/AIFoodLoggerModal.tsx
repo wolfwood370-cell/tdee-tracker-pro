@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
+import { useSyncStore } from "@/stores/syncStore";
 import { bumpStreak } from "@/lib/streaks";
 import { toLocalISODate } from "@/lib/weeklyBudget";
 import {
