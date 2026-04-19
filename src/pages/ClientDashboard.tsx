@@ -277,7 +277,7 @@ const ClientDashboard = () => {
         </Alert>
       )}
 
-      {/* Biofeedback Check-in — always above tabs */}
+      {/* Daily Biofeedback — always above tabs */}
       {needsCheckin && !checkinDismissed && (
         <BiofeedbackCheckin onComplete={() => { setNeedsCheckin(false); setCheckinDismissed(true); }} />
       )}
@@ -467,7 +467,7 @@ const ClientDashboard = () => {
                   className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
                 >
                   <ClipboardCheck className="h-4 w-4 mr-2" />
-                  📝 Fai il Check-in
+                  📝 Check-in con il Coach
                 </Button>
               </div>
             </CardContent>
