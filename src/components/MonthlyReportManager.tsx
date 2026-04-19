@@ -136,14 +136,14 @@ export function MonthlyReportManager({ clientId, clientName, logs }: Props) {
       const payload = {
         user_id: clientId,
         month_year: monthKey,
-        metrics_summary: (draftMetrics ?? metrics) as unknown as Record<string, unknown>,
+        metrics_summary: (draftMetrics ?? metrics) as unknown as import("@/integrations/supabase/types").Json,
         report_text: draftText.trim(),
         status: "approved" as const,
       };
 
       const { error } = await supabase
         .from("monthly_assessments")
-        .upsert(payload, { onConflict: "user_id,month_year" });
+        .upsert([payload], { onConflict: "user_id,month_year" });
 
       if (error) throw error;
       toast({ title: "Report pubblicato", description: `Il cliente vedrà il report di ${monthKey}.` });
