@@ -355,7 +355,7 @@ export default function Onboarding() {
 
       setProfile(data);
       toast({
-        title: "Profilo completato! 🎉",
+        title: "Profilo completato!",
         description: "Benvenuto nella tua dashboard.",
       });
       navigate("/client-dashboard", { replace: true });
@@ -673,7 +673,7 @@ export default function Onboarding() {
                     </label>
                   </RadioGroup>
                   {smartDefaultApplied.distribution && (
-                    <p className="text-xs text-muted-foreground mt-1">✨ Selezionato dal sistema in base ai tuoi dati</p>
+                    <p className="text-xs text-muted-foreground mt-1">Selezionato dal sistema in base ai tuoi dati</p>
                   )}
                 </div>
               </>

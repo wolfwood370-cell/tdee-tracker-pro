@@ -121,7 +121,7 @@ export function AIMealPlanModal({
       });
       if (error) throw error;
       setSavedIndices((prev) => new Set(prev).add(index));
-      toast.success("Pasto salvato nella Cassaforte! ❤️");
+      toast.success("Pasto salvato nella Cassaforte");
     } catch (e) {
       console.error("Save favorite error:", e);
       toast.error("Errore nel salvataggio del pasto.");

@@ -235,7 +235,7 @@ const ClientDashboard = () => {
   const handlePerfectMacros = useCallback(() => {
     if (!perfectShownRef.current) {
       perfectShownRef.current = true;
-      toast.success("Pasto Perfetto! ✨", {
+      toast.success("Pasto Perfetto!", {
         description: "Tutti i macro sono nel range ottimale!",
       });
     }

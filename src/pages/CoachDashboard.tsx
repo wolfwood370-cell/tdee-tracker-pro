@@ -586,7 +586,7 @@ const CoachDashboard = () => {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <ClipboardCheck className="h-12 w-12 text-muted-foreground/30 mb-4" />
                     <p className="text-muted-foreground">
-                      Nessun check-in in attesa. Inbox vuota ✨
+                      Nessun check-in in attesa. Inbox vuota.
                     </p>
                   </div>
                 ) : (
