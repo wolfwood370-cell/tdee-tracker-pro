@@ -20,7 +20,10 @@ import {
   Eye,
   Filter,
   Info,
+  ClipboardCheck,
+  Inbox,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
@@ -89,10 +92,32 @@ const CoachDashboard = () => {
   const [filterCritical, setFilterCritical] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [pendingCheckinUserIds, setPendingCheckinUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchClients();
+    fetchPendingCheckins();
   }, []);
+
+  async function fetchPendingCheckins() {
+    try {
+      const { data, error } = await (supabase as unknown as {
+        from: (t: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => Promise<{ data: { user_id: string }[] | null; error: unknown }>;
+          };
+        };
+      })
+        .from("weekly_checkins")
+        .select("user_id")
+        .eq("status", "pending");
+      if (error) throw error;
+      setPendingCheckinUserIds(new Set((data ?? []).map((r) => r.user_id)));
+    } catch (e) {
+      console.error("Error fetching pending checkins:", e);
+    }
+  }
+
 
   async function fetchClients() {
     setLoading(true);
