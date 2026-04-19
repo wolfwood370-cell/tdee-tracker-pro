@@ -196,11 +196,32 @@ const ClientDashboard = () => {
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 
-  // Streak calculation
-  const streak = useMemo(
+  // Streak: prefer the persisted DB value (Phase 70); fall back to live calc.
+  const liveStreak = useMemo(
     () => calculateStreak(dailyLogs, { targetCalories: calories, targetProtein: macros.protein }),
     [dailyLogs, calories, macros.protein]
   );
+  const streak = profile?.current_streak ?? liveStreak;
+
+  // Phase 70: Perfect Day — persist flag when calories within ±5% of target.
+  const todayLogId = todayLog?.id;
+  const todayPerfect = todayLog?.is_perfect_day ?? false;
+  useEffect(() => {
+    if (!user || !todayLogId) return;
+    void markPerfectDayIfApplicable(
+      user.id,
+      todayStr,
+      todayCalories,
+      activeTargets.calories,
+      todayPerfect,
+    ).then((next) => {
+      if (next !== todayPerfect && todayLog) {
+        // Reflect in store so MacroRings re-renders with the glow.
+        setLogs(dailyLogs.map((l) => (l.id === todayLogId ? { ...l, is_perfect_day: next } : l)));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayLogId, todayCalories, activeTargets.calories]);
 
   // Track if perfect toast was shown this render cycle
   const perfectShownRef = useRef(false);
