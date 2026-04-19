@@ -510,7 +510,7 @@ const ClientDashboard = () => {
                   className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
                 >
                   <ClipboardCheck className="h-4 w-4 mr-2" />
-                  📝 Check-in con il Coach
+                  Check-in con il Coach
                 </Button>
               </div>
             </CardContent>
