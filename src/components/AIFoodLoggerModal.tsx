@@ -375,6 +375,18 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       if (existingLog) updateLog(data);
       else addLog(data);
 
+      // Phase 70: streak bump on today's activity.
+      if (profile && logDate === toLocalISODate(new Date())) {
+        const newStreak = await bumpStreak(
+          user.id,
+          profile.current_streak ?? 0,
+          profile.last_activity_date ?? null,
+        );
+        if (newStreak != null && newStreak !== profile.current_streak) {
+          setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+        }
+      }
+
       toast.success("Valori aggiunti con successo!");
       resetManual();
       handleClose(false);
