@@ -637,6 +637,10 @@ const CoachDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="recipes" className="mt-4">
+            <CoachRecipeManager />
+          </TabsContent>
         </Tabs>
 
         <ClientDetailSheet
