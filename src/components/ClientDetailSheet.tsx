@@ -410,7 +410,8 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       }
       const { error } = await supabase
         .from("profiles")
-        .update(payload)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any)
         .eq("id", client.id);
       if (error) throw error;
       toast({ title: "Strategia assegnata", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
