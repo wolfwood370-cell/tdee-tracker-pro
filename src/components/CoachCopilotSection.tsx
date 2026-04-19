@@ -141,7 +141,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
 
             {/* Suggested Action */}
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-              <p className="text-xs font-medium text-primary mb-1">💡 Azione Suggerita</p>
+              <p className="text-xs font-medium text-primary mb-1">Azione Suggerita</p>
               <p className="text-sm text-foreground font-medium">{analysis.suggestedAction}</p>
             </div>
 
