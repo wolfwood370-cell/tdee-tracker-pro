@@ -422,6 +422,7 @@ const ClientDashboard = () => {
                   fats={{ current: todayFats, target: activeTargets.macros.fats }}
                   calories={{ current: todayCalories, target: activeTargets.calories }}
                   onPerfect={handlePerfectMacros}
+                  isPerfectDay={todayPerfect}
                 />
                 <Badge variant="secondary" className="text-xs">
                   Target di Oggi: {activeTargets.label}
