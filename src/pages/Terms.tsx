@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 
 export default function Terms() {
   const navigate = useNavigate();
+  const today = new Date().toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -19,94 +24,88 @@ export default function Terms() {
         </Button>
 
         <h1 className="text-4xl font-bold mb-2 font-display">
-          Termini e Condizioni
+          Termini e Condizioni di Servizio di NC Nutrition
         </h1>
         <p className="text-sm text-muted-foreground mb-10">
-          Ultimo aggiornamento: [Data da inserire]
+          Ultimo aggiornamento: {today}
         </p>
 
         <div className="space-y-8 leading-relaxed">
           <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">1. Oggetto del Servizio</h2>
+            <h2 className="text-2xl font-semibold">
+              1. Natura del Servizio e Disclaimer Medico (LEGGERE ATTENTAMENTE)
+            </h2>
             <p className="text-muted-foreground">
-              [Placeholder] Descrivere l'oggetto del servizio offerto da NC
-              Nutrition: piattaforma digitale di coaching nutrizionale e
-              monitoraggio dei progressi.
+              NC Nutrition è un software di tracciamento nutrizionale e una
+              piattaforma di comunicazione tra l'utente e il proprio coach. I
+              consigli forniti dall'app, dal motore metabolico o dal coach{" "}
+              <strong className="text-foreground">
+                NON sostituiscono in alcun modo il parere di un medico o di un
+                dietologo clinico
+              </strong>
+              . L'utente dichiara di essere in buona salute e di utilizzare il
+              servizio sotto la propria esclusiva responsabilità. Se soffri di
+              disturbi del comportamento alimentare o patologie metaboliche, ti
+              invitiamo a consultare un medico specialista prima di utilizzare
+              l'app.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">2. Accettazione dei Termini</h2>
+            <h2 className="text-2xl font-semibold">2. Abbonamenti e Pagamenti</h2>
             <p className="text-muted-foreground">
-              [Placeholder] L'utilizzo della piattaforma comporta l'accettazione
-              integrale dei presenti Termini e Condizioni.
+              L'accesso alle funzioni Premium è subordinato al pagamento di un
+              abbonamento periodico.
             </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">3. Registrazione Account</h2>
-            <p className="text-muted-foreground">
-              [Placeholder] Requisiti per la registrazione, veridicità dei dati
-              forniti, responsabilità sulle credenziali di accesso.
-            </p>
+            <ul className="space-y-2 text-muted-foreground list-disc pl-6">
+              <li>I pagamenti sono processati in modo sicuro tramite Stripe.</li>
+              <li>
+                L'abbonamento si rinnova automaticamente. È possibile annullare
+                il rinnovo in qualsiasi momento dalla propria area riservata o
+                dal portale Stripe.
+              </li>
+              <li>
+                Non sono previsti rimborsi per periodi di abbonamento
+                parzialmente utilizzati.
+              </li>
+            </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-2xl font-semibold">
-              4. Disclaimer Medico e Professionale
+              3. Condotta dell'Utente e Contenuti (Foto)
             </h2>
             <p className="text-muted-foreground">
-              [Placeholder] Il servizio non sostituisce in alcun modo il parere
-              di un medico o di un professionista sanitario abilitato. Le
-              indicazioni nutrizionali sono di natura educativa e sportiva.
+              L'utente accetta di fornire dati accurati (es. peso, cibo
+              consumato) per garantire il corretto funzionamento dell'algoritmo.
+              Nell'utilizzo della "Galleria Progressi", l'utente si impegna a
+              caricare esclusivamente fotografie pertinenti al proprio percorso
+              fisico.{" "}
+              <strong className="text-foreground">
+                È severamente vietato il caricamento di contenuti illegali,
+                espliciti o non pertinenti.
+              </strong>{" "}
+              Il Titolare si riserva il diritto di sospendere immediatamente e
+              senza rimborso gli account che violano questa regola.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">5. Limitazione di Responsabilità</h2>
+            <h2 className="text-2xl font-semibold">4. Interruzione del Servizio</h2>
             <p className="text-muted-foreground">
-              [Placeholder] Esclusione di responsabilità per uso improprio della
-              piattaforma o per decisioni assunte in autonomia dall'utente.
+              Il Titolare si riserva il diritto di sospendere l'accesso al
+              servizio in caso di mancato pagamento, violazione dei presenti
+              Termini o per comportamenti ritenuti abusivi nei confronti dello
+              staff di NC Nutrition.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">6. Abbonamento e Pagamenti</h2>
+            <h2 className="text-2xl font-semibold">5. Modifiche ai Termini</h2>
             <p className="text-muted-foreground">
-              [Placeholder] Modalità di abbonamento, periodo di prova,
-              rinnovo, cancellazione e politica di rimborso.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">7. Proprietà Intellettuale</h2>
-            <p className="text-muted-foreground">
-              [Placeholder] Tutti i contenuti, gli algoritmi e il software sono
-              di proprietà esclusiva del Titolare.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">8. Cessazione del Servizio</h2>
-            <p className="text-muted-foreground">
-              [Placeholder] Condizioni di sospensione o chiusura dell'account
-              da parte dell'utente o del Titolare.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">9. Legge Applicabile e Foro</h2>
-            <p className="text-muted-foreground">
-              [Placeholder] La legge applicabile è quella italiana. Il foro
-              competente è [Foro da indicare].
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-2xl font-semibold">10. Modifiche ai Termini</h2>
-            <p className="text-muted-foreground">
-              [Placeholder] Il Titolare si riserva di aggiornare i presenti
-              Termini, dandone comunicazione agli utenti.
+              Ci riserviamo il diritto di modificare questi termini in qualsiasi
+              momento, notificando gli utenti tramite l'app o via email. L'uso
+              continuato dell'app costituisce accettazione dei nuovi termini.
             </p>
           </section>
         </div>
