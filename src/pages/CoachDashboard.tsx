@@ -551,10 +551,88 @@ const CoachDashboard = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="checkins" className="mt-4">
+            <Card className="glass-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg font-display flex items-center gap-2">
+                  <Inbox className="h-5 w-5 text-primary" />
+                  Check-in da Revisionare
+                  {pendingCheckinUserIds.size > 0 && (
+                    <Badge variant="destructive" className="ml-1 text-xs">
+                      {pendingCheckinUserIds.size}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Apri il dettaglio del cliente per leggere il feedback e marcarlo come revisionato.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-3">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : pendingCheckinUserIds.size === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <ClipboardCheck className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-muted-foreground">
+                      Nessun check-in in attesa. Inbox vuota ✨
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    {clients
+                      .filter((c) => pendingCheckinUserIds.has(c.id))
+                      .map((client) => {
+                        const meta = statusBadgeMeta(client.compliance.status);
+                        return (
+                          <Card
+                            key={client.id}
+                            className="border border-primary/30 bg-primary/5 hover:bg-primary/10 cursor-pointer transition-all"
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setSheetOpen(true);
+                            }}
+                          >
+                            <CardContent className="p-4 flex items-center justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge className={`${meta.className} text-xs`}>
+                                    {meta.emoji} {meta.label}
+                                  </Badge>
+                                  <h3 className="font-display font-semibold text-foreground truncate">
+                                    {client.displayName}
+                                  </h3>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1.5">
+                                  Check-in settimanale in attesa di revisione
+                                </p>
+                              </div>
+                              <Button size="sm" variant="default" className="gap-1.5 shrink-0">
+                                <Eye className="h-3.5 w-3.5" />
+                                Apri
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <ClientDetailSheet
           open={sheetOpen}
-          onOpenChange={setSheetOpen}
+          onOpenChange={(o) => {
+            setSheetOpen(o);
+            if (!o) fetchPendingCheckins();
+          }}
           client={selectedClient}
           onClientDeleted={fetchClients}
         />
