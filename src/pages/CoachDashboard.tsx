@@ -476,6 +476,12 @@ const CoachDashboard = () => {
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
+                              {pendingCheckinUserIds.has(client.id) && (
+                                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
+                                  <ClipboardCheck className="h-3 w-3 mr-1" />
+                                  Check-in
+                                </Badge>
+                              )}
                               <h3 className="font-display font-semibold text-foreground truncate">
                                 {client.displayName}
                               </h3>
