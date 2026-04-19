@@ -20,7 +20,6 @@ import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 import { SyncManager } from "./components/SyncManager";
 import { OnboardingGuard } from "./components/OnboardingGuard";
-import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -141,7 +140,6 @@ const App = () => {
           <BrowserRouter>
             <SyncManager />
             <AppRoutes />
-            <CookieBanner />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
