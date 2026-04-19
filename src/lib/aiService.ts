@@ -188,3 +188,38 @@ export async function replaceMealWithAI(opts: ReplaceMealOptions): Promise<AIMea
 
   return data?.data as AIMeal;
 }
+
+/**
+ * Generate a monthly progress report draft for a client (Coach side, AI-assisted).
+ */
+export interface MonthlyMetricsSummary {
+  avgWeight: number | null;
+  weightDelta: number | null;
+  avgCalories: number | null;
+  compliancePct: number | null;
+  trainingDaysLogged: number | null;
+  daysLogged: number;
+}
+
+export async function generateMonthlyReportDraft(
+  clientName: string,
+  metricsSummary: MonthlyMetricsSummary,
+  checkinNotes: string,
+): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("ai-handler", {
+    body: {
+      action: "generate_monthly_report",
+      payload: { clientName, metricsSummary, checkinNotes },
+    },
+  });
+
+  if (error) {
+    console.error("generateMonthlyReportDraft error:", error);
+    throw new Error("Servizio AI temporaneamente non disponibile");
+  }
+  if (data?.error) throw new Error(data.error);
+
+  const result = data?.data as { reportText?: string } | string | undefined;
+  if (typeof result === "string") return result;
+  return result?.reportText ?? "";
+}
