@@ -58,23 +58,19 @@ export default function Progress() {
               <ProgressEntryForm
                 onSaved={() => {
                   fetchEntries();
-                  setActiveTab("compare");
                 }}
               />
-            </TabsContent>
-
-            <TabsContent value="compare" className="mt-6">
-              {isLoading ? (
-                <div className="text-center py-12 text-muted-foreground animate-pulse">Caricamento...</div>
-              ) : (
-                <ProgressComparison entries={entries} />
-              )}
             </TabsContent>
           </Tabs>
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-6 mt-0">
           <ProgressPhotoUpload onUploaded={() => setPhotoRefresh((n) => n + 1)} />
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground animate-pulse">Caricamento...</div>
+          ) : (
+            <ProgressComparison entries={entries} />
+          )}
           <ProgressPhotoGallery userId={user.id} refreshKey={photoRefresh} />
         </TabsContent>
       </Tabs>
