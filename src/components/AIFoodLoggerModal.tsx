@@ -496,13 +496,13 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           <div className="px-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="ai" className="gap-1 text-xs">
-                🪄 Scanner AI
+                Scanner AI
               </TabsTrigger>
               <TabsTrigger value="vault" className="gap-1 text-xs">
-                ❤️ I Miei Pasti
+                I Miei Pasti
               </TabsTrigger>
               <TabsTrigger value="manual" className="gap-1 text-xs">
-                ✍️ Manuale
+                Manuale
               </TabsTrigger>
             </TabsList>
           </div>
