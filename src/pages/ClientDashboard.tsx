@@ -35,6 +35,7 @@ import { QuickWaterButton } from "@/components/QuickWaterButton";
 import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { ConsentGate } from "@/components/ConsentGate";
 
 const ClientDashboard = () => {
   const {

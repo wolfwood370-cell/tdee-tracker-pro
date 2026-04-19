@@ -140,6 +140,32 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
     }
   };
 
+  if (!disclaimerAck) {
+    return (
+      <Card className="glass-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-display flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            Foto sensibili — informativa
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Stai caricando immagini sensibili. Queste foto sono visibili solo a te
+            e al tuo coach in forma crittografata. Caricando le foto, confermi di
+            aver compreso la nostra politica sui dati biometrici.
+          </p>
+          <Button
+            onClick={ackDisclaimer}
+            className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
+          >
+            Ho capito
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="glass-card border-border">
       <CardHeader className="pb-3">
