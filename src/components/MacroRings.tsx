@@ -65,7 +65,7 @@ function Ring({
   );
 }
 
-export function MacroRings({ protein, carbs, fats, calories, className, onPerfect }: MacroRingsProps) {
+export function MacroRings({ protein, carbs, fats, calories, className, onPerfect, isPerfectDay }: MacroRingsProps) {
   const proteinPct = protein.target > 0 ? protein.current / protein.target : 0;
   const carbsPct = carbs.target > 0 ? carbs.current / carbs.target : 0;
   const fatsPct = fats.target > 0 ? fats.current / fats.target : 0;
@@ -97,7 +97,18 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
 
   return (
     <div className={cn("flex flex-col items-center", className)}>
-      <div className="relative w-48 h-48 md:w-56 md:h-56">
+      {isPerfectDay && (
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-warning/15 border border-warning/40 px-3 py-1 text-xs font-semibold text-warning animate-fade-in">
+          🏆 Giornata Perfetta!
+        </div>
+      )}
+      <div
+        className={cn(
+          "relative w-48 h-48 md:w-56 md:h-56 transition-all duration-500 rounded-full",
+          isPerfectDay && "ring-2 ring-warning/40",
+        )}
+        style={isPerfectDay ? { boxShadow: "0 0 32px hsl(var(--warning) / 0.45)" } : undefined}
+      >
         <svg viewBox="0 0 200 200" className="w-full h-full">
           {/* Outer: Protein (Red-Orange) */}
           <Ring
