@@ -23,7 +23,11 @@ export const MetabolicEngineWidget = () => {
   const meta = STATUS_META[insight.status];
   const Icon = meta.icon;
 
-  const lastUpdate = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  // Stable timestamp: only updates when the underlying data actually changes.
+  const lastUpdate = useMemo(
+    () => new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+    [dailyLogs.length, currentTDEE, dynamicGoalRate],
+  );
 
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-background to-accent/5 ring-1 ring-primary/10 shadow-md overflow-hidden">
