@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine } from "lucide-react";
+import { Camera, Sparkles, X, CheckCircle2, Leaf, Heart, Trash2, Plus, Loader2, PencilLine, ChefHat } from "lucide-react";
 import { toast } from "sonner";
 
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
@@ -48,6 +48,9 @@ interface FavoriteMeal {
   protein: number;
   carbs: number;
   fats: number;
+  is_global: boolean;
+  user_id: string;
+  ingredients?: string | null;
 }
 
 type Phase = "input" | "analyzing" | "result";
@@ -110,13 +113,15 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     const fetchFavorites = async () => {
       setFavoritesLoading(true);
       try {
-        const { data, error } = await supabase
+        // RLS auto-filters: returns own meals + all is_global=true rows.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase as any)
           .from("favorite_meals")
-          .select("id, meal_type, name, description, calories, protein, carbs, fats")
-          .eq("user_id", user.id)
+          .select("id, meal_type, name, description, calories, protein, carbs, fats, is_global, user_id, ingredients")
+          .order("is_global", { ascending: false })
           .order("created_at", { ascending: false });
         if (error) throw error;
-        if (!cancelled) setFavorites(data ?? []);
+        if (!cancelled) setFavorites((data ?? []) as FavoriteMeal[]);
       } catch (e) {
         console.error("Fetch favorites error:", e);
       } finally {
@@ -741,95 +746,229 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
             </ScrollArea>
           </TabsContent>
 
-          {/* === Vault Tab === */}
+          {/* === Vault Tab — Personal vs Coach Recipes === */}
           <TabsContent value="vault" className="mt-0">
             <ScrollArea className="max-h-[70vh]">
               <div className="p-6 pt-4 space-y-4">
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Heart className="h-3.5 w-3.5 text-destructive" fill="currentColor" />
-                  Registra i tuoi pasti preferiti con un clic, senza attese.
-                </p>
+                {(() => {
+                  const personalMeals = favorites.filter(
+                    (f) => !f.is_global && f.user_id === user?.id,
+                  );
+                  const coachMeals = favorites.filter((f) => f.is_global);
 
-                {favoritesLoading ? (
-                  <div className="space-y-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Card key={i} className="border-border bg-secondary/20">
-                        <CardContent className="p-4 space-y-2">
-                          <Skeleton className="h-4 w-20" />
-                          <Skeleton className="h-5 w-3/4" />
-                          <Skeleton className="h-3 w-1/2" />
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : favorites.length === 0 ? (
-                  <div className="py-12 text-center space-y-3">
-                    <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Heart className="h-6 w-6 text-primary" />
-                    </div>
-                    <p className="text-sm font-display font-semibold text-foreground">
-                      La tua cassaforte è vuota
-                    </p>
-                    <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
-                      Quando generi un pasto perfetto con l'AI, clicca sul cuore ❤️ per salvarlo qui e riutilizzarlo con un tap.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {favorites.map((fav) => (
-                      <Card
-                        key={fav.id}
-                        className="border-border bg-secondary/20 hover:bg-secondary/40 transition-colors"
-                      >
-                        <CardContent className="p-4 space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] uppercase tracking-wide"
-                            >
-                              {fav.meal_type}
+                  return (
+                    <Tabs defaultValue="personal" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="personal" className="gap-1 text-xs">
+                          <Heart className="h-3.5 w-3.5" />
+                          I Miei Pasti
+                          {personalMeals.length > 0 && (
+                            <Badge variant="secondary" className="ml-1 h-4 min-w-4 px-1 text-[10px]">
+                              {personalMeals.length}
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteFavorite(fav.id)}
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                              aria-label="Rimuovi"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                          <h4 className="font-display font-semibold text-base text-foreground leading-tight">
-                            {fav.name}
-                          </h4>
-                          {fav.description && (
-                            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                              {fav.description}
-                            </p>
                           )}
-                          <div className="flex items-center justify-between gap-2 pt-1">
-                            <Badge variant="default" className="text-[11px] font-mono">
-                              {fav.calories} kcal · {fav.protein}P · {fav.carbs}C · {fav.fats}G
+                        </TabsTrigger>
+                        <TabsTrigger value="coach" className="gap-1 text-xs">
+                          <ChefHat className="h-3.5 w-3.5" />
+                          Ricette del Coach
+                          {coachMeals.length > 0 && (
+                            <Badge variant="secondary" className="ml-1 h-4 min-w-4 px-1 text-[10px]">
+                              {coachMeals.length}
                             </Badge>
-                            <Button
-                              size="sm"
-                              onClick={() => handleLogFavorite(fav)}
-                              disabled={logging !== null}
-                              className="h-8 gap-1"
-                            >
-                              {logging === fav.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Plus className="h-3.5 w-3.5" />
-                              )}
-                              Registra
-                            </Button>
+                          )}
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* Personal meals */}
+                      <TabsContent value="personal" className="mt-0 space-y-3">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Heart className="h-3.5 w-3.5 text-destructive" fill="currentColor" />
+                          Registra i tuoi pasti preferiti con un clic, senza attese.
+                        </p>
+
+                        {favoritesLoading ? (
+                          <div className="space-y-3">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <Card key={i} className="border-border bg-secondary/20">
+                                <CardContent className="p-4 space-y-2">
+                                  <Skeleton className="h-4 w-20" />
+                                  <Skeleton className="h-5 w-3/4" />
+                                  <Skeleton className="h-3 w-1/2" />
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                        ) : personalMeals.length === 0 ? (
+                          <div className="py-12 text-center space-y-3">
+                            <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Heart className="h-6 w-6 text-primary" />
+                            </div>
+                            <p className="text-sm font-display font-semibold text-foreground">
+                              La tua cassaforte è vuota
+                            </p>
+                            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+                              Quando generi un pasto perfetto con l'AI, clicca sul cuore ❤️ per salvarlo qui e riutilizzarlo con un tap.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {personalMeals.map((fav) => (
+                              <Card
+                                key={fav.id}
+                                className="border-border bg-secondary/20 hover:bg-secondary/40 transition-colors"
+                              >
+                                <CardContent className="p-4 space-y-2">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                                      {fav.meal_type}
+                                    </Badge>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteFavorite(fav.id)}
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                                      aria-label="Rimuovi"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                  <h4 className="font-display font-semibold text-base text-foreground leading-tight">
+                                    {fav.name}
+                                  </h4>
+                                  {fav.description && (
+                                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                      {fav.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between gap-2 pt-1">
+                                    <Badge variant="default" className="text-[11px] font-mono">
+                                      {fav.calories} kcal · {fav.protein}P · {fav.carbs}C · {fav.fats}G
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleLogFavorite(fav)}
+                                      disabled={logging !== null}
+                                      className="h-8 gap-1"
+                                    >
+                                      {logging === fav.id ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      ) : (
+                                        <Plus className="h-3.5 w-3.5" />
+                                      )}
+                                      Registra
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      {/* Coach global recipes — premium UI, no delete/edit */}
+                      <TabsContent value="coach" className="mt-0 space-y-3">
+                        <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-3">
+                          <p className="text-xs text-foreground flex items-center gap-1.5 font-medium">
+                            <ChefHat className="h-4 w-4 text-primary" />
+                            Ricette curate dal tuo Coach
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                            Pasti bilanciati e pronti all'uso, selezionati apposta per te.
+                          </p>
+                        </div>
+
+                        {favoritesLoading ? (
+                          <div className="space-y-3">
+                            {Array.from({ length: 2 }).map((_, i) => (
+                              <Card key={i} className="border-border bg-secondary/20">
+                                <CardContent className="p-4 space-y-2">
+                                  <Skeleton className="h-4 w-20" />
+                                  <Skeleton className="h-5 w-3/4" />
+                                  <Skeleton className="h-3 w-1/2" />
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : coachMeals.length === 0 ? (
+                          <div className="py-12 text-center space-y-3">
+                            <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                              <ChefHat className="h-6 w-6 text-primary" />
+                            </div>
+                            <p className="text-sm font-display font-semibold text-foreground">
+                              Nessuna ricetta dal Coach
+                            </p>
+                            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+                              Quando il tuo coach pubblicherà una ricetta, la troverai qui.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {coachMeals.map((fav) => (
+                              <Card
+                                key={fav.id}
+                                className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background hover:from-primary/10 transition-all shadow-sm hover:shadow-md"
+                              >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full pointer-events-none" />
+                                <CardContent className="p-4 space-y-2.5 relative">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <Badge className="text-[10px] bg-primary/15 text-primary border-primary/30 hover:bg-primary/20">
+                                        <ChefHat className="h-2.5 w-2.5 mr-1" />
+                                        Coach
+                                      </Badge>
+                                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide capitalize">
+                                        {fav.meal_type}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <h4 className="font-display font-semibold text-base text-foreground leading-tight">
+                                    {fav.name}
+                                  </h4>
+                                  {fav.ingredients && (
+                                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                                      {fav.ingredients}
+                                    </p>
+                                  )}
+                                  <div className="grid grid-cols-4 gap-1.5 text-center pt-1">
+                                    <div className="rounded-md bg-background p-1.5 border border-border">
+                                      <p className="text-sm font-bold text-foreground">{fav.calories}</p>
+                                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">kcal</p>
+                                    </div>
+                                    <div className="rounded-md bg-background p-1.5 border border-border">
+                                      <p className="text-sm font-bold text-primary">{fav.protein}g</p>
+                                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Pro</p>
+                                    </div>
+                                    <div className="rounded-md bg-background p-1.5 border border-border">
+                                      <p className="text-sm font-bold text-accent-foreground">{fav.carbs}g</p>
+                                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Carb</p>
+                                    </div>
+                                    <div className="rounded-md bg-background p-1.5 border border-border">
+                                      <p className="text-sm font-bold text-destructive">{fav.fats}g</p>
+                                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Gra</p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleLogFavorite(fav)}
+                                    disabled={logging !== null}
+                                    className="w-full h-9 gap-1.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold shadow-md mt-1"
+                                  >
+                                    {logging === fav.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <Plus className="h-3.5 w-3.5" />
+                                    )}
+                                    Aggiungi al Diario
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  );
+                })()}
               </div>
             </ScrollArea>
           </TabsContent>
