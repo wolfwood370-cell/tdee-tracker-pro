@@ -90,7 +90,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
           </div>
           <div>
             <h3 className="font-display font-semibold text-foreground text-sm">
-              🤖 Coach Copilot
+              Coach Copilot
             </h3>
             <p className="text-[11px] text-muted-foreground">
               Analisi AI del check-in settimanale
