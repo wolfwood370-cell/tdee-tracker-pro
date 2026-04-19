@@ -353,6 +353,7 @@ export type Database = {
           protein_pref: string
           push_subscription: Json | null
           sex: string | null
+          strategy_start_date: string | null
           subscription_status: string
           target_weight: number | null
           terms_accepted: boolean
@@ -391,6 +392,7 @@ export type Database = {
           protein_pref?: string
           push_subscription?: Json | null
           sex?: string | null
+          strategy_start_date?: string | null
           subscription_status?: string
           target_weight?: number | null
           terms_accepted?: boolean
@@ -429,6 +431,7 @@ export type Database = {
           protein_pref?: string
           push_subscription?: Json | null
           sex?: string | null
+          strategy_start_date?: string | null
           subscription_status?: string
           target_weight?: number | null
           terms_accepted?: boolean

@@ -123,6 +123,9 @@ export default function Settings() {
         }
       }
 
+      const previousStrategy = profile?.diet_strategy ?? "linear";
+      const strategyChanged = dietStrategy !== previousStrategy;
+
       const updatePayload: Record<string, unknown> = {
           full_name: fullName || null,
           sex: sex === "not_set" ? null : sex,
@@ -135,8 +138,6 @@ export default function Settings() {
           training_days_per_week: newTrainingDays,
           diet_strategy: dietStrategy,
           training_schedule: newSchedule,
-          // Phase 53: keep weekly_schedule (source of truth) in sync.
-          // Preserve any "refeed" already planned by the user; otherwise map boolean→training/rest.
           weekly_schedule: (() => {
             const keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
             const existing = (profile?.weekly_schedule as Record<string, string> | null) ?? {};
@@ -154,6 +155,11 @@ export default function Settings() {
            dietary_preference: dietaryPreference,
            allergies: allergies.trim() || null,
       };
+      // Phase 82: reset strategy_start_date when diet strategy changes,
+      // so MATADOR/Reverse week counting starts fresh from today.
+      if (strategyChanged) {
+        updatePayload.strategy_start_date = new Date().toISOString();
+      }
       const { data, error } = await supabase
         .from("profiles")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

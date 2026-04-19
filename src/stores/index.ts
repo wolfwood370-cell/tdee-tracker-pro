@@ -350,6 +350,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           proteinPref,
           dietType,
           profileCreatedAt: profile?.created_at,
+          strategyStartDate: (profile as { strategy_start_date?: string | null } | null)?.strategy_start_date ?? null,
           lbmKg: useBIA ? lbm : undefined,
         });
       }

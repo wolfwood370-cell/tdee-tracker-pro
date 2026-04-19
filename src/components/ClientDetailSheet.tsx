@@ -401,9 +401,17 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     if (!client) return;
     setSavingStrategy(true);
     try {
+      const previousStrategy = client.profile.diet_strategy ?? "linear";
+      const strategyChanged = selectedStrategy !== previousStrategy;
+      const payload: Record<string, unknown> = { diet_strategy: selectedStrategy };
+      if (strategyChanged) {
+        // Phase 82: anchor MATADOR/Reverse week counting to "now".
+        payload.strategy_start_date = new Date().toISOString();
+      }
       const { error } = await supabase
         .from("profiles")
-        .update({ diet_strategy: selectedStrategy })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any)
         .eq("id", client.id);
       if (error) throw error;
       toast({ title: "Strategia assegnata", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
@@ -441,18 +449,26 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     if (!client) return;
     setSavingConfig(true);
     try {
+      const previousStrategy = client.profile.diet_strategy ?? "linear";
+      const strategyChanged = editDietStrategy !== previousStrategy;
+      const payload: Record<string, unknown> = {
+        goal_type: editGoalType,
+        diet_strategy: editDietStrategy,
+        diet_type: editDietType,
+        protein_pref: editProteinPref,
+        calorie_distribution: editCalorieDist,
+        training_days_per_week: parseInt(editTrainingDays),
+        activity_level: parseFloat(editActivityLevel),
+        target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
+      };
+      if (strategyChanged) {
+        // Phase 82: reset strategy week-counter to today.
+        payload.strategy_start_date = new Date().toISOString();
+      }
       const { error } = await supabase
         .from("profiles")
-        .update({
-          goal_type: editGoalType,
-          diet_strategy: editDietStrategy,
-          diet_type: editDietType,
-          protein_pref: editProteinPref,
-          calorie_distribution: editCalorieDist,
-          training_days_per_week: parseInt(editTrainingDays),
-          activity_level: parseFloat(editActivityLevel),
-          target_weight: editTargetWeight ? parseFloat(editTargetWeight) : null,
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any)
         .eq("id", client.id);
       if (error) throw error;
       // Refetch not needed — local state already drives the UI
