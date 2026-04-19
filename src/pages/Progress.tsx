@@ -49,9 +49,8 @@ export default function Progress() {
 
         <TabsContent value="charts" className="space-y-6 mt-0">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 bg-secondary">
+            <TabsList className="grid w-full grid-cols-1 bg-secondary">
               <TabsTrigger value="new">Nuovo Check-in</TabsTrigger>
-              <TabsTrigger value="compare">Comparativa</TabsTrigger>
             </TabsList>
 
             <TabsContent value="new" className="mt-6">
