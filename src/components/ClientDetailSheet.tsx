@@ -572,6 +572,80 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </Alert>
           )}
 
+          {/* Phase 69: Subscription Status (Coach controls) */}
+          {(() => {
+            const profileAny = client.profile as { subscription_status?: string; trial_ends_at?: string };
+            const status = profileAny.subscription_status ?? "trialing";
+            const trialEnds = profileAny.trial_ends_at;
+            const meta: Record<string, { label: string; cls: string }> = {
+              trialing: { label: "Periodo di Prova", cls: "bg-amber-500/15 text-amber-700 border-amber-500/30" },
+              active: { label: "Attivo", cls: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30" },
+              expired: { label: "Scaduto", cls: "bg-destructive/15 text-destructive border-destructive/30" },
+              canceled: { label: "Cancellato", cls: "bg-muted text-muted-foreground border-border" },
+            };
+            const m = meta[status] ?? meta.trialing;
+            const trialEndsFmt = trialEnds
+              ? format(new Date(trialEnds), "d MMMM yyyy", { locale: it })
+              : null;
+
+            const handleStatusChange = async (newStatus: string) => {
+              try {
+                const updateClient = supabase as unknown as {
+                  from: (t: string) => {
+                    update: (row: Record<string, unknown>) => {
+                      eq: (col: string, val: string) => Promise<{ error: unknown }>;
+                    };
+                  };
+                };
+                const { error } = await updateClient
+                  .from("profiles")
+                  .update({ subscription_status: newStatus })
+                  .eq("id", client.id);
+                if (error) throw error;
+                // Optimistic local update so the badge refreshes immediately
+                (client.profile as { subscription_status?: string }).subscription_status = newStatus;
+                toast({ title: "Stato abbonamento aggiornato ✓", description: `${client.displayName} → ${meta[newStatus]?.label ?? newStatus}` });
+              } catch (e) {
+                toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
+              }
+            };
+
+            return (
+              <Card className="glass-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-display flex items-center gap-2">
+                    💳 Stato Abbonamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge variant="outline" className={`${m.cls} font-semibold`}>
+                      {m.label}
+                    </Badge>
+                    {trialEndsFmt && (
+                      <span className="text-xs text-muted-foreground">
+                        {status === "trialing" ? "Prova fino al" : "Scadenza prova"}: <span className="font-semibold text-foreground">{trialEndsFmt}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Modifica stato manualmente</Label>
+                    <Select value={status} onValueChange={handleStatusChange}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="trialing">Periodo di Prova</SelectItem>
+                        <SelectItem value="active">Attivo</SelectItem>
+                        <SelectItem value="expired">Scaduto</SelectItem>
+                        <SelectItem value="canceled">Cancellato</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           {loading ? (
             <div className="space-y-6">
               <Card className="glass-card border-border">
