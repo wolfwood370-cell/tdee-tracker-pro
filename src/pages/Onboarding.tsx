@@ -180,7 +180,22 @@ export default function Onboarding() {
   const { user, setProfile, addLog } = useAppStore();
 
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [loadingText, setLoadingText] = useState(
+    "Inizializzazione motore metabolico..."
+  );
+
+  const goNext = () => {
+    setDirection(1);
+    setStep((s) => s + 1);
+  };
+  const goBack = () => {
+    setDirection(-1);
+    setStep((s) => s - 1);
+  };
+
 
   // Track whether the user manually changed smart-default fields
   const userTouchedDistribution = useRef(false);
