@@ -1,4 +1,6 @@
 import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toLocalISODate } from "@/lib/weeklyBudget";
 
 interface ConsistencyParams {
   targetCalories: number;
