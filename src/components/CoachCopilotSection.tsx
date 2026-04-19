@@ -149,7 +149,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground">
-                  ✉️ Magic Reply (modificabile)
+                  Magic Reply (modificabile)
                 </p>
                 <Button
                   size="sm"
