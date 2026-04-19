@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Settings as SettingsIcon, Loader2, Save, Dumbbell, Trash2, Salad } from "lucide-react";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -444,6 +445,9 @@ export default function Settings() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Push Notifications */}
+      <PushNotificationManager />
 
       {/* Delete Account */}
       <Card className="glass-card border-destructive/30">
