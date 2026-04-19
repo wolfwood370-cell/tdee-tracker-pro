@@ -252,6 +252,42 @@ Sei un assistente matematico e nutrizionale. I pasti che generi sono ESCLUSIVAME
         },
       ];
       tool_choice = { type: "function", function: { name: "replace_meal_result" } };
+    } else if (action === "generate_monthly_report") {
+      const { clientName, metricsSummary, checkinNotes } = payload;
+
+      const systemPrompt = `Sei un nutrizionista sportivo d'élite. Stai scrivendo un report mensile di progresso per ${clientName ?? "il cliente"}. Usa le metriche fornite per stilare un report di 3 paragrafi ben distinti:
+1) "Risultati del mese": evidenzia i progressi oggettivi (peso, aderenza, costanza), tono incoraggiante.
+2) "Adattamento metabolico e biofeedback": commenta in modo clinico ma accessibile l'adattamento metabolico, energia, fame e qualità del sonno emersi dai dati.
+3) "Focus per il prossimo mese": indica 2-3 obiettivi concreti e misurabili.
+
+Tono: professionale, incoraggiante, clinico. Italiano. Niente JSON, niente Markdown pesante: solo testo leggibile, paragrafi separati da una riga vuota. Massimo 350 parole totali.
+
+METRICHE: ${JSON.stringify(metricsSummary ?? {})}
+NOTE CHECK-IN RECENTI: ${checkinNotes ?? "n/d"}`;
+
+      messages = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "Scrivi il report mensile per questo cliente." },
+      ];
+
+      tools = [
+        {
+          type: "function",
+          function: {
+            name: "monthly_report_result",
+            description: "Return the monthly progress report draft text",
+            parameters: {
+              type: "object",
+              properties: {
+                reportText: { type: "string", description: "Testo completo del report mensile in italiano (3 paragrafi)." },
+              },
+              required: ["reportText"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ];
+      tool_choice = { type: "function", function: { name: "monthly_report_result" } };
     } else {
       return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
         status: 400,

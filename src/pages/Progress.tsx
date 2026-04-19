@@ -6,6 +6,7 @@ import { ProgressEntryForm } from "@/components/ProgressEntryForm";
 import { ProgressComparison } from "@/components/ProgressComparison";
 import { ProgressPhotoUpload } from "@/components/ProgressPhotoUpload";
 import { ProgressPhotoGallery } from "@/components/ProgressPhotoGallery";
+import { MonthlyReportsView } from "@/components/MonthlyReportsView";
 import type { ProgressEntry } from "@/types/progress";
 import { TrendingUp } from "lucide-react";
 
@@ -41,9 +42,10 @@ export default function Progress() {
       </div>
 
       <Tabs defaultValue="charts" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-secondary">
+        <TabsList className="grid w-full grid-cols-3 bg-secondary">
           <TabsTrigger value="charts">Grafici</TabsTrigger>
           <TabsTrigger value="photos">Foto</TabsTrigger>
+          <TabsTrigger value="reports">Report</TabsTrigger>
         </TabsList>
 
         <TabsContent value="charts" className="space-y-6 mt-0">
@@ -58,6 +60,10 @@ export default function Progress() {
             <ProgressComparison entries={entries} />
           )}
           <ProgressPhotoGallery userId={user.id} refreshKey={photoRefresh} />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6 mt-0">
+          <MonthlyReportsView />
         </TabsContent>
       </Tabs>
     </div>

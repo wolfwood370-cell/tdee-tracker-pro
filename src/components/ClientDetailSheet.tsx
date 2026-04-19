@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { ProgressPhotoGallery } from "@/components/ProgressPhotoGallery";
+import { MonthlyReportManager } from "@/components/MonthlyReportManager";
 import { Camera } from "lucide-react";
 import {
   calculateSmoothedWeight,
@@ -1435,7 +1436,15 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </CardContent>
           </Card>
 
-          {/* Danger Zone: Delete Client */}
+          {/* Monthly Performance Assessment (MPA) */}
+          <Separator className="my-4" />
+          <MonthlyReportManager
+            clientId={client.id}
+            clientName={client.displayName}
+            logs={logs}
+          />
+
+
           <Separator className="my-4" />
           <div className="pt-2 pb-4">
             <AlertDialog>
