@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Crown, Sparkles, Loader2 } from "lucide-react";
@@ -10,7 +10,7 @@ interface PaywallModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function PaywallModal({ open, onOpenChange }: PaywallModalProps) {
+export const PaywallModal = forwardRef<HTMLDivElement, PaywallModalProps>(function PaywallModal({ open, onOpenChange }, _ref) {
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
