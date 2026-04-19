@@ -19,11 +19,12 @@ import Terms from "./pages/Terms";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 import { SyncManager } from "./components/SyncManager";
+import { OnboardingGuard } from "./components/OnboardingGuard";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, allowedRole, skipOnboardingCheck }: { children: React.ReactNode; allowedRole?: "coach" | "client"; skipOnboardingCheck?: boolean }) {
-  const { user, isLoading, profile } = useAppStore();
+function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; allowedRole?: "coach" | "client" }) {
+  const { user, isLoading } = useAppStore();
 
   if (isLoading) {
     return (
@@ -38,12 +39,11 @@ function ProtectedRoute({ children, allowedRole, skipOnboardingCheck }: { childr
     return <Navigate to={user.role === "coach" ? "/coach-dashboard" : "/client-dashboard"} replace />;
   }
 
-  // Onboarding check for clients (skip on onboarding page itself)
-  if (!skipOnboardingCheck && user.role === "client" && profile && (!profile.height_cm || !profile.birth_date)) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  return <AuthLayout>{children}</AuthLayout>;
+  return (
+    <OnboardingGuard>
+      <AuthLayout>{children}</AuthLayout>
+    </OnboardingGuard>
+  );
 }
 
 function AppRoutes() {
@@ -76,7 +76,13 @@ function AppRoutes() {
       <Route
         path="/onboarding"
         element={
-          user && user.role === "client" ? <Onboarding /> : <Navigate to="/" replace />
+          user && user.role === "client" ? (
+            <OnboardingGuard>
+              <Onboarding />
+            </OnboardingGuard>
+          ) : (
+            <Navigate to="/" replace />
+          )
         }
       />
       <Route
