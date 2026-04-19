@@ -384,6 +384,9 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
         );
         if (newStreak != null && newStreak !== profile.current_streak) {
           setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+          if (newStreak > 1) {
+            toast.success(`🔥 ${newStreak} giorni di fuoco!`, { description: "Continua così, la costanza paga." });
+          }
         }
       }
 
