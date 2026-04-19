@@ -1436,7 +1436,15 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
             </CardContent>
           </Card>
 
-          {/* Danger Zone: Delete Client */}
+          {/* Monthly Performance Assessment (MPA) */}
+          <Separator className="my-4" />
+          <MonthlyReportManager
+            clientId={client.id}
+            clientName={client.displayName}
+            logs={logs}
+          />
+
+
           <Separator className="my-4" />
           <div className="pt-2 pb-4">
             <AlertDialog>
