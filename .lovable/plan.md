@@ -1,14 +1,27 @@
 
-L'utente vuole aggiornare i 3 secrets Stripe già esistenti con nuovi valori.
+## Phase 83: GDPR Cookie Consent Banner
 
-Plan: chiamare il tool `add_secret` per ciascuno dei 3 secrets, così l'utente può inserire i nuovi valori tramite il form sicuro. I secrets esistenti verranno sovrascritti con i nuovi valori forniti.
+### 1. Create `src/components/CookieBanner.tsx`
+- Fixed-bottom banner (z-50, glass-card styling, responsive layout).
+- Reads `localStorage.getItem("cookie_consent")` on mount; hides if present.
+- Three buttons: **Rifiuta** (saves `"rejected"`), **Personalizza** (opens a Dialog with toggles for "Tecnici" — locked on — and "Analitici/Pagamenti"), **Accetta tutto** (saves `"accepted"`).
+- "Personalizza" Dialog: switches per categoria, "Salva preferenze" button → saves JSON `{technical:true, payments:bool}` as `cookie_consent`.
+- Testo italiano con link inline a `/privacy` (usa `react-router-dom` `Link`).
+- Tutto tematizzato con token semantici (`bg-card`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-primary`).
 
-## Cosa farò (in default mode)
+### 2. Integrate in `src/App.tsx`
+- Importa `CookieBanner` e renderizzalo a livello root all'interno del provider tree (dopo `<Toaster />`, fuori dalle Routes) così appare ovunque.
 
-1. Richiedere aggiornamento di **`STRIPE_SECRET_KEY`** — la chiave segreta di Stripe (inizia con `sk_test_...` o `sk_live_...`), reperibile in Stripe Dashboard → Developers → API keys.
+### 3. Policy Update
+I dati reali del Titolare (Nicolò Castello, Via Fratelli Cervi 8 Bagnoli di Sopra, nctrainingsystems@gmail.com) sono **già stati inseriti** in Privacy.tsx (sez. 1) e Terms.tsx (sez. 6) nella fase precedente. Non ci sono placeholder residui — quindi questo punto è già completo e lo segnalerò senza ulteriori modifiche, a meno che tu voglia aggiungere una nuova sezione "Cookie Policy" dedicata in Privacy.tsx.
 
-2. Richiedere aggiornamento di **`STRIPE_PRICE_ID`** — l'ID del prezzo del prodotto/abbonamento (inizia con `price_...`), reperibile in Stripe Dashboard → Products → [il tuo prodotto] → Pricing.
+**Proposta extra (consigliata):** aggiungo una breve sezione "6. Cookie" in `Privacy.tsx` che spiega le categorie (tecnici necessari + Stripe per pagamenti) e rimanda al banner per modificare le preferenze. Questo allinea la policy al banner ed è richiesto da GDPR/ePrivacy.
 
-3. Richiedere aggiornamento di **`STRIPE_WEBHOOK_SECRET`** — il signing secret del webhook (inizia con `whsec_...`), reperibile cliccando "Reveal signing secret" sull'endpoint webhook configurato all'URL `https://wqiedbnpvdipdjgutkzl.supabase.co/functions/v1/stripe-webhook`.
+### File da modificare
+1. **NEW** `src/components/CookieBanner.tsx`
+2. `src/App.tsx` — montare il banner globalmente
+3. `src/pages/Privacy.tsx` — aggiungere sezione "Cookie"
 
-I 3 secrets verranno richiesti in un'unica chiamata così puoi inserirli tutti insieme. Nessuna modifica al codice è necessaria: le edge functions `create-checkout` e `stripe-webhook` leggono già questi nomi di env var.
+### Note tecniche
+- Nessun cookie reale viene installato dall'app stessa; il consenso è registrato solo in `localStorage` (no third-party tracker da bloccare). Stripe carica i propri cookie solo quando l'utente apre il checkout, quindi il consenso "payments" è informativo.
+- Nessuna nuova dipendenza necessaria (uso `Dialog`, `Switch`, `Button` shadcn già presenti).
