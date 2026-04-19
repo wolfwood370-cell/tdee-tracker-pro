@@ -66,7 +66,7 @@ export const LogHistoryTable = forwardRef<HTMLDivElement, LogHistoryTableProps>(
       if (snapshot) addLog(snapshot);
       toast({ title: "Errore", description: "Impossibile eliminare il record.", variant: "destructive" });
     } else {
-      toast({ title: "Record eliminato ✓" });
+      toast({ title: "Record eliminato" });
     }
 
     setDeleteId(null);
