@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -77,13 +78,13 @@ export function ConsentGate() {
             />
             <Label htmlFor="gate-terms" className="text-sm leading-relaxed cursor-pointer">
               Accetto i{" "}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <Link to="/terms" className="text-primary hover:underline">
                 Termini e Condizioni
-              </a>{" "}
+              </Link>{" "}
               e la{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <Link to="/privacy" className="text-primary hover:underline">
                 Privacy Policy
-              </a>
+              </Link>
               . <span className="text-destructive">*</span>
             </Label>
           </div>
