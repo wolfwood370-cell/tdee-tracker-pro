@@ -17,7 +17,7 @@ import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { MacroRings } from "@/components/MacroRings";
 import { StreakIndicator } from "@/components/StreakIndicator";
-import { calculateStreak } from "@/lib/streaks";
+import { calculateStreak, markPerfectDayIfApplicable } from "@/lib/streaks";
 import {
   calculateMicronutrients,
   computeDayTargets,
