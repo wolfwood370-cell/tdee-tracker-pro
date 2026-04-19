@@ -32,9 +32,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
             {children}
           </main>
         </div>
-        <div>
-          <PWAInstallPrompt />
-        </div>
+        <PWAInstallPrompt />
       </div>
     </SidebarProvider>
   );
