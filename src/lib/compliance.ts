@@ -231,7 +231,37 @@ export function calculateComplianceScore(
     adherence.score * 0.4 + consistency.score * 0.4 + bio.score * 0.2,
   );
 
-  const status = statusFromScore(score);
+  // --- Critical Overrides (Phase 66 Triage Rules) ---
+  // Hard-flag as critical regardless of weighted score when:
+  //  a) No log (weight or meals) in the last 3 days
+  //  b) Latest biofeedback shows severe stress (energy < 4 AND sleep < 5)
+  let status = statusFromScore(score);
+  let overrideReason: string | null = null;
+
+  // Rule (a): inactivity ≥ 3 days
+  const allLogged = dailyMetrics
+    .filter((l) => (l.calories ?? 0) > 0 || l.weight != null)
+    .map((l) => l.log_date)
+    .sort()
+    .reverse();
+  if (allLogged.length === 0) {
+    status = "critical";
+    overrideReason = "Nessun log registrato";
+  } else {
+    const last = new Date(allLogged[0] + "T00:00:00");
+    const daysSince = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince >= 3) {
+      status = "critical";
+      overrideReason = `Nessun log da ${daysSince} giorni`;
+    }
+  }
+
+  // Rule (b): severe biofeedback stress
+  const latestBio = biofeedback[0];
+  if (latestBio && latestBio.energy_score < 4 && latestBio.sleep_score < 5) {
+    status = "critical";
+    overrideReason = overrideReason ?? "Stress severo: energia e sonno critici";
+  }
 
   // Pick the worst-scoring component for the primary tooltip reason
   const ranked = [
