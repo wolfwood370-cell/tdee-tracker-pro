@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Smartphone, X } from "lucide-react";
 
@@ -9,7 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISS_KEY = "pwa-install-dismissed";
 
-export const PWAInstallPrompt = () => {
+export const PWAInstallPrompt = forwardRef<HTMLDivElement>(function PWAInstallPrompt(_, _ref) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -95,4 +95,4 @@ export const PWAInstallPrompt = () => {
       </button>
     </div>
   );
-};
+});

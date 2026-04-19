@@ -76,4 +76,4 @@ export const PaywallModal = forwardRef<HTMLDivElement, PaywallModalProps>(functi
       </DialogContent>
     </Dialog>
   );
-}
+});
