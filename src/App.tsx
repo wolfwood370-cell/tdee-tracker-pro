@@ -14,6 +14,8 @@ import Onboarding from "./pages/Onboarding";
 import Settings from "./pages/Settings";
 import Progress from "./pages/Progress";
 import Messages from "./pages/Messages";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
 import { SyncManager } from "./components/SyncManager";
@@ -69,6 +71,8 @@ function AppRoutes() {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route
         path="/onboarding"
         element={
