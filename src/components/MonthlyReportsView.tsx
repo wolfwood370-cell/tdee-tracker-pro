@@ -39,24 +39,14 @@ export function MonthlyReportsView() {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data } = await (supabase as unknown as {
-        from: (t: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => {
-                order: (col: string, opts: { ascending: boolean }) => Promise<{ data: MonthlyAssessment[] | null }>;
-              };
-            };
-          };
-        };
-      })
+      const { data } = await supabase
         .from("monthly_assessments")
         .select("*")
         .eq("user_id", user.id)
         .eq("status", "approved")
         .order("month_year", { ascending: false });
 
-      setReports(data ?? []);
+      setReports((data ?? []) as unknown as MonthlyAssessment[]);
       setLoading(false);
     };
     load();
@@ -87,7 +77,7 @@ export function MonthlyReportsView() {
         return (
           <Card
             key={r.id}
-            className="glass-card border-border shadow-glow-primary/10"
+            className="glass-card border-border shadow-glow-primary"
           >
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-display flex items-center gap-2 capitalize">
