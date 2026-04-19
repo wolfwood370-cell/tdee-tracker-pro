@@ -466,7 +466,8 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       }
       const { error } = await supabase
         .from("profiles")
-        .update(payload)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any)
         .eq("id", client.id);
       if (error) throw error;
       // Refetch not needed — local state already drives the UI
