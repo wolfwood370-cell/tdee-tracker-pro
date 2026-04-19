@@ -73,13 +73,18 @@ export function calculateAdaptiveTDEE(
   days = 14,
   phaseStartDate?: string | null
 ): number | null {
-  if (smoothedLogs.length < 2) return null;
+  // Phase 81: require at least 14 days of history before activating adaptive TDEE.
+  const MIN_CALIBRATION_DAYS = 14;
+  if (smoothedLogs.length < MIN_CALIBRATION_DAYS) return null;
 
   const window = smoothedLogs.slice(-days);
 
+  // Phase 81: exclude today's partial data and abnormally low (incomplete) days.
+  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD (local)
   const validCalories = window
+    .filter((l) => l.log_date !== todayStr) // Rule 1: skip current day
     .map((l) => l.calories)
-    .filter((c): c is number => c != null && c > 0);
+    .filter((c): c is number => c != null && c >= 500); // Rule 2: skip incomplete days
 
   if (validCalories.length === 0) return null;
 
