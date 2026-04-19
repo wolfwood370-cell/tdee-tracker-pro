@@ -16,6 +16,7 @@ import Progress from "./pages/Progress";
 import Messages from "./pages/Messages";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
+import { SyncManager } from "./components/SyncManager";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <SyncManager />
             <AppRoutes />
           </BrowserRouter>
         </TooltipProvider>

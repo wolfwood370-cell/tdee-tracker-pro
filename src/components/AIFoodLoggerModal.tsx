@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
+import { useSyncStore } from "@/stores/syncStore";
 import { bumpStreak } from "@/lib/streaks";
 import { toLocalISODate } from "@/lib/weeklyBudget";
 import {
@@ -156,76 +157,152 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
   ) => {
     if (!user) throw new Error("No user");
 
-    // Re-read freshest meals_log + quality from DB to avoid race conditions
-    // (e.g. quick consecutive logs or parallel deletions from the diary).
-    const { data: fresh, error: readErr } = await supabase
-      .from("daily_metrics")
-      .select("meals_log, average_food_quality")
-      .eq("user_id", user.id)
-      .eq("log_date", logDate)
-      .maybeSingle();
-    if (readErr) throw readErr;
-
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
     const existingLog = dailyLogs.find(
       (l) => l.log_date === logDate && l.user_id === user.id,
     );
 
+    // ── Build the next state from local store first (optimistic) ─────────
+    const localPrevMeals = parseMealsLog(
+      (existingLog as { meals_log?: unknown } | undefined)?.meals_log,
+    );
     const meal: MealEntry = {
       ...entry,
       id: newMealId(),
       timestamp: new Date().toISOString(),
     };
-    const prevMeals = parseMealsLog(fresh?.meals_log);
-    const nextMeals = [...prevMeals, meal];
-    const agg = aggregatesFromMeals(nextMeals);
+    const localNextMeals = [...localPrevMeals, meal];
+    const localAgg = aggregatesFromMeals(localNextMeals);
+    const localQuality = (existingLog as { average_food_quality?: number | null } | undefined)?.average_food_quality;
+    const optimisticQuality = qualityScore != null
+      ? (localQuality != null ? Math.round(((localQuality + qualityScore) / 2) * 10) / 10 : qualityScore)
+      : localQuality ?? null;
 
-    const dbQuality = fresh?.average_food_quality as number | null | undefined;
-    let newQuality: number | null | undefined = dbQuality;
-    if (qualityScore != null) {
-      newQuality =
-        dbQuality != null
-          ? Math.round(((dbQuality + qualityScore) / 2) * 10) / 10
-          : qualityScore;
+    // Optimistic local patch — UI updates instantly even if offline.
+    const optimisticRow = {
+      ...(existingLog ?? {
+        id: `optimistic_${logDate}_${user.id}`,
+        user_id: user.id,
+        log_date: logDate,
+        is_interpolated: false,
+        is_perfect_day: false,
+      }),
+      meals_log: localNextMeals,
+      calories: localAgg.calories,
+      protein: localAgg.protein,
+      carbs: localAgg.carbs,
+      fats: localAgg.fats,
+      fiber: localAgg.fiber,
+      average_food_quality: optimisticQuality,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (existingLog) updateLog(optimisticRow as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    else addLog(optimisticRow as any);
+
+    // ── If offline, enqueue and bail out — do NOT touch the network ──────
+    if (!isOnline) {
+      useSyncStore.getState().addToQueue({
+        type: "ADD_MEAL_UPSERT",
+        payload: {
+          user_id: user.id,
+          log_date: logDate,
+          meals_log: localNextMeals,
+          calories: localAgg.calories,
+          protein: localAgg.protein,
+          carbs: localAgg.carbs,
+          fats: localAgg.fats,
+          fiber: localAgg.fiber,
+          average_food_quality: optimisticQuality,
+        },
+      });
+      toast.info("☁️ Connessione assente. Pasto salvato offline.", {
+        description: "Verrà sincronizzato appena possibile.",
+      });
+      return;
     }
 
-    // Minimal payload: only touch the columns we change. Upsert preserves
-    // the rest (InBody/segmental/notes/water/sodium) automatically on UPDATE.
-    const upsertPayload = {
-      user_id: user.id,
-      log_date: logDate,
-      meals_log: nextMeals,
-      calories: agg.calories,
-      protein: agg.protein,
-      carbs: agg.carbs,
-      fats: agg.fats,
-      fiber: agg.fiber,
-      average_food_quality: newQuality ?? null,
-    };
+    // ── Online path: re-read freshest server state to avoid race conditions
+    try {
+      const { data: fresh, error: readErr } = await supabase
+        .from("daily_metrics")
+        .select("meals_log, average_food_quality")
+        .eq("user_id", user.id)
+        .eq("log_date", logDate)
+        .maybeSingle();
+      if (readErr) throw readErr;
 
-    const { data, error } = await supabase
-      .from("daily_metrics")
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
-      .select()
-      .single();
+      const prevMeals = parseMealsLog(fresh?.meals_log);
+      const nextMeals = [...prevMeals, meal];
+      const agg = aggregatesFromMeals(nextMeals);
 
-    if (error) throw error;
-    if (existingLog) updateLog(data);
-    else addLog(data);
+      const dbQuality = fresh?.average_food_quality as number | null | undefined;
+      let newQuality: number | null | undefined = dbQuality;
+      if (qualityScore != null) {
+        newQuality = dbQuality != null
+          ? Math.round(((dbQuality + qualityScore) / 2) * 10) / 10
+          : qualityScore;
+      }
 
-    // Phase 70: bump streak only for TODAY's activity.
-    if (profile && logDate === toLocalISODate(new Date())) {
-      const newStreak = await bumpStreak(
-        user.id,
-        profile.current_streak ?? 0,
-        profile.last_activity_date ?? null,
-      );
-      if (newStreak != null && newStreak !== profile.current_streak) {
-        setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
-        if (newStreak > 1) {
-          toast.success(`🔥 ${newStreak} giorni di fuoco!`, { description: "Continua così, la costanza paga." });
+      const upsertPayload = {
+        user_id: user.id,
+        log_date: logDate,
+        meals_log: nextMeals,
+        calories: agg.calories,
+        protein: agg.protein,
+        carbs: agg.carbs,
+        fats: agg.fats,
+        fiber: agg.fiber,
+        average_food_quality: newQuality ?? null,
+      };
+
+      const { data, error } = await supabase
+        .from("daily_metrics")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .upsert(upsertPayload as any, { onConflict: "user_id,log_date" })
+        .select()
+        .single();
+      if (error) throw error;
+
+      // Reconcile with authoritative server row.
+      if (existingLog) updateLog(data);
+      else addLog(data);
+
+      // Phase 70: bump streak only for TODAY's activity.
+      if (profile && logDate === toLocalISODate(new Date())) {
+        const newStreak = await bumpStreak(
+          user.id,
+          profile.current_streak ?? 0,
+          profile.last_activity_date ?? null,
+        );
+        if (newStreak != null && newStreak !== profile.current_streak) {
+          setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+          if (newStreak > 1) {
+            toast.success(`🔥 ${newStreak} giorni di fuoco!`, { description: "Continua così, la costanza paga." });
+          }
         }
       }
+    } catch (e) {
+      // Network failure mid-flight: enqueue with the OPTIMISTIC payload so
+      // the SyncManager will retry. UI stays as-is (no revert).
+      console.warn("[appendMealEntry] online save failed, enqueueing", e);
+      useSyncStore.getState().addToQueue({
+        type: "ADD_MEAL_UPSERT",
+        payload: {
+          user_id: user.id,
+          log_date: logDate,
+          meals_log: localNextMeals,
+          calories: localAgg.calories,
+          protein: localAgg.protein,
+          carbs: localAgg.carbs,
+          fats: localAgg.fats,
+          fiber: localAgg.fiber,
+          average_food_quality: optimisticQuality,
+        },
+      });
+      toast.info("☁️ Connessione assente. Pasto salvato offline.", {
+        description: "Verrà sincronizzato appena possibile.",
+      });
     }
   };
 
