@@ -281,7 +281,7 @@ export function calculateComplianceScore(
       consistency: consistency.reason,
       biofeedback: bio.reason,
     },
-    primaryReason: ranked[0].reason,
+    primaryReason: overrideReason ?? ranked[0].reason,
   };
 }
 
