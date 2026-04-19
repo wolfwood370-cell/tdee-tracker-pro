@@ -141,6 +141,7 @@ const App = () => {
           <BrowserRouter>
             <SyncManager />
             <AppRoutes />
+            <CookieBanner />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
