@@ -33,6 +33,12 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  handleGoHome = () => {
+    // Reset boundary state and full-navigate home (avoids router coupling).
+    this.setState({ hasError: false, error: null });
+    window.location.href = "/";
+  };
+
   render() {
     if (!this.state.hasError) return this.props.children;
 
@@ -53,9 +59,18 @@ export class ErrorBoundary extends Component<Props, State> {
               l'applicazione per continuare.
             </p>
           </div>
-          <Button onClick={this.handleReload} className="w-full">
-            Ricarica l'applicazione
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={this.handleReload} className="w-full">
+              Ricarica l'applicazione
+            </Button>
+            <Button
+              onClick={this.handleGoHome}
+              variant="outline"
+              className="w-full"
+            >
+              Torna alla home
+            </Button>
+          </div>
         </div>
       </div>
     );
