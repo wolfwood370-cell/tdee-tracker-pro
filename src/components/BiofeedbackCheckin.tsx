@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { evaluateBiofeedbackTrigger } from "@/lib/autoRegulation";
 import { AutoRegulationModal } from "@/components/AutoRegulationModal";
 import { toLocalISODate } from "@/lib/weeklyBudget";
+import { bumpStreak } from "@/lib/streaks";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
