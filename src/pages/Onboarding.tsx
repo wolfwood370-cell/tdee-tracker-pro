@@ -991,13 +991,15 @@ export default function Onboarding() {
                 </div>
               </div>
             )}
+              </motion.div>
+            </AnimatePresence>
 
             {/* ─── Navigation ─── */}
             <div className="flex gap-3 pt-2">
               {step > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => setStep(step - 1)}
+                  onClick={goBack}
                   className="flex-1"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -1006,7 +1008,7 @@ export default function Onboarding() {
               )}
               {step < STEPS.length - 1 ? (
                 <Button
-                  onClick={() => setStep(step + 1)}
+                  onClick={goNext}
                   disabled={!canNext()}
                   className="flex-1"
                 >
@@ -1015,7 +1017,7 @@ export default function Onboarding() {
                 </Button>
               ) : (
                 <Button
-                  onClick={saveProfile}
+                  onClick={handleComplete}
                   disabled={!canNext() || submitting}
                   className="flex-1"
                 >
