@@ -36,9 +36,14 @@ function currentMonthKey(): string {
 function computeMetrics(logs: Tables<"daily_metrics">[]): MonthlyMetricsSummary {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
-  const recent = logs.filter((l) => new Date(l.log_date) >= cutoff);
+  // Sort ASC by log_date to guarantee chronological order for delta computation
+  const recent = logs
+    .filter((l) => new Date(l.log_date) >= cutoff)
+    .slice()
+    .sort((a, b) => a.log_date.localeCompare(b.log_date));
 
-  const weights = recent.map((l) => l.weight).filter((w): w is number => w != null && w > 0);
+  const weighedEntries = recent.filter((l) => l.weight != null && (l.weight as number) > 0);
+  const weights = weighedEntries.map((l) => l.weight as number);
   const cals = recent.map((l) => l.calories).filter((c): c is number => c != null && c > 0);
   const trainingDays = recent.filter((l) => l.day_type === "training").length;
 
@@ -73,21 +78,13 @@ export function MonthlyReportManager({ clientId, clientName, logs }: Props) {
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await (supabase as unknown as {
-      from: (t: string) => {
-        select: (cols: string) => {
-          eq: (col: string, val: string) => {
-            order: (col: string, opts: { ascending: boolean }) => Promise<{ data: MonthlyAssessment[] | null; error: unknown }>;
-          };
-        };
-      };
-    })
+    const { data, error } = await supabase
       .from("monthly_assessments")
       .select("*")
       .eq("user_id", clientId)
       .order("month_year", { ascending: false });
 
-    if (!error) setReports(data ?? []);
+    if (!error) setReports((data ?? []) as unknown as MonthlyAssessment[]);
     setLoading(false);
   }, [clientId]);
 
@@ -130,28 +127,23 @@ export function MonthlyReportManager({ clientId, clientName, logs }: Props) {
       toast({ title: "Report vuoto", description: "Genera o scrivi un testo prima di pubblicare.", variant: "destructive" });
       return;
     }
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) {
+      toast({ title: "Mese non valido", description: "Usa il formato AAAA-MM (es. 2026-04).", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
         user_id: clientId,
         month_year: monthKey,
-        metrics_summary: (draftMetrics ?? metrics) as unknown as Record<string, unknown>,
+        metrics_summary: (draftMetrics ?? metrics) as unknown as import("@/integrations/supabase/types").Json,
         report_text: draftText.trim(),
         status: "approved" as const,
       };
 
-      const client = supabase as unknown as {
-        from: (t: string) => {
-          upsert: (
-            row: Record<string, unknown>,
-            opts: { onConflict: string }
-          ) => Promise<{ error: unknown }>;
-        };
-      };
-
-      const { error } = await client
+      const { error } = await supabase
         .from("monthly_assessments")
-        .upsert(payload, { onConflict: "user_id,month_year" });
+        .upsert([payload], { onConflict: "user_id,month_year" });
 
       if (error) throw error;
       toast({ title: "Report pubblicato", description: `Il cliente vedrà il report di ${monthKey}.` });
