@@ -48,6 +48,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { ProgressPhotoGallery } from "@/components/ProgressPhotoGallery";
+import { Camera } from "lucide-react";
 import {
   calculateSmoothedWeight,
   calculateAdaptiveTDEE,
@@ -1418,6 +1420,20 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               })()}
             </>
           )}
+
+          {/* Galleria Foto Progresso */}
+          <Separator className="my-4" />
+          <Card className="glass-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <Camera className="h-4 w-4 text-primary" />
+                Galleria Foto
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProgressPhotoGallery userId={client.id} />
+            </CardContent>
+          </Card>
 
           {/* Danger Zone: Delete Client */}
           <Separator className="my-4" />
