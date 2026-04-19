@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { ProgressPhotoGallery } from "@/components/ProgressPhotoGallery";
+import { MonthlyReportManager } from "@/components/MonthlyReportManager";
 import { Camera } from "lucide-react";
 import {
   calculateSmoothedWeight,
