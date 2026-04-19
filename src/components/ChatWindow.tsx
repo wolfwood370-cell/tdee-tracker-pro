@@ -274,9 +274,9 @@ export function ChatWindow({ recipientId, recipientName, className, complianceSt
             Risposte rapide
           </p>
           <div className="flex overflow-x-auto gap-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {quickReplies.map((reply, i) => (
+            {quickReplies.map((reply) => (
               <button
-                key={i}
+                key={reply}
                 type="button"
                 onClick={() => setNewMessage(reply)}
                 className="shrink-0 max-w-[260px] text-left text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-accent hover:text-accent-foreground text-muted-foreground border border-border transition-colors truncate"

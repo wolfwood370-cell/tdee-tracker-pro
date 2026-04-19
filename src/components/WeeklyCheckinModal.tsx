@@ -28,10 +28,7 @@ export function WeeklyCheckinModal({ open, onOpenChange, userId, onSubmitted }: 
     }
     setSubmitting(true);
     try {
-      // Cast: types.ts is regenerated post-migration; in the meantime use loose typing.
-      const { error } = await (supabase as unknown as {
-        from: (t: string) => { insert: (row: Record<string, unknown>) => Promise<{ error: unknown }> };
-      })
+      const { error } = await supabase
         .from("weekly_checkins")
         .insert({ user_id: userId, feedback_text: text, status: "pending" });
       if (error) throw error;

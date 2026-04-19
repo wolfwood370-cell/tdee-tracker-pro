@@ -63,8 +63,10 @@ const ClientDashboard = () => {
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
-  // Phase 69: Soft Paywall — block premium actions when subscription is expired
-  const isExpired = (profile as { subscription_status?: string } | null)?.subscription_status === "expired";
+  // Phase 69: Soft Paywall — block premium actions when subscription is expired.
+  // Coaches are never paywalled (defensive: their subscription_status is irrelevant).
+  const isCoach = user?.role === "coach";
+  const isExpired = !isCoach && profile?.subscription_status === "expired";
   const guardPremium = (action: () => void) => () => {
     if (isExpired) {
       setPaywallOpen(true);
@@ -336,17 +338,17 @@ const ClientDashboard = () => {
                   </TooltipProvider>
                 )}
                 {tefDelta > 0 && (
-                  <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                  <Badge variant="secondary" className="text-xs bg-warning/10 text-warning border-warning/30">
                     TEF: +{tefDelta} kcal
                   </Badge>
                 )}
                 {userAge != null && userAge >= 45 && (
-                  <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/30">
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
                     Over-45
                   </Badge>
                 )}
                  {activeMenstrualPhase === 'luteal' && (
-                  <Badge variant="secondary" className="text-xs bg-pink-500/10 text-pink-600 border-pink-500/30">
+                  <Badge variant="secondary" className="text-xs bg-accent text-accent-foreground border-accent">
                     Fase Luteale: +150 kcal
                   </Badge>
                 )}
@@ -354,8 +356,8 @@ const ClientDashboard = () => {
                   <Badge
                     variant={goalETA.startsWith("Blocco Clinico") ? "destructive" : "secondary"}
                     className={goalETA.startsWith("Blocco Clinico")
-                      ? "text-xs bg-red-500/10 text-red-600 border-red-500/30"
-                      : "text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                      ? "text-xs"
+                      : "text-xs bg-success/10 text-success border-success/30"
                     }
                   >
                     <Hourglass className="h-3 w-3 mr-1" />
@@ -363,13 +365,13 @@ const ClientDashboard = () => {
                   </Badge>
                 )}
                 {profile?.target_weight && profile?.height_cm && isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
-                  <Badge variant="destructive" className="text-xs bg-red-500/10 text-red-600 border-red-500/30">
+                  <Badge variant="destructive" className="text-xs">
                     <ShieldAlert className="h-3 w-3 mr-1" />
                     Avviso Medico: Target Sottopeso
                   </Badge>
                 )}
                 {profile?.target_weight && profile?.height_cm && !isUnderweightRisk(Number(profile.target_weight), Number(profile.height_cm)) && isObesityRisk(Number(profile.target_weight), Number(profile.height_cm)) && (
-                  <Badge variant="secondary" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/30">
+                  <Badge variant="secondary" className="text-xs bg-warning/10 text-warning border-warning/30">
                     <ShieldAlert className="h-3 w-3 mr-1" />
                     Avviso Medico: Target BMI ≥ 30
                   </Badge>
@@ -450,13 +452,12 @@ const ClientDashboard = () => {
                   if (quality == null) return null;
                   const isGood = quality >= 8;
                   const isMid = quality >= 5;
+                  const tone = isGood ? "success" : isMid ? "warning" : "destructive";
                   return (
-                    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${
-                      isGood ? 'bg-emerald-500/10' : isMid ? 'bg-amber-500/10' : 'bg-red-500/10'
-                    }`}>
-                      <Leaf className={`h-3.5 w-3.5 ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`} />
+                    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 bg-${tone}/10`}>
+                      <Leaf className={`h-3.5 w-3.5 text-${tone}`} />
                       <span className="text-xs text-muted-foreground">Qualità:</span>
-                      <span className={`text-xs font-semibold ${isGood ? 'text-emerald-600' : isMid ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`text-xs font-semibold text-${tone}`}>
                         {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
                       </span>
                     </div>
