@@ -72,7 +72,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
     try {
       await navigator.clipboard.writeText(editedReply);
       setCopied(true);
-      toast.success("Messaggio copiato ✓");
+      toast.success("Messaggio copiato");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Impossibile copiare il messaggio.");
@@ -90,7 +90,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
           </div>
           <div>
             <h3 className="font-display font-semibold text-foreground text-sm">
-              🤖 Coach Copilot
+              Coach Copilot
             </h3>
             <p className="text-[11px] text-muted-foreground">
               Analisi AI del check-in settimanale
@@ -104,7 +104,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            ✨ Analizza Settimana con AI
+            Analizza Settimana con AI
           </Button>
         )}
 
@@ -141,7 +141,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
 
             {/* Suggested Action */}
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-              <p className="text-xs font-medium text-primary mb-1">💡 Azione Suggerita</p>
+              <p className="text-xs font-medium text-primary mb-1">Azione Suggerita</p>
               <p className="text-sm text-foreground font-medium">{analysis.suggestedAction}</p>
             </div>
 
@@ -149,7 +149,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground">
-                  ✉️ Magic Reply (modificabile)
+                  Magic Reply (modificabile)
                 </p>
                 <Button
                   size="sm"
@@ -165,7 +165,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
                   ) : (
                     <>
                       <Copy className="h-3 w-3" />
-                      📋 Copia Messaggio
+                      Copia Messaggio
                     </>
                   )}
                 </Button>

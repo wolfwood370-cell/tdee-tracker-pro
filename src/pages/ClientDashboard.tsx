@@ -235,7 +235,7 @@ const ClientDashboard = () => {
   const handlePerfectMacros = useCallback(() => {
     if (!perfectShownRef.current) {
       perfectShownRef.current = true;
-      toast.success("Pasto Perfetto! ✨", {
+      toast.success("Pasto Perfetto!", {
         description: "Tutti i macro sono nel range ottimale!",
       });
     }
@@ -327,13 +327,13 @@ const ClientDashboard = () => {
       <Tabs defaultValue="action" className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1">
           <TabsTrigger value="strategy" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            🎯 Strategia
+            Strategia
           </TabsTrigger>
           <TabsTrigger value="action" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            🔥 Oggi
+            Oggi
           </TabsTrigger>
           <TabsTrigger value="analytics" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            📊 Analisi
+            Analisi
           </TabsTrigger>
         </TabsList>
 
@@ -510,7 +510,7 @@ const ClientDashboard = () => {
                   className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
                 >
                   <ClipboardCheck className="h-4 w-4 mr-2" />
-                  📝 Check-in con il Coach
+                  Check-in con il Coach
                 </Button>
               </div>
             </CardContent>

@@ -216,7 +216,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           average_food_quality: optimisticQuality,
         },
       });
-      toast.info("☁️ Connessione assente. Pasto salvato offline.", {
+      toast.info("Connessione assente. Pasto salvato offline.", {
         description: "Verrà sincronizzato appena possibile.",
       });
       return;
@@ -300,7 +300,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           average_food_quality: optimisticQuality,
         },
       });
-      toast.info("☁️ Connessione assente. Pasto salvato offline.", {
+      toast.info("Connessione assente. Pasto salvato offline.", {
         description: "Verrà sincronizzato appena possibile.",
       });
     }
@@ -496,13 +496,13 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           <div className="px-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="ai" className="gap-1 text-xs">
-                🪄 Scanner AI
+                Scanner AI
               </TabsTrigger>
               <TabsTrigger value="vault" className="gap-1 text-xs">
-                ❤️ I Miei Pasti
+                I Miei Pasti
               </TabsTrigger>
               <TabsTrigger value="manual" className="gap-1 text-xs">
-                ✍️ Manuale
+                Manuale
               </TabsTrigger>
             </TabsList>
           </div>
@@ -516,7 +516,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     {/* Image Upload Zone */}
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">
-                        📸 Scansiona Piatto
+                        Scansiona Piatto
                       </Label>
                       <div
                         onDragOver={(e) => e.preventDefault()}
@@ -578,7 +578,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     {/* Text Input */}
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">
-                        🎤 Descrivi cosa hai mangiato...
+                        Descrivi cosa hai mangiato...
                       </Label>
                       <Textarea
                         placeholder="es. 200g di petto di pollo con 80g di riso basmati e insalata mista"

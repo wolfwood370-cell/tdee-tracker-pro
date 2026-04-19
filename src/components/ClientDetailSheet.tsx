@@ -143,7 +143,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast({ title: "Cliente eliminato ✓", description: `${client.displayName} è stato eliminato permanentemente.` });
+      toast({ title: "Cliente eliminato", description: `${client.displayName} è stato eliminato permanentemente.` });
       onOpenChange(false);
       onClientDeleted?.();
     } catch (e) {
@@ -403,7 +403,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         .update({ diet_strategy: selectedStrategy })
         .eq("id", client.id);
       if (error) throw error;
-      toast({ title: "Strategia assegnata ✓", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
+      toast({ title: "Strategia assegnata", description: `${STRATEGY_OPTIONS.find(o => o.value === selectedStrategy)?.label} assegnata a ${client.displayName}` });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
@@ -426,7 +426,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         })
         .eq("id", client.id);
       if (error) throw error;
-      toast({ title: "Override salvato ✓", description: overrideActive ? "Target manuali attivi per il cliente." : "Override disattivato, target algoritmici ripristinati." });
+      toast({ title: "Override salvato", description: overrideActive ? "Target manuali attivi per il cliente." : "Override disattivato, target algoritmici ripristinati." });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
@@ -454,7 +454,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
       if (error) throw error;
       // Refetch not needed — local state already drives the UI
       setSelectedStrategy(editDietStrategy as DietStrategy);
-      toast({ title: "Strategia aggiornata ✓", description: "Strategia del cliente aggiornata con successo!" });
+      toast({ title: "Strategia aggiornata", description: "Strategia del cliente aggiornata con successo!" });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
@@ -478,7 +478,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         .update({ status: "reviewed" })
         .eq("id", pendingCheckin.id);
       if (error) throw error;
-      toast({ title: "Check-in revisionato ✓", description: "Rimosso dalla coda di triage." });
+      toast({ title: "Check-in revisionato", description: "Rimosso dalla coda di triage." });
       setPendingCheckin(null);
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
@@ -497,7 +497,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         .eq("id", client.id);
       if (error) throw error;
       // Note saved to DB — no local prop mutation needed
-      toast({ title: "Nota salvata con successo ✓" });
+      toast({ title: "Nota salvata con successo" });
     } catch (e) {
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
     } finally {
@@ -566,7 +566,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                   className="gap-1.5"
                 >
                   {markingReviewed ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                  ✅ Segna come Revisionato
+                  Segna come Revisionato
                 </Button>
               </AlertDescription>
             </Alert>
@@ -604,7 +604,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                 if (error) throw error;
                 // Optimistic local update so the badge refreshes immediately
                 (client.profile as { subscription_status?: string }).subscription_status = newStatus;
-                toast({ title: "Stato abbonamento aggiornato ✓", description: `${client.displayName} → ${meta[newStatus]?.label ?? newStatus}` });
+                toast({ title: "Stato abbonamento aggiornato", description: `${client.displayName} → ${meta[newStatus]?.label ?? newStatus}` });
               } catch (e) {
                 toast({ title: "Errore", description: e instanceof Error ? e.message : "Errore sconosciuto", variant: "destructive" });
               }
@@ -614,7 +614,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               <Card className="glass-card border-border">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-display flex items-center gap-2">
-                    💳 Stato Abbonamento
+                    Stato Abbonamento
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -815,7 +815,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                             if (error) {
                               toast({ title: "Errore", description: error.message, variant: "destructive" });
                             } else {
-                              toast({ title: "Diet Break attivato ✓", description: `Diet Break fino al ${new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long" })}` });
+                              toast({ title: "Diet Break attivato", description: `Diet Break fino al ${new Date(dateStr).toLocaleDateString("it-IT", { day: "numeric", month: "long" })}` });
                             }
                           }}
                         >
@@ -839,7 +839,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
                   }}
                 >
                   <MessageCircle className="h-4 w-4" />
-                  💬 Invia Messaggio
+                  Invia Messaggio
                 </Button>
               </div>
 
@@ -1426,7 +1426,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full" disabled={deleting}>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  🗑️ Elimina Cliente
+                  Elimina Cliente
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>

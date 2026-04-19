@@ -66,7 +66,7 @@ export const SyncManager = () => {
       flushingRef.current = false;
 
       if (success > 0 && failed === 0) {
-        toast.success("✅ Sincronizzazione offline completata.", {
+        toast.success("Sincronizzazione offline completata.", {
           description:
             success === 1 ? "1 voce sincronizzata." : `${success} voci sincronizzate.`,
         });

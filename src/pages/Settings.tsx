@@ -164,7 +164,7 @@ export default function Settings() {
       if (error) throw error;
 
       setProfile(data);
-      toast({ title: "Impostazioni salvate ✓", description: "I tuoi target sono stati aggiornati." });
+      toast({ title: "Impostazioni salvate", description: "I tuoi target sono stati aggiornati." });
     } catch (e) {
       console.error("Settings save error:", e);
       toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });

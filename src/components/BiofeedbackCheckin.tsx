@@ -131,7 +131,7 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
         }
       }
 
-      toast({ title: "Parametri salvati ✓", description: "Il motore adattivo è aggiornato." });
+      toast({ title: "Parametri salvati", description: "Il motore adattivo è aggiornato." });
       onComplete();
     } catch (e) {
       console.error("Biofeedback submit error:", e);
@@ -156,7 +156,7 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
-            ⚡ Biofeedback Odierno
+            Biofeedback Odierno
           </CardTitle>
           <p className="text-xs text-muted-foreground">
             Come ti sei sentito oggi? Valuta ogni area da 1 a 5.

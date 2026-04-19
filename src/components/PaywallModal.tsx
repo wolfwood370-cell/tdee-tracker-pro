@@ -51,7 +51,7 @@ export function PaywallModal({ open, onOpenChange }: PaywallModalProps) {
             Forse più tardi
           </Button>
           <Button onClick={handleDiscoverPlans} className="gap-1.5">
-            💳 Scopri i Piani
+            Scopri i Piani
           </Button>
         </DialogFooter>
       </DialogContent>

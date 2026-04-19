@@ -348,7 +348,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
         <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-display font-semibold text-foreground">🎯 Obiettivo Attuale</h3>
+            <h3 className="text-sm font-display font-semibold text-foreground">Obiettivo Attuale</h3>
             {savingGoal && <span className="text-[10px] text-muted-foreground ml-auto">salvataggio…</span>}
           </div>
           <p className="text-[11px] text-muted-foreground -mt-1">
