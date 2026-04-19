@@ -115,7 +115,7 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
               <AccordionTrigger className="px-2 hover:no-underline">
                 <span className="text-sm font-display font-semibold flex items-center gap-2">
                   <UtensilsCrossed className="h-4 w-4 text-primary" />
-                  🍽️ Pasti Registrati
+                  Pasti Registrati
                   <Badge variant="secondary" className="text-xs">
                     {meals.length}
                   </Badge>
