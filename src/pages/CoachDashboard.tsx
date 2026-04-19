@@ -360,7 +360,25 @@ const CoachDashboard = () => {
           ))}
         </div>
 
-        {/* Triage list */}
+        {/* Triage list with tabs: All clients vs Pending check-ins */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+            <TabsTrigger value="all" className="gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              <span>Tutti i Clienti</span>
+            </TabsTrigger>
+            <TabsTrigger value="checkins" className="gap-1.5 relative">
+              <Inbox className="h-3.5 w-3.5" />
+              <span>Check-in in Attesa</span>
+              {pendingCheckinUserIds.size > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] flex items-center justify-center">
+                  {pendingCheckinUserIds.size}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-4">
         <Card className="glass-card border-border">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
