@@ -8,6 +8,8 @@ interface MacroRingsProps {
   calories: { current: number; target: number };
   className?: string;
   onPerfect?: () => void;
+  /** Phase 70: when true, renders a golden glow + "Giornata Perfetta" badge. */
+  isPerfectDay?: boolean;
 }
 
 function Ring({
