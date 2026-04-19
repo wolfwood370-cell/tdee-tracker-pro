@@ -245,11 +245,11 @@ export function AIMealPlanModal({
                 {/* Profile preferences pills */}
                 <div className="flex flex-wrap gap-2 justify-center">
                   <Badge variant="secondary" className="text-xs capitalize">
-                    🥗 {dietaryPreference}
+                    {dietaryPreference}
                   </Badge>
                   {allergies?.trim() && (
                     <Badge variant="outline" className="text-xs">
-                      ⚠️ Allergie: {allergies.length > 30 ? `${allergies.slice(0, 30)}…` : allergies}
+                      Allergie: {allergies.length > 30 ? `${allergies.slice(0, 30)}…` : allergies}
                     </Badge>
                   )}
                 </div>
