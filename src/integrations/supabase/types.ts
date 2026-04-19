@@ -80,6 +80,7 @@ export type Database = {
           fiber: number | null
           id: string
           is_interpolated: boolean
+          is_perfect_day: boolean
           lean_la_kg: number | null
           lean_la_pct: number | null
           lean_ll_kg: number | null
@@ -126,6 +127,7 @@ export type Database = {
           fiber?: number | null
           id?: string
           is_interpolated?: boolean
+          is_perfect_day?: boolean
           lean_la_kg?: number | null
           lean_la_pct?: number | null
           lean_ll_kg?: number | null
@@ -172,6 +174,7 @@ export type Database = {
           fiber?: number | null
           id?: string
           is_interpolated?: boolean
+          is_perfect_day?: boolean
           lean_la_kg?: number | null
           lean_la_pct?: number | null
           lean_ll_kg?: number | null
@@ -289,6 +292,7 @@ export type Database = {
           calorie_distribution: string
           coach_note: string | null
           created_at: string
+          current_streak: number
           diet_break_until: string | null
           diet_strategy: string
           diet_type: string
@@ -298,6 +302,7 @@ export type Database = {
           goal_type: string
           height_cm: number | null
           id: string
+          last_activity_date: string | null
           manual_calories: number | null
           manual_carbs: number | null
           manual_fats: number | null
@@ -320,6 +325,7 @@ export type Database = {
           calorie_distribution?: string
           coach_note?: string | null
           created_at?: string
+          current_streak?: number
           diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
@@ -329,6 +335,7 @@ export type Database = {
           goal_type?: string
           height_cm?: number | null
           id: string
+          last_activity_date?: string | null
           manual_calories?: number | null
           manual_carbs?: number | null
           manual_fats?: number | null
@@ -351,6 +358,7 @@ export type Database = {
           calorie_distribution?: string
           coach_note?: string | null
           created_at?: string
+          current_streak?: number
           diet_break_until?: string | null
           diet_strategy?: string
           diet_type?: string
@@ -360,6 +368,7 @@ export type Database = {
           goal_type?: string
           height_cm?: number | null
           id?: string
+          last_activity_date?: string | null
           manual_calories?: number | null
           manual_carbs?: number | null
           manual_fats?: number | null

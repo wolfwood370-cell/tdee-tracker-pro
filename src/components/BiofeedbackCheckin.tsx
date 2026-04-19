@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { evaluateBiofeedbackTrigger } from "@/lib/autoRegulation";
 import { AutoRegulationModal } from "@/components/AutoRegulationModal";
 import { toLocalISODate } from "@/lib/weeklyBudget";
+import { bumpStreak } from "@/lib/streaks";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,18 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
         );
 
       if (error) throw error;
+
+      // Phase 70: streak bump on biofeedback submit.
+      if (profile) {
+        const newStreak = await bumpStreak(
+          user.id,
+          profile.current_streak ?? 0,
+          profile.last_activity_date ?? null,
+        );
+        if (newStreak != null && newStreak !== profile.current_streak) {
+          setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+        }
+      }
 
       // --- Auto-Regulation Check (skip if manual override is active) ---
       if (profile && !profile.manual_override_active) {

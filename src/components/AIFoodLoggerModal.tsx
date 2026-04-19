@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { parseMealWithAI, type AIParsedMeal } from "@/lib/aiService";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
+import { bumpStreak } from "@/lib/streaks";
+import { toLocalISODate } from "@/lib/weeklyBudget";
 import {
   parseMealsLog,
   aggregatesFromMeals,
@@ -50,7 +52,7 @@ interface FavoriteMeal {
 type Phase = "input" | "analyzing" | "result";
 
 export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerModalProps) {
-  const { user, dailyLogs, addLog, updateLog } = useAppStore();
+  const { user, profile, setProfile, dailyLogs, addLog, updateLog } = useAppStore();
 
   const [phase, setPhase] = useState<Phase>("input");
   const [textInput, setTextInput] = useState("");
@@ -210,6 +212,21 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
     if (error) throw error;
     if (existingLog) updateLog(data);
     else addLog(data);
+
+    // Phase 70: bump streak only for TODAY's activity.
+    if (profile && logDate === toLocalISODate(new Date())) {
+      const newStreak = await bumpStreak(
+        user.id,
+        profile.current_streak ?? 0,
+        profile.last_activity_date ?? null,
+      );
+      if (newStreak != null && newStreak !== profile.current_streak) {
+        setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+        if (newStreak > 1) {
+          toast.success(`🔥 ${newStreak} giorni di fuoco!`, { description: "Continua così, la costanza paga." });
+        }
+      }
+    }
   };
 
   const handleConfirm = async () => {
@@ -357,6 +374,18 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
       if (error) throw error;
       if (existingLog) updateLog(data);
       else addLog(data);
+
+      // Phase 70: streak bump on today's activity.
+      if (profile && logDate === toLocalISODate(new Date())) {
+        const newStreak = await bumpStreak(
+          user.id,
+          profile.current_streak ?? 0,
+          profile.last_activity_date ?? null,
+        );
+        if (newStreak != null && newStreak !== profile.current_streak) {
+          setProfile({ ...profile, current_streak: newStreak, last_activity_date: toLocalISODate(new Date()) });
+        }
+      }
 
       toast.success("Valori aggiunti con successo!");
       resetManual();
