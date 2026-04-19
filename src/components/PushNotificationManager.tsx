@@ -6,7 +6,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
 import { toast } from "sonner";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+async function fetchVapidPublicKey(): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke("get-vapid-public-key");
+    if (error) throw error;
+    const key = (data as { publicKey?: string } | null)?.publicKey;
+    return key && key.length > 0 ? key : null;
+  } catch (e) {
+    console.error("[push] failed to fetch VAPID public key:", e);
+    return null;
+  }
+}
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -62,12 +72,14 @@ export function PushNotificationManager() {
 
   async function handleSubscribe() {
     if (!user) return;
-    if (!VAPID_PUBLIC_KEY) {
-      toast.error("Chiave VAPID pubblica non configurata.");
-      return;
-    }
     setLoading(true);
     try {
+      const vapidKey = await fetchVapidPublicKey();
+      if (!vapidKey) {
+        toast.error("Chiave VAPID pubblica non configurata.");
+        return;
+      }
+
       const perm = await Notification.requestPermission();
       setPermission(perm);
       if (perm !== "granted") {
@@ -76,7 +88,7 @@ export function PushNotificationManager() {
       }
 
       const reg = await navigator.serviceWorker.ready;
-      const keyBytes = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      const keyBytes = urlBase64ToUint8Array(vapidKey);
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: keyBytes.buffer.slice(
