@@ -305,10 +305,12 @@ export type Database = {
           manual_protein: number | null
           protein_pref: string
           sex: string | null
+          subscription_status: string
           target_weight: number | null
           track_menstrual_cycle: boolean
           training_days_per_week: number
           training_schedule: Json
+          trial_ends_at: string
           weekly_schedule: Json
         }
         Insert: {
@@ -334,10 +336,12 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          subscription_status?: string
           target_weight?: number | null
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
+          trial_ends_at?: string
           weekly_schedule?: Json
         }
         Update: {
@@ -363,10 +367,12 @@ export type Database = {
           manual_protein?: number | null
           protein_pref?: string
           sex?: string | null
+          subscription_status?: string
           target_weight?: number | null
           track_menstrual_cycle?: boolean
           training_days_per_week?: number
           training_schedule?: Json
+          trial_ends_at?: string
           weekly_schedule?: Json
         }
         Relationships: []
