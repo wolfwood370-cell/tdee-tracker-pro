@@ -16,6 +16,7 @@ import { LogHistoryTable } from "@/components/LogHistoryTable";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { MacroRings } from "@/components/MacroRings";
+import { MetabolicEngineWidget } from "@/components/MetabolicEngineWidget";
 import { StreakIndicator } from "@/components/StreakIndicator";
 import { calculateStreak, markPerfectDayIfApplicable } from "@/lib/streaks";
 import {
@@ -514,6 +515,9 @@ const ClientDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Metabolic Engine Insight */}
+          <MetabolicEngineWidget />
 
           {/* Quick Hydration */}
           <Card className="glass-card border-border">
