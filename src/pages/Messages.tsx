@@ -321,7 +321,7 @@ const Messages = () => {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel("messages-list")
+      .channel(`messages-list-${user.id}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },

@@ -28,7 +28,7 @@ export function useUnreadMessages() {
 
     // Realtime subscription for new messages
     const channel = supabase
-      .channel("unread-counter")
+      .channel(`unread-counter-${user.id}`)
       .on(
         "postgres_changes",
         {
