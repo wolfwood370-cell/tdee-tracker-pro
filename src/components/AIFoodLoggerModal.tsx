@@ -300,7 +300,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
           average_food_quality: optimisticQuality,
         },
       });
-      toast.info("☁️ Connessione assente. Pasto salvato offline.", {
+      toast.info("Connessione assente. Pasto salvato offline.", {
         description: "Verrà sincronizzato appena possibile.",
       });
     }
