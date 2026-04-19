@@ -106,6 +106,8 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
   const [selectedStrategy, setSelectedStrategy] = useState<DietStrategy>("linear");
   const [savingStrategy, setSavingStrategy] = useState(false);
   const [biofeedbackLogs, setBiofeedbackLogs] = useState<Tables<"biofeedback_logs">[]>([]);
+  const [pendingCheckin, setPendingCheckin] = useState<{ id: string; feedback_text: string; created_at: string } | null>(null);
+  const [markingReviewed, setMarkingReviewed] = useState(false);
   
   // Manual Override state
   const [overrideActive, setOverrideActive] = useState(false);
@@ -172,7 +174,22 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
     setEditTargetWeight(client.profile.target_weight?.toString() ?? "");
     setCoachNote(client.profile.coach_note ?? "");
 
-    // Fetch daily metrics and biofeedback in parallel
+    // Fetch daily metrics, biofeedback, and latest pending checkin in parallel
+    const checkinClient = supabase as unknown as {
+      from: (t: string) => {
+        select: (cols: string) => {
+          eq: (col: string, val: string) => {
+            eq: (col: string, val: string) => {
+              order: (col: string, opts: { ascending: boolean }) => {
+                limit: (n: number) => {
+                  maybeSingle: () => Promise<{ data: { id: string; feedback_text: string; created_at: string } | null; error: unknown }>;
+                };
+              };
+            };
+          };
+        };
+      };
+    };
     Promise.all([
       supabase
         .from("daily_metrics")
@@ -185,7 +202,15 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         .eq("user_id", client.id)
         .order("week_start_date", { ascending: false })
         .limit(8),
-    ]).then(([metricsRes, bioRes]) => {
+      checkinClient
+        .from("weekly_checkins")
+        .select("id, feedback_text, created_at")
+        .eq("user_id", client.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]).then(([metricsRes, bioRes, checkinRes]) => {
       if (metricsRes.error) {
         console.error("Error fetching client logs:", metricsRes.error);
         setLogs([]);
@@ -193,6 +218,7 @@ export function ClientDetailSheet({ open, onOpenChange, client, onClientDeleted 
         setLogs(metricsRes.data ?? []);
       }
       setBiofeedbackLogs(bioRes.data ?? []);
+      setPendingCheckin(checkinRes.data ?? null);
       setLoading(false);
     });
     // We intentionally re-run when the client identity OR the sheet opens.
