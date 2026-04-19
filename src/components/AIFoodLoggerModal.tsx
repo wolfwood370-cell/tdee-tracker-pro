@@ -516,7 +516,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     {/* Image Upload Zone */}
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">
-                        📸 Scansiona Piatto
+                        Scansiona Piatto
                       </Label>
                       <div
                         onDragOver={(e) => e.preventDefault()}
