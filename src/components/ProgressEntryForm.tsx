@@ -278,22 +278,6 @@ export function ProgressEntryForm({ onSaved }: Props) {
         </CardContent>
       </Card>
 
-      {/* Photos */}
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-display flex items-center gap-2">
-            <Upload className="h-4 w-4 text-primary" /> Foto Progressi
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center gap-6 flex-wrap">
-            {photoZone("front", "Fronte")}
-            {photoZone("side", "Lato")}
-            {photoZone("back", "Retro")}
-          </div>
-        </CardContent>
-      </Card>
-
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         <Save className="h-4 w-4 mr-2" />
         {isSubmitting ? "Salvataggio..." : "Salva Check-in"}
