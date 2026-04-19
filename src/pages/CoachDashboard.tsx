@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
+import { CoachRecipeManager } from "@/components/CoachRecipeManager";
+import { ChefHat } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
 import {
@@ -362,7 +364,7 @@ const CoachDashboard = () => {
 
         {/* Triage list with tabs: All clients vs Pending check-ins */}
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+          <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
             <TabsTrigger value="all" className="gap-1.5">
               <Users className="h-3.5 w-3.5" />
               <span>Tutti i Clienti</span>
@@ -375,6 +377,10 @@ const CoachDashboard = () => {
                   {pendingCheckinUserIds.size}
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="recipes" className="gap-1.5">
+              <ChefHat className="h-3.5 w-3.5" />
+              <span>🍳 Ricettario Globale</span>
             </TabsTrigger>
           </TabsList>
 
