@@ -13,6 +13,14 @@ import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  calculateComplianceScore,
+  type ComplianceStatus,
+  type DailyTargets,
+  type BiofeedbackEntry,
+} from "@/lib/compliance";
+import { getWeekDates } from "@/lib/weeklyBudget";
+import type { DailyMetric } from "@/stores";
 
 interface Conversation {
   recipientId: string;
@@ -30,8 +38,81 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRecipient, setSelectedRecipient] = useState<Conversation | null>(null);
   const [search, setSearch] = useState("");
+  const [recipientStatus, setRecipientStatus] = useState<ComplianceStatus | undefined>(undefined);
 
   const isCoach = user?.role === "coach";
+
+  // Lazy compute compliance status for the selected recipient (Coach only)
+  // → drives Quick Reply suggestions in ChatWindow.
+  useEffect(() => {
+    if (!isCoach || !selectedRecipient?.recipientId) {
+      setRecipientStatus(undefined);
+      return;
+    }
+    const recipientId = selectedRecipient.recipientId;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const weekDates = getWeekDates();
+        const [profileRes, logsRes, analyticsRes, bioRes] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", recipientId).maybeSingle(),
+          supabase
+            .from("daily_metrics")
+            .select("*")
+            .eq("user_id", recipientId)
+            .gte("log_date", weekDates[0])
+            .lte("log_date", weekDates[6]),
+          supabase
+            .from("weekly_analytics")
+            .select("adaptive_tdee")
+            .eq("user_id", recipientId)
+            .order("week_start_date", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from("biofeedback_logs")
+            .select("hunger_score, energy_score, sleep_score, performance_score, created_at")
+            .eq("user_id", recipientId)
+            .order("created_at", { ascending: false })
+            .limit(2),
+        ]);
+
+        if (cancelled) return;
+        const profile = profileRes.data;
+        if (!profile) return;
+
+        const tdee = analyticsRes.data?.adaptive_tdee ?? null;
+        let baseCal: number;
+        if (profile.manual_override_active && profile.manual_calories) {
+          baseCal = profile.manual_calories;
+        } else {
+          const goalRate = profile.goal_rate ?? 0;
+          baseCal = Math.max(1200, (tdee ?? 2000) + Math.round((goalRate * 7700) / 7));
+        }
+        const targets: DailyTargets = {
+          default: baseCal,
+          training: baseCal,
+          rest: baseCal,
+          refeed: Math.round((tdee ?? baseCal)),
+        };
+
+        const result = calculateComplianceScore(
+          (logsRes.data ?? []) as DailyMetric[],
+          profile,
+          targets,
+          (bioRes.data ?? []) as BiofeedbackEntry[],
+        );
+        if (!cancelled) setRecipientStatus(result.status);
+      } catch (e) {
+        console.error("Error computing recipient compliance:", e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isCoach, selectedRecipient?.recipientId]);
 
   // Fetch all clients for coach (even without messages)
   const fetchCoachClients = useCallback(async () => {
@@ -380,6 +461,7 @@ const Messages = () => {
                 <ChatWindow
                   recipientId={selectedRecipient.recipientId}
                   recipientName={selectedRecipient.recipientName}
+                  complianceStatus={recipientStatus}
                   className="flex-1 min-h-0"
                 />
               </>

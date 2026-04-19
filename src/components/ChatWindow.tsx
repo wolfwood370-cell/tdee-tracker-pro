@@ -9,6 +9,8 @@ import { format, parseISO, isToday, isYesterday } from "date-fns";
 import { it } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getQuickReplies } from "@/lib/chatTemplates";
+import type { ComplianceStatus } from "@/lib/compliance";
 
 interface Message {
   id: string;
@@ -23,6 +25,8 @@ interface ChatWindowProps {
   recipientId: string;
   recipientName: string;
   className?: string;
+  /** Compliance status of the recipient — drives Coach quick-reply templates. */
+  complianceStatus?: ComplianceStatus;
 }
 
 function formatMessageDate(dateStr: string) {
@@ -32,8 +36,12 @@ function formatMessageDate(dateStr: string) {
   return format(date, "d MMM yyyy", { locale: it });
 }
 
-export function ChatWindow({ recipientId, recipientName, className }: ChatWindowProps) {
+export function ChatWindow({ recipientId, recipientName, className, complianceStatus }: ChatWindowProps) {
   const { user } = useAppStore();
+  const isCoach = user?.role === "coach";
+  const firstName = recipientName?.split(/\s+/)[0] ?? recipientName;
+  const quickReplies =
+    isCoach && complianceStatus ? getQuickReplies(complianceStatus, firstName) : [];
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -259,8 +267,30 @@ export function ChatWindow({ recipientId, recipientName, className }: ChatWindow
         )}
       </ScrollArea>
 
+      {/* Quick Replies (Coach only) */}
+      {quickReplies.length > 0 && (
+        <div className="border-t border-border px-3 pt-2">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
+            Risposte rapide
+          </p>
+          <div className="flex overflow-x-auto gap-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {quickReplies.map((reply, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setNewMessage(reply)}
+                className="shrink-0 max-w-[260px] text-left text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-accent hover:text-accent-foreground text-muted-foreground border border-border transition-colors truncate"
+                title={reply}
+              >
+                {reply}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input area */}
-      <div className="border-t border-border p-3 flex gap-2 items-center">
+      <div className={cn("p-3 flex gap-2 items-center", quickReplies.length === 0 && "border-t border-border")}>
         <Input
           placeholder={`Scrivi a ${recipientName}...`}
           value={newMessage}
