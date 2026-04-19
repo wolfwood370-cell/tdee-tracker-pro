@@ -118,7 +118,7 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
         }
       }
 
-      toast({ title: "Check-in completato ✓", description: "Grazie per il biofeedback quotidiano!" });
+      toast({ title: "Parametri salvati ✓", description: "Il motore adattivo è aggiornato." });
       onComplete();
     } catch (e) {
       console.error("Biofeedback submit error:", e);
