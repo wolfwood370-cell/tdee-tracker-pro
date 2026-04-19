@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { Camera, Loader2, Upload } from "lucide-react";
+import { Camera, Loader2, ShieldCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+const PHOTO_DISCLAIMER_KEY = "nc_photo_disclaimer_ack_v1";
 
 type Slot = "front" | "side" | "back";
 
@@ -36,6 +38,17 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
     back: null,
   });
   const [uploading, setUploading] = useState(false);
+  const [disclaimerAck, setDisclaimerAck] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem(PHOTO_DISCLAIMER_KEY) === "1"
+  );
+  const ackDisclaimer = () => {
+    try {
+      localStorage.setItem(PHOTO_DISCLAIMER_KEY, "1");
+    } catch {
+      // ignore storage errors (private mode)
+    }
+    setDisclaimerAck(true);
+  };
   const inputRefs = {
     front: useRef<HTMLInputElement>(null),
     side: useRef<HTMLInputElement>(null),
