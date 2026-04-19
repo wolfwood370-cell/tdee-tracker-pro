@@ -185,7 +185,7 @@ export function AIMealPlanModal({
         next.delete(index);
         return next;
       });
-      toast.success(`Pasto sostituito ✨`);
+      toast.success(`Pasto sostituito`);
     } catch (e) {
       console.error("AI replace meal error:", e);
       toast.error("Errore nella sostituzione del pasto. Riprova.");
@@ -280,7 +280,7 @@ export function AIMealPlanModal({
                     className="border-border min-h-[80px] text-base resize-none"
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    💡 Gemini userà questi ingredienti per ridurre gli sprechi e la tua lista della spesa.
+                    Gemini userà questi ingredienti per ridurre gli sprechi e la tua lista della spesa.
                   </p>
                 </div>
 
@@ -326,7 +326,7 @@ export function AIMealPlanModal({
                     </TabsTrigger>
                     <TabsTrigger value="grocery" className="gap-1.5">
                       <ShoppingCart className="h-3.5 w-3.5" />
-                      🛒 Spesa
+                      Spesa
                     </TabsTrigger>
                   </TabsList>
 
@@ -380,7 +380,7 @@ export function AIMealPlanModal({
                                       className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                                     >
                                       <RotateCw className="h-3 w-3" />
-                                      🔄 Cambia
+                                      Cambia
                                     </Button>
                                   </div>
                                 </div>
