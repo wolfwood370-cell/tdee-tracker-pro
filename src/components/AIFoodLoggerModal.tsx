@@ -1113,4 +1113,4 @@ export const AIFoodLoggerModal = forwardRef<HTMLDivElement, AIFoodLoggerModalPro
       </DialogContent>
     </Dialog>
   );
-}
+});

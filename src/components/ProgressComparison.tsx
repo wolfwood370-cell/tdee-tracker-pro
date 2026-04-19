@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { MEASUREMENT_GROUPS, REDUCTION_POSITIVE_KEYS } from "@/types/progress";
 import type { ProgressEntry } from "@/types/progress";
 import { useAppStore } from "@/stores";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowDown, ArrowUp, Camera } from "lucide-react";
 
 interface Props {
