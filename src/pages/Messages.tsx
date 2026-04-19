@@ -13,6 +13,14 @@ import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  calculateComplianceScore,
+  type ComplianceStatus,
+  type DailyTargets,
+  type BiofeedbackEntry,
+} from "@/lib/compliance";
+import { getWeekDates } from "@/lib/weeklyBudget";
+import type { DailyMetric } from "@/stores";
 
 interface Conversation {
   recipientId: string;
