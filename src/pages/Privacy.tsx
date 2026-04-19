@@ -128,6 +128,35 @@ export default function Privacy() {
               o tramite l'apposita funzione nell'app.
             </p>
           </section>
+
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold">6. Cookie Policy</h2>
+            <p className="text-muted-foreground">
+              NC Nutrition utilizza esclusivamente le seguenti categorie di
+              cookie:
+            </p>
+            <ul className="space-y-3 text-muted-foreground list-none">
+              <li>
+                <strong className="text-foreground">Cookie tecnici:</strong>{" "}
+                necessari per l'autenticazione, il mantenimento della sessione
+                e il corretto funzionamento dell'applicazione. Non richiedono
+                consenso.
+              </li>
+              <li>
+                <strong className="text-foreground">
+                  Cookie di terze parti (Stripe):
+                </strong>{" "}
+                installati esclusivamente durante il processo di checkout per
+                gestire in modo sicuro le transazioni di pagamento.
+              </li>
+            </ul>
+            <p className="text-muted-foreground">
+              Non utilizziamo cookie di profilazione o di marketing. Puoi
+              modificare in qualsiasi momento le tue preferenze cancellando i
+              dati del sito dal tuo browser: alla successiva visita comparirà
+              nuovamente il banner di consenso.
+            </p>
+          </section>
         </div>
       </div>
     </div>
