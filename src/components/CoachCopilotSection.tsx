@@ -72,7 +72,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
     try {
       await navigator.clipboard.writeText(editedReply);
       setCopied(true);
-      toast.success("Messaggio copiato ✓");
+      toast.success("Messaggio copiato");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Impossibile copiare il messaggio.");
