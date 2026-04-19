@@ -72,7 +72,7 @@ export function ProgressPhotoGallery({
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("progress_photos")
       .select("*")
       .eq("user_id", userId)
