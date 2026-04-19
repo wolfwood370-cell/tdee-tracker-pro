@@ -218,6 +218,8 @@ export type Database = {
           description: string | null
           fats: number
           id: string
+          ingredients: string | null
+          is_global: boolean
           meal_type: string
           name: string
           protein: number
@@ -230,6 +232,8 @@ export type Database = {
           description?: string | null
           fats?: number
           id?: string
+          ingredients?: string | null
+          is_global?: boolean
           meal_type: string
           name: string
           protein?: number
@@ -242,6 +246,8 @@ export type Database = {
           description?: string | null
           fats?: number
           id?: string
+          ingredients?: string | null
+          is_global?: boolean
           meal_type?: string
           name?: string
           protein?: number
