@@ -602,7 +602,7 @@ export function calculateWeeklyPlan(opts: {
     // ── MATADOR (2 weeks deficit, 2 weeks maintenance) ───
     case 'matador_break': {
       // Determine which phase we're in based on the current date
-      const startDate = profileCreatedAt ? new Date(profileCreatedAt) : new Date();
+      const startDate = phaseAnchor ? new Date(phaseAnchor) : new Date();
       const now = new Date();
       const weeksSinceStart = Math.floor(
         (now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
@@ -630,7 +630,7 @@ export function calculateWeeklyPlan(opts: {
 
     // ── Reverse Diet (+75 kcal/week until TDEE) ──────────
     case 'reverse_diet': {
-      const startDate = profileCreatedAt ? new Date(profileCreatedAt) : new Date();
+      const startDate = phaseAnchor ? new Date(phaseAnchor) : new Date();
       const now = new Date();
       const weeksSinceStart = Math.max(
         0,
