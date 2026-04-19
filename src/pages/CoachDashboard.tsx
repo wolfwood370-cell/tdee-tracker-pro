@@ -20,7 +20,10 @@ import {
   Eye,
   Filter,
   Info,
+  ClipboardCheck,
+  Inbox,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
@@ -89,10 +92,32 @@ const CoachDashboard = () => {
   const [filterCritical, setFilterCritical] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [pendingCheckinUserIds, setPendingCheckinUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchClients();
+    fetchPendingCheckins();
   }, []);
+
+  async function fetchPendingCheckins() {
+    try {
+      const { data, error } = await (supabase as unknown as {
+        from: (t: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => Promise<{ data: { user_id: string }[] | null; error: unknown }>;
+          };
+        };
+      })
+        .from("weekly_checkins")
+        .select("user_id")
+        .eq("status", "pending");
+      if (error) throw error;
+      setPendingCheckinUserIds(new Set((data ?? []).map((r) => r.user_id)));
+    } catch (e) {
+      console.error("Error fetching pending checkins:", e);
+    }
+  }
+
 
   async function fetchClients() {
     setLoading(true);
@@ -335,7 +360,25 @@ const CoachDashboard = () => {
           ))}
         </div>
 
-        {/* Triage list */}
+        {/* Triage list with tabs: All clients vs Pending check-ins */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+            <TabsTrigger value="all" className="gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              <span>Tutti i Clienti</span>
+            </TabsTrigger>
+            <TabsTrigger value="checkins" className="gap-1.5 relative">
+              <Inbox className="h-3.5 w-3.5" />
+              <span>Check-in in Attesa</span>
+              {pendingCheckinUserIds.size > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px] flex items-center justify-center">
+                  {pendingCheckinUserIds.size}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-4">
         <Card className="glass-card border-border">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -433,6 +476,12 @@ const CoachDashboard = () => {
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
+                              {pendingCheckinUserIds.has(client.id) && (
+                                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
+                                  <ClipboardCheck className="h-3 w-3 mr-1" />
+                                  Check-in
+                                </Badge>
+                              )}
                               <h3 className="font-display font-semibold text-foreground truncate">
                                 {client.displayName}
                               </h3>
@@ -508,10 +557,88 @@ const CoachDashboard = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="checkins" className="mt-4">
+            <Card className="glass-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg font-display flex items-center gap-2">
+                  <Inbox className="h-5 w-5 text-primary" />
+                  Check-in da Revisionare
+                  {pendingCheckinUserIds.size > 0 && (
+                    <Badge variant="destructive" className="ml-1 text-xs">
+                      {pendingCheckinUserIds.size}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Apri il dettaglio del cliente per leggere il feedback e marcarlo come revisionato.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-3">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : pendingCheckinUserIds.size === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <ClipboardCheck className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-muted-foreground">
+                      Nessun check-in in attesa. Inbox vuota ✨
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    {clients
+                      .filter((c) => pendingCheckinUserIds.has(c.id))
+                      .map((client) => {
+                        const meta = statusBadgeMeta(client.compliance.status);
+                        return (
+                          <Card
+                            key={client.id}
+                            className="border border-primary/30 bg-primary/5 hover:bg-primary/10 cursor-pointer transition-all"
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setSheetOpen(true);
+                            }}
+                          >
+                            <CardContent className="p-4 flex items-center justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge className={`${meta.className} text-xs`}>
+                                    {meta.emoji} {meta.label}
+                                  </Badge>
+                                  <h3 className="font-display font-semibold text-foreground truncate">
+                                    {client.displayName}
+                                  </h3>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1.5">
+                                  Check-in settimanale in attesa di revisione
+                                </p>
+                              </div>
+                              <Button size="sm" variant="default" className="gap-1.5 shrink-0">
+                                <Eye className="h-3.5 w-3.5" />
+                                Apri
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <ClientDetailSheet
           open={sheetOpen}
-          onOpenChange={setSheetOpen}
+          onOpenChange={(o) => {
+            setSheetOpen(o);
+            if (!o) fetchPendingCheckins();
+          }}
           client={selectedClient}
           onClientDeleted={fetchClients}
         />

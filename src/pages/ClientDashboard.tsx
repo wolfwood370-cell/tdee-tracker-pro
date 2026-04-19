@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles, ClipboardCheck } from "lucide-react";
+import { WeeklyCheckinModal } from "@/components/WeeklyCheckinModal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const ClientDashboard = () => {
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
+  const [checkinOpen, setCheckinOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -450,7 +452,7 @@ const ClientDashboard = () => {
                 })()}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-border">
+              <div className="mt-4 pt-3 border-t border-border grid sm:grid-cols-2 gap-2">
                 <Button
                   onClick={() => setMealPlanOpen(true)}
                   className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
@@ -458,6 +460,14 @@ const ClientDashboard = () => {
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   <Sparkles className="h-3.5 w-3.5 mr-1" />
                   Idee Pasti e Spesa AI
+                </Button>
+                <Button
+                  onClick={() => setCheckinOpen(true)}
+                  variant="outline"
+                  className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
+                >
+                  <ClipboardCheck className="h-4 w-4 mr-2" />
+                  📝 Fai il Check-in
                 </Button>
               </div>
             </CardContent>
@@ -582,6 +592,13 @@ const ClientDashboard = () => {
         dietaryPreference={profile?.dietary_preference ?? "onnivoro"}
         allergies={profile?.allergies ?? ""}
       />
+      {user && (
+        <WeeklyCheckinModal
+          open={checkinOpen}
+          onOpenChange={setCheckinOpen}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };
