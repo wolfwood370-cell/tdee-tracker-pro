@@ -24,6 +24,7 @@ export const MetabolicEngineWidget = () => {
   const Icon = meta.icon;
 
   // Stable timestamp: refreshed when the insight payload changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const lastUpdate = useMemo(
     () => new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
     [insight],
