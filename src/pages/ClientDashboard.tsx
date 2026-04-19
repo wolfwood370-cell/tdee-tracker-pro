@@ -256,10 +256,10 @@ const ClientDashboard = () => {
         if (breakDate < today) return null;
         const formattedDate = breakDate.toLocaleDateString("it-IT", { day: "numeric", month: "long" });
         return (
-          <Alert className="border-emerald-500/50 bg-emerald-500/10 ring-1 ring-emerald-400/20">
-            <Leaf className="h-4 w-4 text-emerald-600" />
-            <AlertTitle className="font-display text-emerald-700 dark:text-emerald-400">Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
-            <AlertDescription className="text-sm text-emerald-700/80 dark:text-emerald-300/80 mt-1">
+          <Alert className="border-success/50 bg-success/10 ring-1 ring-success/20">
+            <Leaf className="h-4 w-4 text-success" />
+            <AlertTitle className="font-display text-success">Diet Break Attivo (Fino al {formattedDate})</AlertTitle>
+            <AlertDescription className="text-sm text-success/80 mt-1">
               Il tuo metabolismo aveva bisogno di respirare. Goditi i carboidrati extra per resettare gli ormoni, si torna in deficit a breve!
             </AlertDescription>
           </Alert>
