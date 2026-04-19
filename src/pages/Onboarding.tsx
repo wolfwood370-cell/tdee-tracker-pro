@@ -512,6 +512,16 @@ export default function Onboarding() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={step}
+                custom={direction}
+                initial={{ opacity: 0, x: direction > 0 ? 24 : -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction > 0 ? -24 : 24 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="space-y-4"
+              >
             {/* ─── Step 0: Biometrics ─── */}
             {step === 0 && (
               <>
