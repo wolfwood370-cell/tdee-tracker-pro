@@ -27,6 +27,7 @@ import {
   type DietType,
 } from "@/lib/algorithms";
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
+import { PaywallModal } from "@/components/PaywallModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { TodayDiary } from "@/components/TodayDiary";
 import { QuickWaterButton } from "@/components/QuickWaterButton";
@@ -60,6 +61,17 @@ const ClientDashboard = () => {
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  // Phase 69: Soft Paywall — block premium actions when subscription is expired
+  const isExpired = (profile as { subscription_status?: string } | null)?.subscription_status === "expired";
+  const guardPremium = (action: () => void) => () => {
+    if (isExpired) {
+      setPaywallOpen(true);
+      return;
+    }
+    action();
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -454,7 +466,7 @@ const ClientDashboard = () => {
 
               <div className="mt-4 pt-3 border-t border-border grid sm:grid-cols-2 gap-2">
                 <Button
-                  onClick={() => setMealPlanOpen(true)}
+                  onClick={guardPremium(() => setMealPlanOpen(true))}
                   className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
@@ -462,7 +474,7 @@ const ClientDashboard = () => {
                   Idee Pasti e Spesa AI
                 </Button>
                 <Button
-                  onClick={() => setCheckinOpen(true)}
+                  onClick={guardPremium(() => setCheckinOpen(true))}
                   variant="outline"
                   className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
                 >
@@ -599,6 +611,7 @@ const ClientDashboard = () => {
           userId={user.id}
         />
       )}
+      <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Plus } from "lucide-react";
 import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
+import { PaywallModal } from "@/components/PaywallModal";
 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,9 @@ interface DailyLogWidgetProps {
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
   const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  // Phase 69: Soft Paywall — block AI Food Logger when subscription expired
+  const isExpired = (profile as { subscription_status?: string } | null)?.subscription_status === "expired";
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
@@ -195,6 +199,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
   return (
     <div className="space-y-0">
       <AIFoodLoggerModal open={aiModalOpen} onOpenChange={setAiModalOpen} logDate={logDate} />
+      <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />
       {/* Two-column layout: Log form + InBody accordion */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left: Daily Log Form */}
@@ -207,7 +212,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
               </CardTitle>
               <Button
                 size="sm"
-                onClick={() => setAiModalOpen(true)}
+                onClick={() => (isExpired ? setPaywallOpen(true) : setAiModalOpen(true))}
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
               >
                 <Plus className="h-3.5 w-3.5 mr-1" />
