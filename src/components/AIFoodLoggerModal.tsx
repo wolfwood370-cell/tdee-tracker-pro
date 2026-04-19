@@ -578,7 +578,7 @@ export function AIFoodLoggerModal({ open, onOpenChange, logDate }: AIFoodLoggerM
                     {/* Text Input */}
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">
-                        🎤 Descrivi cosa hai mangiato...
+                        Descrivi cosa hai mangiato...
                       </Label>
                       <Textarea
                         placeholder="es. 200g di petto di pollo con 80g di riso basmati e insalata mista"
