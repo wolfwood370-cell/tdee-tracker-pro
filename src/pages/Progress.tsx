@@ -13,7 +13,6 @@ export default function Progress() {
   const { user } = useAppStore();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("new");
   const [photoRefresh, setPhotoRefresh] = useState(0);
 
   const fetchEntries = useCallback(async () => {
@@ -48,19 +47,7 @@ export default function Progress() {
         </TabsList>
 
         <TabsContent value="charts" className="space-y-6 mt-0">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-1 bg-secondary">
-              <TabsTrigger value="new">Nuovo Check-in</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="new" className="mt-6">
-              <ProgressEntryForm
-                onSaved={() => {
-                  fetchEntries();
-                }}
-              />
-            </TabsContent>
-          </Tabs>
+          <ProgressEntryForm onSaved={() => fetchEntries()} />
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-6 mt-0">
