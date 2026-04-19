@@ -327,13 +327,13 @@ const ClientDashboard = () => {
       <Tabs defaultValue="action" className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-3 h-auto p-1">
           <TabsTrigger value="strategy" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            🎯 Strategia
+            Strategia
           </TabsTrigger>
           <TabsTrigger value="action" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            🔥 Oggi
+            Oggi
           </TabsTrigger>
           <TabsTrigger value="analytics" className="py-2.5 text-xs sm:text-sm font-display data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            📊 Analisi
+            Analisi
           </TabsTrigger>
         </TabsList>
 
