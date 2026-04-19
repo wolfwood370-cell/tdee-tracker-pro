@@ -452,12 +452,13 @@ const ClientDashboard = () => {
                   if (quality == null) return null;
                   const isGood = quality >= 8;
                   const isMid = quality >= 5;
-                  const tone = isGood ? "success" : isMid ? "warning" : "destructive";
+                  const bgCls = isGood ? "bg-success/10" : isMid ? "bg-warning/10" : "bg-destructive/10";
+                  const fgCls = isGood ? "text-success" : isMid ? "text-warning" : "text-destructive";
                   return (
-                    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 bg-${tone}/10`}>
-                      <Leaf className={`h-3.5 w-3.5 text-${tone}`} />
+                    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${bgCls}`}>
+                      <Leaf className={`h-3.5 w-3.5 ${fgCls}`} />
                       <span className="text-xs text-muted-foreground">Qualità:</span>
-                      <span className={`text-xs font-semibold text-${tone}`}>
+                      <span className={`text-xs font-semibold ${fgCls}`}>
                         {quality}/10 — {isGood ? 'Ottima' : isMid ? 'Discreta' : 'Bassa'}
                       </span>
                     </div>
