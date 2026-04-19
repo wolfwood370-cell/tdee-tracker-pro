@@ -481,20 +481,32 @@ export function calculateTargetMacros(
     }
   }
 
-  // Step 3: Safety clamp — ensure P*4 + C*4 + F*9 ≈ targetCalories (±5 kcal)
+  // Step 3: Safety clamp — trim hierarchy: Carbs → Fats → Protein (last resort).
+  // Protein is preserved to honor user's "High Protein" choice during deficits.
   const minProtein = Math.round(bodyWeightKg * 1.2);
   let generatedCal = protein * 4 + fats * 9 + carbs * 4;
+
   if (generatedCal > targetCalories + 5) {
-    const excessCal = generatedCal - targetCalories;
-    const proteinReduction = Math.ceil(excessCal / 4);
-    protein = Math.max(minProtein, protein - proteinReduction);
-    // Recompute in case protein hit the floor
-    generatedCal = protein * 4 + fats * 9 + carbs * 4;
-    if (generatedCal > targetCalories + 5) {
-      // Still over: trim carbs as last resort
-      const stillOver = generatedCal - targetCalories;
-      carbs = Math.max(0, carbs - Math.ceil(stillOver / 4));
+    // 3a. Trim Carbs first (down to 0)
+    let excessCal = generatedCal - targetCalories;
+    const carbReduction = Math.min(carbs, Math.ceil(excessCal / 4));
+    carbs -= carbReduction;
+    excessCal -= carbReduction * 4;
+
+    // 3b. Trim Fats second (down to fatFloorStd)
+    if (excessCal > 5 && fats > fatFloorStd) {
+      const fatReduction = Math.min(fats - fatFloorStd, Math.ceil(excessCal / 9));
+      fats -= fatReduction;
+      excessCal -= fatReduction * 9;
     }
+
+    // 3c. Trim Protein last (down to minProtein) — only if carbs=0 and fats at floor
+    if (excessCal > 5 && carbs === 0 && fats <= fatFloorStd && protein > minProtein) {
+      const proteinReduction = Math.min(protein - minProtein, Math.ceil(excessCal / 4));
+      protein -= proteinReduction;
+    }
+
+    generatedCal = protein * 4 + fats * 9 + carbs * 4;
   }
 
   // Step 4: Dynamic TEF Reward
@@ -537,12 +549,16 @@ export function calculateWeeklyPlan(opts: {
   proteinPref: ProteinPref;
   dietType: DietType;
   profileCreatedAt?: string;
+  strategyStartDate?: string | null;
   lbmKg?: number | null;
 }): WeeklyPlan {
   const {
     strategy, tdee, goalRateKgPerWeek, bodyWeightKg,
-    proteinPref, dietType, profileCreatedAt, lbmKg,
+    proteinPref, dietType, profileCreatedAt, strategyStartDate, lbmKg,
   } = opts;
+  // Phase 82: prefer strategyStartDate (when user actually selected this strategy)
+  // over profileCreatedAt for MATADOR/Reverse week counting.
+  const phaseAnchor = strategyStartDate ?? profileCreatedAt;
 
   const linearDailyCal = calculateTargetCalories(tdee, goalRateKgPerWeek);
   const linearMacros = calculateTargetMacros(linearDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg).macros;
