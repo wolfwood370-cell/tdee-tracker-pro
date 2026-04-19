@@ -104,7 +104,7 @@ export function CoachCopilotSection({ client, logs }: CoachCopilotSectionProps) 
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            ✨ Analizza Settimana con AI
+            Analizza Settimana con AI
           </Button>
         )}
 
