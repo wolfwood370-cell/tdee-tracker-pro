@@ -1,0 +1,1 @@
+UPDATE public.profiles SET terms_accepted = false, health_data_consent = false, marketing_consent = false WHERE id = '4439ab37-c8e5-4bef-b559-6dafb45bdb27';
