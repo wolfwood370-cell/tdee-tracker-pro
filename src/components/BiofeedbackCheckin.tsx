@@ -143,7 +143,7 @@ export const BiofeedbackCheckin = forwardRef<HTMLDivElement, BiofeedbackCheckinP
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
-            Check-in Quotidiano
+            ⚡ Biofeedback Odierno
           </CardTitle>
           <p className="text-xs text-muted-foreground">
             Come ti sei sentito oggi? Valuta ogni area da 1 a 5.
