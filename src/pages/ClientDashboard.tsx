@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles, ClipboardCheck } from "lucide-react";
+import { WeeklyCheckinModal } from "@/components/WeeklyCheckinModal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const ClientDashboard = () => {
   const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
   const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
+  const [checkinOpen, setCheckinOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
