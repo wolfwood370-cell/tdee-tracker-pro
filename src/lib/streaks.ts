@@ -74,3 +74,68 @@ export function calculateStreak(
 
   return streak;
 }
+
+/**
+ * Phase 70: persistent streak engine.
+ * Call after a meaningful daily activity (meal logged, biofeedback saved).
+ * - Same-day repeat activity: no change.
+ * - Yesterday was the last activity: increment.
+ * - Older / never: reset to 1.
+ * Updates `profiles.current_streak` and `profiles.last_activity_date`.
+ * Returns the new streak (or null on error).
+ */
+export async function bumpStreak(
+  userId: string,
+  currentStreak: number,
+  lastActivityDate: string | null,
+): Promise<number | null> {
+  const today = toLocalISODate(new Date());
+  if (lastActivityDate === today) return currentStreak; // already counted today
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = toLocalISODate(yesterday);
+
+  const newStreak =
+    lastActivityDate === yesterdayStr ? (currentStreak ?? 0) + 1 : 1;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ current_streak: newStreak, last_activity_date: today })
+    .eq("id", userId);
+
+  if (error) {
+    console.error("bumpStreak error:", error);
+    return null;
+  }
+  return newStreak;
+}
+
+/**
+ * Phase 70: Perfect Day flag — calories within ±5% of target.
+ * Persists `is_perfect_day` on the daily_metrics row for that date.
+ */
+export async function markPerfectDayIfApplicable(
+  userId: string,
+  logDate: string,
+  consumedCalories: number,
+  targetCalories: number,
+  alreadyPerfect: boolean,
+): Promise<boolean> {
+  if (!targetCalories || targetCalories <= 0 || !consumedCalories) return alreadyPerfect;
+  const lower = targetCalories * 0.95;
+  const upper = targetCalories * 1.05;
+  const isPerfect = consumedCalories >= lower && consumedCalories <= upper;
+  if (isPerfect === alreadyPerfect) return alreadyPerfect;
+
+  const { error } = await supabase
+    .from("daily_metrics")
+    .update({ is_perfect_day: isPerfect })
+    .eq("user_id", userId)
+    .eq("log_date", logDate);
+  if (error) {
+    console.error("markPerfectDayIfApplicable error:", error);
+    return alreadyPerfect;
+  }
+  return isPerfect;
+}
