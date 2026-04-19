@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores";
 
 /**
@@ -16,10 +18,30 @@ import { useAppStore } from "@/stores";
  *      → redirect to /onboarding.
  *  - Client + onboarding completed + path === "/onboarding"
  *      → redirect to /client-dashboard.
+ *
+ * Performance: uses individual selectors so this guard only re-renders
+ * when auth/profile state actually changes (not on every log mutation).
  */
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { user, profile, isLoading } = useAppStore();
+  const user = useAppStore((s) => s.user);
+  const profile = useAppStore((s) => s.profile);
+  const isLoading = useAppStore((s) => s.isLoading);
   const location = useLocation();
+
+  // Safety net: if profile fetch never resolves (network error in useAuth),
+  // surface a recoverable UI instead of an infinite spinner.
+  const [profileTimeout, setProfileTimeout] = useState(false);
+  const isClient = !!user && user.role === "client";
+  const waitingForProfile = isClient && !profile && !isLoading;
+
+  useEffect(() => {
+    if (!waitingForProfile) {
+      setProfileTimeout(false);
+      return;
+    }
+    const t = setTimeout(() => setProfileTimeout(true), 5000);
+    return () => clearTimeout(t);
+  }, [waitingForProfile]);
 
   if (isLoading) {
     return (
@@ -35,8 +57,25 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   // Coaches don't go through onboarding
   if (user.role === "coach") return <>{children}</>;
 
-  // Profile not yet fetched: spinner instead of flicker
+  // Profile not yet fetched
   if (!profile) {
+    if (profileTimeout) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background px-6">
+          <div className="max-w-sm w-full text-center space-y-4">
+            <p className="text-foreground font-medium">
+              Impossibile caricare il tuo profilo
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Controlla la connessione e riprova.
+            </p>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Riprova
+            </Button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
