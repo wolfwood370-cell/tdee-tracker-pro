@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Sparkles } from "lucide-react";
+import { Crown, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaywallModalProps {
   open: boolean;
@@ -9,14 +11,24 @@ interface PaywallModalProps {
 }
 
 export function PaywallModal({ open, onOpenChange }: PaywallModalProps) {
-  const handleDiscoverPlans = () => {
-    toast.info("Integrazione pagamenti in arrivo!", {
-      description: "A breve potrai attivare l'abbonamento direttamente da qui.",
-    });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout");
+      if (error) throw error;
+      if (!data?.url) throw new Error("URL di checkout non ricevuto");
+      window.location.href = data.url;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore imprevisto";
+      toast.error("Impossibile avviare il pagamento", { description: message });
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => !loading && onOpenChange(o)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/30">
@@ -47,11 +59,18 @@ export function PaywallModal({ open, onOpenChange }: PaywallModalProps) {
         </div>
 
         <DialogFooter className="sm:justify-between gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
             Forse più tardi
           </Button>
-          <Button onClick={handleDiscoverPlans} className="gap-1.5">
-            Scopri i Piani
+          <Button onClick={handleSubscribe} className="gap-1.5" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Reindirizzamento sicuro...
+              </>
+            ) : (
+              "Attiva Abbonamento"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

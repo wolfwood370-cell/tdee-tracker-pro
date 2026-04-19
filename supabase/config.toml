@@ -2,3 +2,6 @@ project_id = "wqiedbnpvdipdjgutkzl"
 
 [functions.get-vapid-public-key]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
