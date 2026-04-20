@@ -68,7 +68,8 @@ const PROTEIN_PREFS = [
 ];
 
 export default function Settings() {
-  const { user, profile, setProfile } = useAppStore();
+  const { user, profile, setProfile, logout } = useAppStore();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
   const [sex, setSex] = useState("not_set");
