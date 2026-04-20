@@ -519,13 +519,12 @@ export default function Settings() {
               <p className="text-xs text-muted-foreground">
                 Rivedi o aggiorna le tue scelte di tracciamento e cookie in qualsiasi momento.
               </p>
-              <a
-                href="#"
+              <button
+                type="button"
                 className="iubenda-cs-preferences-link inline-flex items-center text-sm font-medium text-primary hover:underline"
-                onClick={(e) => e.preventDefault()}
               >
                 Gestisci preferenze Cookie
-              </a>
+              </button>
             </div>
 
             {/* Delete Account */}
@@ -539,7 +538,8 @@ export default function Settings() {
               </p>
               <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full" disabled={deleting}>
+              <span className="block w-full">
+                <Button variant="destructive" className="w-full" disabled={deleting}>
                 {deleting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -551,7 +551,8 @@ export default function Settings() {
                     Elimina il mio account
                   </>
                 )}
-              </Button>
+                </Button>
+              </span>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
