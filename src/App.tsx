@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -51,7 +52,35 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
 
 function AppRoutes() {
   const { user, isLoading } = useAppStore();
+  const profile = useAppStore((s) => s.profile);
   useAuth();
+
+  // Phase 96: global safety timeout. If auth+profile aren't ready in 5s,
+  // force a local logout and bounce to /login to keep the app interactive.
+  useEffect(() => {
+    if (!isLoading && (!user || profile)) return;
+    const t = setTimeout(async () => {
+      const state = useAppStore.getState();
+      if (state.isLoading || (state.user && !state.profile)) {
+        console.warn("Global auth timeout reached. Forcing logout.");
+        try {
+          const { supabase } = await import("@/integrations/supabase/client");
+          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        } catch {}
+        try {
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
+            .forEach((k) => localStorage.removeItem(k));
+        } catch {}
+        useAppStore.getState().logout();
+        useAppStore.getState().setLoading(false);
+        if (window.location.pathname !== "/" && window.location.pathname !== "/login") {
+          window.location.replace("/login");
+        }
+      }
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [isLoading, user, profile]);
 
   if (isLoading) {
     return (

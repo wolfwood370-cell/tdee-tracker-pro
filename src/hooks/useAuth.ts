@@ -50,18 +50,29 @@ export function useAuth() {
           .single();
 
         const role: AppRole = roleData?.role ?? "client";
-        store.setUser({ id: userId, email, role });
 
         // Fetch profile
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
-        if (profileData) {
-          store.setProfile(profileData);
+        // Ghost session: authenticated but profile missing → wipe local session.
+        if (!profileData || profileError) {
+          console.warn("Ghost session detected (profile missing). Forcing local logout.");
+          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+          try {
+            Object.keys(localStorage)
+              .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
+              .forEach((k) => localStorage.removeItem(k));
+          } catch {}
+          useAppStore.getState().logout();
+          return;
         }
+
+        store.setUser({ id: userId, email, role });
+        store.setProfile(profileData);
       } catch (e) {
         console.error("Error loading session data:", e);
       } finally {

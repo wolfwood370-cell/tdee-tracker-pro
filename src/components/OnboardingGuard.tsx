@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores";
 import { ConsentGate } from "@/components/ConsentGate";
 
@@ -61,21 +60,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   // Profile not yet fetched
   if (!profile) {
     if (profileTimeout) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-6">
-          <div className="max-w-sm w-full text-center space-y-4">
-            <p className="text-foreground font-medium">
-              Impossibile caricare il tuo profilo
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Controlla la connessione e riprova.
-            </p>
-            <Button onClick={() => window.location.reload()} className="w-full">
-              Riprova
-            </Button>
-          </div>
-        </div>
-      );
+      // Ghost session safety net: redirect to auth instead of hanging.
+      return <Navigate to="/login" replace />;
     }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
