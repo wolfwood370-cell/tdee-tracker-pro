@@ -36,6 +36,7 @@ import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ConsentGate } from "@/components/ConsentGate";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
 const ClientDashboard = () => {
   const {
