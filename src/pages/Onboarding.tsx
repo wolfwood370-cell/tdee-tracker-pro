@@ -962,7 +962,7 @@ export default function Onboarding() {
                     </h3>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Dichiaro di aver compreso che NC Metabolic Tracker e i
+                    Dichiaro di aver compreso che NC Nutrition e i
                     servizi offerti dal Coach non sostituiscono in alcun modo il
                     parere di un medico o le prescrizioni di un biologo
                     nutrizionista. Le strategie proposte sono calcoli matematici
