@@ -33,6 +33,7 @@ import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { ReleaseNotesModal } from "@/components/ReleaseNotesModal";
 
 const ClientDashboard = () => {
   const {
@@ -280,6 +281,7 @@ const ClientDashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <ReleaseNotesModal />
       <div className="flex items-center gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
