@@ -190,26 +190,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Iubenda widget — keep cookie banner clear of MobileBottomNav on mobile */
-@media (max-width: 768px) {
-  #iubenda-cs-banner {
-    bottom: 85px !important;
-  }
-}
-
-/* Aggressive force-hide for Iubenda floating badge without premium plan.
-   Targets all variations of Iubenda's floating containers with extreme specificity. */
-[id^="iubenda-cs-floating"],
-.iubenda-cs-floating-button,
-#iubenda-cs-preferences-link-floating {
+/* Iubenda widget completely removed from the project (no script loaded). */
+/* Defensive fallback: hide any residual Iubenda element should the script
+   ever be re-injected (e.g. by a third party or browser extension). */
+[id^="iubenda-"],
+[class*="iubenda-cs-"],
+[class*="iub-cs-"],
+#iubenda-cs-banner,
+#iubenda-cs-floating-widget {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
-  z-index: -9999 !important;
-}
-
-/* Legacy fallback for older Iubenda implementations */
-.iubenda-cs-floating-button {
-  display: none !important;
 }
