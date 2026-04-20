@@ -26,77 +26,8 @@
   <meta property="og:description" content="NC Nutrition — Piattaforma di monitoraggio TDEE adattivo e coaching nutrizionale personalizzato by NC Personal Trainer.">
   <meta name="twitter:description" content="NC Nutrition — Piattaforma di monitoraggio TDEE adattivo e coaching nutrizionale personalizzato by NC Personal Trainer.">
 
-  <!-- Iubenda Privacy & Cookie Policy loader -->
-  <script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
-
-  <!-- Iubenda Cookie Solution widget -->
-  <script type="text/javascript" src="https://embeds.iubenda.com/widgets/0275b5bc-72c7-4784-b383-add19d2ac9ca.js"></script>
-
-  <!-- Aggressively hide Iubenda floating badge (free plan workaround).
-       Iubenda often renders inside shadow DOM or with random IDs, so we hunt
-       all known selectors plus any element whose id/class contains "iubenda" and "floating". -->
-  <style>
-    [id^="iubenda-cs-floating"],
-    [id*="iubenda"][id*="floating"],
-    [class*="iubenda"][class*="floating"],
-    .iubenda-cs-floating-button,
-    #iubenda-cs-preferences-link-floating,
-    #iubenda-cs-floating-widget,
-    .iub-cs-floating-widget {
-      display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      width: 0 !important;
-      height: 0 !important;
-      z-index: -9999 !important;
-    }
-  </style>
-  <script>
-    (function () {
-      var SELECTORS = '[id^="iubenda-cs-floating"], [id*="iubenda"][id*="floating"], [class*="iubenda"][class*="floating"], .iubenda-cs-floating-button, #iubenda-cs-preferences-link-floating, #iubenda-cs-floating-widget, .iub-cs-floating-widget';
-
-      function hideEl(el) {
-        try {
-          el.style.setProperty('display', 'none', 'important');
-          el.style.setProperty('opacity', '0', 'important');
-          el.style.setProperty('visibility', 'hidden', 'important');
-          el.style.setProperty('pointer-events', 'none', 'important');
-          el.style.setProperty('width', '0', 'important');
-          el.style.setProperty('height', '0', 'important');
-        } catch (e) {}
-      }
-
-      function hideInRoot(root) {
-        if (!root || !root.querySelectorAll) return;
-        try {
-          root.querySelectorAll(SELECTORS).forEach(hideEl);
-          // Recurse into any open shadow roots
-          root.querySelectorAll('*').forEach(function (node) {
-            if (node.shadowRoot) hideInRoot(node.shadowRoot);
-          });
-        } catch (e) {}
-      }
-
-      function sweep() {
-        hideInRoot(document);
-      }
-
-      // Initial sweeps + repeated for late injection
-      sweep();
-      var attempts = 0;
-      var interval = setInterval(function () {
-        sweep();
-        if (++attempts > 40) clearInterval(interval); // ~20s
-      }, 500);
-
-      document.addEventListener('DOMContentLoaded', function () {
-        sweep();
-        var observer = new MutationObserver(sweep);
-        observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['id', 'class'] });
-      });
-    })();
-  </script>
+  <!-- Iubenda widget completely removed. Privacy & Cookie Policy are linked
+       directly to iubenda.com URLs from the app UI (Settings, Footer). -->
 </head>
 
   <body>

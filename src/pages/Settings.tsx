@@ -36,8 +36,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-declare global { interface Window { _iub?: { cs?: { api?: { openPreferences: () => void; } } } } }
-
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
   { value: "1.375", label: "Leggermente attivo (1-3 allenamenti/sett)" },
@@ -513,27 +511,34 @@ export default function Settings() {
             {/* Push Notifications */}
             <PushNotificationManager />
 
-{/* Cookie preferences — Iubenda triggers via Window API */}
+            {/* Privacy & Cookie Policy links (hosted on Iubenda) */}
             <div className="rounded-lg border border-border p-4 space-y-2">
               <p className="text-sm font-display font-semibold text-foreground">
-                Preferenze Cookie
+                Privacy e Cookie
               </p>
               <p className="text-xs text-muted-foreground">
-                Rivedi o aggiorna le tue scelte di tracciamento e cookie in qualsiasi momento.
+                Consulta le nostre policy ufficiali aggiornate.
               </p>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  if (window._iub && window._iub.cs && window._iub.cs.api) {
-                    window._iub.cs.api.openPreferences();
-                  } else {
-                    alert("Pannello cookie non ancora caricato. Riprova tra un istante.");
-                  }
-                }}
-              >
-                Gestisci preferenze Cookie
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button asChild variant="outline" className="w-full">
+                  <a
+                    href="https://www.iubenda.com/privacy-policy/0275b5bc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
+                  </a>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <a
+                    href="https://www.iubenda.com/privacy-policy/0275b5bc/cookie-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Cookie Policy
+                  </a>
+                </Button>
+              </div>
             </div>
 
             {/* Delete Account */}
