@@ -287,21 +287,21 @@ export default function Settings() {
               <Switch checked={trackMenstrualCycle} onCheckedChange={setTrackMenstrualCycle} />
             </div>
           )}
-        </CardContent>
-      </Card>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Nutrition & Goals Card */}
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-primary" />
-            Nutrizione & Obiettivi
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Questi parametri determinano i tuoi target calorici e macro giornalieri
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-5">
+        {/* ============ GROUP: NUTRITION & GOALS ============ */}
+        <AccordionItem
+          value="nutrition"
+          className="glass-card border border-border rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            <span className="flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-primary" />
+              Nutrizione & Obiettivi
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2">
           {/* Diet Type */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
