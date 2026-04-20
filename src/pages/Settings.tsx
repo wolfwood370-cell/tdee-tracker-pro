@@ -521,20 +521,12 @@ export default function Settings() {
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button asChild variant="outline" className="w-full">
-                  <a
-                    href="https://www.iubenda.com/privacy-policy/0275b5bc"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer">
                     Privacy Policy
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <a
-                    href="https://www.iubenda.com/privacy-policy/0275b5bc/cookie-policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/cookies" target="_blank" rel="noopener noreferrer">
                     Cookie Policy
                   </a>
                 </Button>
