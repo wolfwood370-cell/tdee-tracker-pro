@@ -306,35 +306,11 @@ const AuthPage = () => {
                             . <span className="text-destructive">*</span>
                           </Label>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Checkbox
-                            id="reg-health"
-                            checked={acceptHealth}
-                            onCheckedChange={(v) => setAcceptHealth(v === true)}
-                            className="mt-0.5"
-                          />
-                          <Label htmlFor="reg-health" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
-                            Consento al trattamento dei miei dati sanitari e biometrici
-                            (peso, macro, biofeedback) per le finalità del servizio.{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                        </div>
-                        <div className="flex items-start gap-2.5">
-                          <Checkbox
-                            id="reg-marketing"
-                            checked={acceptMarketing}
-                            onCheckedChange={(v) => setAcceptMarketing(v === true)}
-                            className="mt-0.5"
-                          />
-                          <Label htmlFor="reg-marketing" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
-                            Voglio ricevere aggiornamenti e consigli via email (opzionale).
-                          </Label>
-                        </div>
                       </div>
                       <Button
                         type="submit"
                         className="w-full"
-                        disabled={isSubmitting || !acceptTerms || !acceptHealth}
+                        disabled={isSubmitting || !acceptTerms}
                       >
                         {isSubmitting ? "Creazione account..." : "Crea Account"}
                       </Button>
