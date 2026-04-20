@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores";
 import { ConsentGate } from "@/components/ConsentGate";
 
