@@ -42,7 +42,8 @@ const LandingPage = () => {
       </div>
 
       {/* Header */}
-      <header className="container mx-auto flex items-center justify-between px-6 py-6">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
             <Activity className="h-5 w-5 text-primary" />
@@ -54,6 +55,7 @@ const LandingPage = () => {
             Accedi
           </Button>
         </Link>
+       </div>
       </header>
 
       {/* Hero */}

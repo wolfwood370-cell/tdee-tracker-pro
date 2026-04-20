@@ -189,3 +189,11 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Iubenda widget — lift above MobileBottomNav on mobile to avoid overlap */
+@media (max-width: 768px) {
+  #iubenda-cs-banner,
+  .iubenda-cs-floating-button {
+    bottom: 85px !important;
+  }
+}

@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Settings from "./pages/Settings";
 import Progress from "./pages/Progress";
+import Log from "./pages/Log";
 import Messages from "./pages/Messages";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -109,6 +110,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRole="client">
             <Progress />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/log"
+        element={
+          <ProtectedRoute allowedRole="client">
+            <Log />
           </ProtectedRoute>
         }
       />

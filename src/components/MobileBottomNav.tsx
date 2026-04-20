@@ -14,7 +14,7 @@ interface NavItem {
 // hanno rotte dedicate.
 const ITEMS: NavItem[] = [
   { to: "/client-dashboard", label: "Dashboard", icon: Home, end: true },
-  { to: "/client-dashboard", label: "Diario", icon: BookOpen },
+  { to: "/log", label: "Diario", icon: BookOpen },
   { to: "/progress", label: "Progressi", icon: TrendingUp },
   { to: "/settings", label: "Profilo", icon: User },
 ];

@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
-import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
@@ -30,8 +29,6 @@ import {
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { PaywallModal } from "@/components/PaywallModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
-import { TodayDiary } from "@/components/TodayDiary";
-import { QuickWaterButton } from "@/components/QuickWaterButton";
 import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -60,8 +57,6 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
-  const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -134,11 +129,8 @@ const ClientDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, extra?: Record<string, unknown>) => {
-    setEditTrigger({ logDate, weight, calories, ...extra });
-    setTimeout(() => {
-      logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
+  const handleEditLog = useCallback(() => {
+    // History edits now live in /log — keep no-op for back-compat.
   }, []);
 
   const todayStr = toLocalISODate(new Date());
@@ -534,32 +526,6 @@ const ClientDashboard = () => {
           {/* Metabolic Engine Insight */}
           <MetabolicEngineWidget />
 
-          {/* Quick Hydration */}
-          <Card className="glass-card border-border">
-            <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <GlassWater className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="text-sm font-display font-semibold text-foreground">Idratazione Rapida</p>
-                  <p className="text-xs text-muted-foreground">
-                    Target: {microTargets.waterL} L · Tocca per registrare un sorso
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <QuickWaterButton logDate={todayStr} incrementL={0.25} />
-                <QuickWaterButton logDate={todayStr} incrementL={0.5} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Today's Diary (deletable meal entries) */}
-          <TodayDiary logDate={todayStr} />
-
-          {/* Daily Log */}
-          <div ref={logWidgetRef}>
-            <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
-          </div>
         </TabsContent>
 
         {/* ============ STRATEGY TAB ============ */}

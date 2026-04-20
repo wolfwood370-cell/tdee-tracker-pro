@@ -29,6 +29,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
@@ -192,12 +198,20 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* Profile Card */}
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display">Profilo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Accordion
+        type="multiple"
+        defaultValue={["biometrics"]}
+        className="space-y-3"
+      >
+        {/* ============ GROUP 1: BIOMETRICS ============ */}
+        <AccordionItem
+          value="biometrics"
+          className="glass-card border border-border rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            Impostazioni Biometriche
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Nome completo</Label>
             <Input
@@ -273,21 +287,22 @@ export default function Settings() {
               <Switch checked={trackMenstrualCycle} onCheckedChange={setTrackMenstrualCycle} />
             </div>
           )}
-        </CardContent>
-      </Card>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Nutrition & Goals Card */}
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-primary" />
-            Nutrizione & Obiettivi
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Questi parametri determinano i tuoi target calorici e macro giornalieri
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-5">
+        {/* ============ GROUP: NUTRITION & GOALS ============ */}
+        <AccordionItem
+          value="nutrition"
+          className="glass-card border border-border rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            <span className="flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-primary" />
+              Nutrizione & Obiettivi
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2">
+          <div className="space-y-5">
           {/* Diet Type */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
@@ -449,25 +464,63 @@ export default function Settings() {
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+          </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Push Notifications */}
-      <PushNotificationManager />
+        {/* ============ GROUP 2: SUBSCRIPTION ============ */}
+        <AccordionItem
+          value="subscription"
+          className="glass-card border border-border rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            Abbonamento e Pagamenti
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 space-y-3">
+            <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Stato abbonamento</span>
+                <span className="text-sm font-semibold text-foreground capitalize">
+                  {profile?.subscription_status ?? "—"}
+                </span>
+              </div>
+              {profile?.trial_ends_at && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Periodo di prova fino al</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {new Date(profile.trial_ends_at).toLocaleDateString("it-IT")}
+                  </span>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground pt-1">
+                Per gestire il tuo abbonamento o aggiornare il metodo di pagamento, contatta il tuo coach.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Delete Account */}
-      <Card className="glass-card border-destructive/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display text-destructive flex items-center gap-2">
-            <Trash2 className="h-5 w-5" />
-            Elimina Account
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Questa azione è irreversibile. Tutti i tuoi dati, log e impostazioni verranno eliminati permanentemente.
-          </p>
-          <AlertDialog>
+        {/* ============ GROUP 3: SECURITY & PRIVACY ============ */}
+        <AccordionItem
+          value="security"
+          className="glass-card border border-destructive/30 rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            Sicurezza e Privacy
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 space-y-4">
+            {/* Push Notifications */}
+            <PushNotificationManager />
+
+            {/* Delete Account */}
+            <div className="rounded-lg border border-destructive/30 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-destructive">
+                <Trash2 className="h-5 w-5" />
+                <span className="font-display font-semibold">Elimina Account</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Questa azione è irreversibile. Tutti i tuoi dati, log e impostazioni verranno eliminati permanentemente.
+              </p>
+              <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" disabled={deleting}>
                 {deleting ? (
@@ -517,8 +570,10 @@ export default function Settings() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </CardContent>
-      </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
