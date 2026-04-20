@@ -509,6 +509,18 @@ export function calculateTargetMacros(
     generatedCal = protein * 4 + fats * 9 + carbs * 4;
   }
 
+  // Step 3.5: Physiological fat ceiling — cap fats at 1.5 g/kg of bodyweight
+  // (except keto, which is fat-driven by definition). Any residual calories
+  // are redistributed back into carbohydrates to preserve the caloric target.
+  if (dietType !== 'keto') {
+    const fatCeiling = Math.round(bodyWeightKg * 1.5);
+    if (fats > fatCeiling) {
+      const excessFatCal = (fats - fatCeiling) * 9;
+      fats = fatCeiling;
+      carbs += Math.round(excessFatCal / 4);
+    }
+  }
+
   // Step 4: Dynamic TEF Reward
   const standardTef = targetCalories * 0.10;
   const dynamicTef = (protein * 4 * 0.25) + (carbs * 4 * 0.08) + (fats * 9 * 0.02);
