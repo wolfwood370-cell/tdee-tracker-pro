@@ -31,6 +31,21 @@
 
   <!-- Iubenda Cookie Solution widget -->
   <script type="text/javascript" src="https://embeds.iubenda.com/widgets/0275b5bc-72c7-4784-b383-add19d2ac9ca.js"></script>
+
+  <!-- MutationObserver to aggressively hide Iubenda floating badge if it spawns dynamically -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const observer = new MutationObserver(() => {
+        const floatingBadges = document.querySelectorAll('[id^="iubenda-cs-floating"], .iubenda-cs-floating-button');
+        floatingBadges.forEach(badge => {
+          badge.style.setProperty('display', 'none', 'important');
+          badge.style.setProperty('opacity', '0', 'important');
+          badge.style.setProperty('pointer-events', 'none', 'important');
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  </script>
 </head>
 
   <body>
