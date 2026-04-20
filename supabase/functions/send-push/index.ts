@@ -16,11 +16,12 @@ const corsHeaders = {
 };
 
 interface Payload {
-  user_id: string;
+  user_id?: string;
   title: string;
   body: string;
   url?: string;
   icon?: string;
+  broadcast?: boolean;
 }
 
 Deno.serve(async (req) => {
