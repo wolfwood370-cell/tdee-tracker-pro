@@ -1,11 +1,13 @@
 import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle, TrendingUp, WifiOff } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/stores";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useSyncStore } from "@/stores/syncStore";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -41,8 +43,31 @@ export function AppSidebar() {
   const unreadCount = useUnreadMessages();
   const isOnline = useNetworkStatus();
   const queueLength = useSyncStore((s) => s.syncQueue.length);
+  const navigate = useNavigate();
 
   const items = user?.role === "coach" ? coachNav : clientNav;
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("[logout] signOut error:", e);
+    }
+    try {
+      logout();
+    } catch {
+      // safe to ignore
+    }
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // localStorage may be unavailable; safe to ignore.
+    }
+    toast.success("Sessione terminata. A presto!");
+    navigate("/auth", { replace: true });
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -129,10 +154,7 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            logout();
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" />
           {!collapsed && "Esci"}

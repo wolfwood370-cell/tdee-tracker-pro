@@ -22,7 +22,11 @@ import {
   Info,
   ClipboardCheck,
   Inbox,
+  LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAppStore } from "@/stores";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import { CoachRecipeManager } from "@/components/CoachRecipeManager";
@@ -96,6 +100,30 @@ const CoachDashboard = () => {
   const [selectedClient, setSelectedClient] = useState<ClientRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingCheckinUserIds, setPendingCheckinUserIds] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
+  const { logout } = useAppStore();
+
+  const handleCoachLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("[coach-logout] signOut error:", e);
+    }
+    try {
+      logout();
+    } catch {
+      // safe to ignore
+    }
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // localStorage may be unavailable; safe to ignore.
+    }
+    toast.success("Sessione coach terminata.");
+    navigate("/auth", { replace: true });
+  };
 
   useEffect(() => {
     fetchClients();
@@ -286,13 +314,24 @@ const CoachDashboard = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">
-            Triage Clinico
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Sistema di priorità: i clienti critici sono in cima
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              Triage Clinico
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Sistema di priorità: i clienti critici sono in cima
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCoachLogout}
+            className="shrink-0 text-muted-foreground hover:text-destructive hover:border-destructive/40"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Esci</span>
+          </Button>
         </div>
 
         {/* Stats Overview */}
