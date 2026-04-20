@@ -511,6 +511,23 @@ export default function Settings() {
             {/* Push Notifications */}
             <PushNotificationManager />
 
+            {/* Cookie preferences — Iubenda hooks into the className below */}
+            <div className="rounded-lg border border-border p-4 space-y-2">
+              <p className="text-sm font-display font-semibold text-foreground">
+                Preferenze Cookie
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Rivedi o aggiorna le tue scelte di tracciamento e cookie in qualsiasi momento.
+              </p>
+              <a
+                href="#"
+                className="iubenda-cs-preferences-link inline-flex items-center text-sm font-medium text-primary hover:underline"
+                onClick={(e) => e.preventDefault()}
+              >
+                Gestisci preferenze Cookie
+              </a>
+            </div>
+
             {/* Delete Account */}
             <div className="rounded-lg border border-destructive/30 p-4 space-y-3">
               <div className="flex items-center gap-2 text-destructive">
