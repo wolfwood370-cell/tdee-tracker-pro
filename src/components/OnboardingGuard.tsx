@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores";
+import { ConsentGate } from "@/components/ConsentGate";
 
 /**
  * OnboardingGuard
@@ -81,6 +82,15 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Phase 95: Strict sequence — Auth → Consent → Onboarding → Dashboard.
+  // Block EVERYTHING (including onboarding) until mandatory consents are granted.
+  const consentGranted =
+    profile.terms_accepted === true && profile.health_data_consent === true;
+
+  if (!consentGranted) {
+    return <ConsentGate />;
   }
 
   const completed = profile.onboarding_completed === true;
