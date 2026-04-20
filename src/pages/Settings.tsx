@@ -36,6 +36,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+declare global { interface Window { _iub?: { cs?: { api?: { openPreferences: () => void; } } } } }
+
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
   { value: "1.375", label: "Leggermente attivo (1-3 allenamenti/sett)" },
