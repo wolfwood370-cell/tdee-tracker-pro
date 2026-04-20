@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useAppStore } from "@/stores";
 
 interface AuthLayoutProps {
@@ -28,11 +29,12 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
               </div>
             )}
           </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto max-md:pb-24">
             {children}
           </main>
         </div>
         <PWAInstallPrompt />
+        {user?.role === "client" && <MobileBottomNav />}
       </div>
     </SidebarProvider>
   );
