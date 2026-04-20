@@ -35,35 +35,41 @@ export default function Progress() {
   if (!user) return null;
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
         <TrendingUp className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-display font-bold text-foreground">Progressi</h1>
+        <h1 className="text-2xl font-display font-bold text-foreground">Progressi</h1>
       </div>
 
       <Tabs defaultValue="charts" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 bg-secondary">
-          <TabsTrigger value="charts">Grafici</TabsTrigger>
+          <TabsTrigger value="charts">Misure</TabsTrigger>
           <TabsTrigger value="photos">Foto</TabsTrigger>
           <TabsTrigger value="reports">Report</TabsTrigger>
         </TabsList>
 
         <TabsContent value="charts" className="space-y-6 mt-0">
-          <ProgressEntryForm onSaved={() => fetchEntries()} />
+          <div>
+            <ProgressEntryForm onSaved={() => fetchEntries()} />
+          </div>
         </TabsContent>
 
         <TabsContent value="photos" className="space-y-6 mt-0">
-          <ProgressPhotoUpload onUploaded={() => setPhotoRefresh((n) => n + 1)} />
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground animate-pulse">Caricamento...</div>
-          ) : (
-            <ProgressComparison entries={entries} />
-          )}
-          <ProgressPhotoGallery userId={user.id} refreshKey={photoRefresh} />
+          <div className="space-y-6">
+            <ProgressPhotoUpload onUploaded={() => setPhotoRefresh((n) => n + 1)} />
+            {isLoading ? (
+              <div className="text-center py-12 text-muted-foreground animate-pulse">Caricamento...</div>
+            ) : (
+              <ProgressComparison entries={entries} />
+            )}
+            <ProgressPhotoGallery userId={user.id} refreshKey={photoRefresh} />
+          </div>
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-6 mt-0">
-          <MonthlyReportsView />
+          <div>
+            <MonthlyReportsView />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
