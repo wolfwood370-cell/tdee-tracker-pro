@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
@@ -67,7 +68,8 @@ const PROTEIN_PREFS = [
 ];
 
 export default function Settings() {
-  const { user, profile, setProfile } = useAppStore();
+  const { user, profile, setProfile, logout } = useAppStore();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
   const [sex, setSex] = useState("not_set");
@@ -579,8 +581,24 @@ export default function Settings() {
                       const res = await supabase.functions.invoke("delete-user");
                       if (res.error) throw res.error;
                       
-                      await supabase.auth.signOut();
+                      // User no longer exists server-side: clear local session only
+                      // (a global signOut would 403 on user_not_found and leave a ghost token).
+                      try {
+                        await supabase.auth.signOut({ scope: 'local' });
+                      } catch (e) {
+                        console.warn("Local signOut warning:", e);
+                      }
+
+                      // Reset Zustand store and clear app-managed local storage
+                      logout();
+                      try {
+                        Object.keys(localStorage)
+                          .filter((k) => k.startsWith('sb-') || k.startsWith('nc-') || k === 'app-storage')
+                          .forEach((k) => localStorage.removeItem(k));
+                      } catch {}
+
                       toast({ title: "Account eliminato", description: "Il tuo account è stato eliminato con successo." });
+                      navigate("/", { replace: true });
                     } catch (e) {
                       console.error("Delete account error:", e);
                       toast({ title: "Errore", description: e instanceof Error ? e.message : "Impossibile eliminare l'account.", variant: "destructive" });
