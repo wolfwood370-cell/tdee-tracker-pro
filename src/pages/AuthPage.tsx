@@ -42,10 +42,10 @@ const AuthPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acceptTerms || !acceptHealth) {
+    if (!acceptTerms) {
       toast({
-        title: "Consensi obbligatori",
-        description: "Devi accettare i Termini e il consenso al trattamento dei dati sanitari.",
+        title: "Termini obbligatori",
+        description: "Devi accettare i Termini e Condizioni per registrarti.",
         variant: "destructive",
       });
       return;
@@ -65,15 +65,12 @@ const AuthPage = () => {
         : error.message;
       toast({ title: "Errore di registrazione", description: msg, variant: "destructive" });
     } else {
-      // Persist consents on the freshly-created profile (handle_new_user trigger has just inserted it)
+      // Persist Terms acceptance only. Health & marketing consents are collected
+      // by the ConsentGate immediately after first login (Phase 97).
       if (data.user?.id) {
         await supabase
           .from("profiles")
-          .update({
-            terms_accepted: true,
-            health_data_consent: true,
-            marketing_consent: acceptMarketing,
-          })
+          .update({ terms_accepted: true })
           .eq("id", data.user.id);
       }
       toast({ title: "Account creato!", description: "Controlla la tua email (anche nello spam) per la verifica." });
