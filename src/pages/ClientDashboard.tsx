@@ -36,6 +36,7 @@ import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ConsentGate } from "@/components/ConsentGate";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
 const ClientDashboard = () => {
   const {
@@ -64,6 +65,7 @@ const ClientDashboard = () => {
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Phase 69: Soft Paywall — block premium actions when subscription is expired.
   // Coaches are never paywalled (defensive: their subscription_status is irrelevant).
@@ -79,6 +81,7 @@ const ClientDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
+    setIsLoading(true);
     supabase
       .from("daily_metrics")
       .select("*")
@@ -87,6 +90,7 @@ const ClientDashboard = () => {
       .then(({ data, error }) => {
         if (error) {
           console.error("Error fetching daily logs:", error);
+          setIsLoading(false);
           return;
         }
         if (data && data.length > 0) {
@@ -107,6 +111,7 @@ const ClientDashboard = () => {
         } catch {
           // localStorage non disponibile (es. modalità privata) — ignora
         }
+        setIsLoading(false);
       });
 
     // Check biofeedback status (week start in LOCAL time, not UTC)
@@ -280,6 +285,10 @@ const ClientDashboard = () => {
   // Phase 78: GDPR consent guard — block clients who haven't accepted mandatory consents.
   const needsConsent =
     !isCoach && profile != null && (!profile.terms_accepted || !profile.health_data_consent);
+
+  if (isLoading && dailyLogs.length === 0) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
