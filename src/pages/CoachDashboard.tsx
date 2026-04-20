@@ -26,7 +26,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import { CoachRecipeManager } from "@/components/CoachRecipeManager";
-import { ChefHat } from "lucide-react";
+import { AdminBroadcastCard } from "@/components/AdminBroadcastCard";
+import { ChefHat, Megaphone } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
 import {
