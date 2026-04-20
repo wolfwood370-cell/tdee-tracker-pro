@@ -154,10 +154,7 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            logout();
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" />
           {!collapsed && "Esci"}
