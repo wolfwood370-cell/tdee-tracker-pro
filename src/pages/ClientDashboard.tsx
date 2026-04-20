@@ -81,6 +81,7 @@ const ClientDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
+    setIsLoading(true);
     supabase
       .from("daily_metrics")
       .select("*")
@@ -89,6 +90,7 @@ const ClientDashboard = () => {
       .then(({ data, error }) => {
         if (error) {
           console.error("Error fetching daily logs:", error);
+          setIsLoading(false);
           return;
         }
         if (data && data.length > 0) {
@@ -109,6 +111,7 @@ const ClientDashboard = () => {
         } catch {
           // localStorage non disponibile (es. modalità privata) — ignora
         }
+        setIsLoading(false);
       });
 
     // Check biofeedback status (week start in LOCAL time, not UTC)
