@@ -22,7 +22,11 @@ import {
   Info,
   ClipboardCheck,
   Inbox,
+  LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAppStore } from "@/stores";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import { CoachRecipeManager } from "@/components/CoachRecipeManager";
