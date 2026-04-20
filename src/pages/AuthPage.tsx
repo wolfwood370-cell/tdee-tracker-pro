@@ -190,6 +190,29 @@ const AuthPage = () => {
                 <TabsTrigger value="register">Registrati</TabsTrigger>
               </TabsList>
 
+              {verifyEmailSent && (
+                <Alert className="border-primary/40 bg-primary/10 text-foreground dark:bg-primary/20 dark:text-white">
+                  <MailCheck className="h-4 w-4 text-primary dark:text-white" />
+                  <AlertTitle className="font-display font-semibold text-foreground dark:text-white">
+                    Verifica la tua email
+                  </AlertTitle>
+                  <AlertDescription className="text-foreground/90 dark:text-white/90 space-y-2">
+                    <p className="text-sm">
+                      Abbiamo inviato un link di verifica a <span className="font-semibold">{verifyEmailSent}</span>.
+                      Controlla la tua casella (anche nello spam) per attivare l'account.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-white"
+                    >
+                      Invia di nuovo l'email
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <TabsContent value="login">
                 <Card className="glass-card border-border">
                   <CardHeader className="space-y-1">
