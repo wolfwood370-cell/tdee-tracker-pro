@@ -63,7 +63,7 @@ export function ProgressEntryForm({ onSaved }: Props) {
     if (!user) return null;
     const ext = file.name.split(".").pop();
     const path = `${user.id}/${date}-${position}.${ext}`;
-    const { error } = await supabase.storage.from("progress-photos").upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from("progress_photos").upload(path, file, { upsert: true });
     if (error) {
       console.error("Upload error:", error);
       return null;

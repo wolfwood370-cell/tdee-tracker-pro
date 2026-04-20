@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Users can upload own progress photos" ON storage.objects;

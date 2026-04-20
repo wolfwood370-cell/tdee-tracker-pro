@@ -61,7 +61,7 @@ export function ProgressComparison({ entries }: Props) {
       const map: Record<string, string | null> = {};
       await Promise.all(
         paths.map(async (p) => {
-          const { data } = await supabase.storage.from("progress-photos").createSignedUrl(p, 60 * 60);
+          const { data } = await supabase.storage.from("progress_photos").createSignedUrl(p, 60 * 60);
           map[p] = data?.signedUrl ?? null;
         }),
       );
