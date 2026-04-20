@@ -32,7 +32,6 @@ import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { ConsentGate } from "@/components/ConsentGate";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
 const ClientDashboard = () => {
@@ -273,9 +272,7 @@ const ClientDashboard = () => {
       ? [...smoothedLogs].reverse().find((l) => l.trendWeight != null)?.trendWeight
       : null;
 
-  // Phase 78: GDPR consent guard — block clients who haven't accepted mandatory consents.
-  const needsConsent =
-    !isCoach && profile != null && (!profile.terms_accepted || !profile.health_data_consent);
+  // Phase 95: Consent enforcement moved to OnboardingGuard (Auth → Consent → Onboarding → Dashboard).
 
   if (isLoading && dailyLogs.length === 0) {
     return <DashboardSkeleton />;
@@ -283,7 +280,6 @@ const ClientDashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {needsConsent && <ConsentGate />}
       <div className="flex items-center gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
