@@ -383,6 +383,10 @@ const CoachDashboard = () => {
               <ChefHat className="h-3.5 w-3.5" />
               <span>🍳 Ricettario Globale</span>
             </TabsTrigger>
+            <TabsTrigger value="comms" className="gap-1.5">
+              <Megaphone className="h-3.5 w-3.5" />
+              <span>Comunicazioni</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-4">
