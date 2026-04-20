@@ -100,6 +100,30 @@ const CoachDashboard = () => {
   const [selectedClient, setSelectedClient] = useState<ClientRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingCheckinUserIds, setPendingCheckinUserIds] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
+  const { logout } = useAppStore();
+
+  const handleCoachLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("[coach-logout] signOut error:", e);
+    }
+    try {
+      logout();
+    } catch {
+      // safe to ignore
+    }
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // localStorage may be unavailable; safe to ignore.
+    }
+    toast.success("Sessione coach terminata.");
+    navigate("/auth", { replace: true });
+  };
 
   useEffect(() => {
     fetchClients();
