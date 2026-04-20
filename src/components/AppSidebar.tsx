@@ -1,11 +1,13 @@
 import { Activity, LayoutDashboard, Settings, LogOut, Moon, Sun, MessageCircle, TrendingUp, WifiOff } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/stores";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useSyncStore } from "@/stores/syncStore";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
