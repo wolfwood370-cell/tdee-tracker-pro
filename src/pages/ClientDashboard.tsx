@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles, ClipboardCheck } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Hourglass, ShieldAlert, ShoppingCart, Sparkles, ClipboardCheck } from "lucide-react";
 import { WeeklyCheckinModal } from "@/components/WeeklyCheckinModal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/stores";
-import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { BiofeedbackCheckin } from "@/components/BiofeedbackCheckin";
 import { LogHistoryTable } from "@/components/LogHistoryTable";
@@ -30,8 +29,6 @@ import {
 import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { PaywallModal } from "@/components/PaywallModal";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
-import { TodayDiary } from "@/components/TodayDiary";
-import { QuickWaterButton } from "@/components/QuickWaterButton";
 import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -60,8 +57,6 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [editTrigger, setEditTrigger] = useState<{ logDate: string; weight: number | null; calories: number | null; [key: string]: string | number | null | undefined } | null>(null);
-  const logWidgetRef = useRef<HTMLDivElement>(null);
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -134,11 +129,8 @@ const ClientDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const handleEditLog = useCallback((logDate: string, weight: number | null, calories: number | null, extra?: Record<string, unknown>) => {
-    setEditTrigger({ logDate, weight, calories, ...extra });
-    setTimeout(() => {
-      logWidgetRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
+  const handleEditLog = useCallback(() => {
+    // History edits now live in /log — keep no-op for back-compat.
   }, []);
 
   const todayStr = toLocalISODate(new Date());
