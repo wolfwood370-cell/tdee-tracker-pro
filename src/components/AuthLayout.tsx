@@ -14,10 +14,12 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <AppSidebar />
+        <div className="hidden md:block">
+          <AppSidebar />
+        </div>
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border px-4 bg-card/50 backdrop-blur-sm">
-            <SidebarTrigger className="mr-4" />
+            <SidebarTrigger className="mr-4 hidden md:flex" />
             <div className="flex-1" />
             {user && (
               <div className="flex items-center gap-2">
