@@ -197,9 +197,19 @@
   }
 }
 
-/* Hide the intrusive Iubenda floating shield globally.
-   Users can reopen the banner via the link in Settings → Sicurezza e Privacy
-   (className "iubenda-cs-preferences-link" is hooked by the Iubenda script). */
+/* Aggressive force-hide for Iubenda floating badge without premium plan.
+   Targets all variations of Iubenda's floating containers with extreme specificity. */
+[id^="iubenda-cs-floating"],
+.iubenda-cs-floating-button,
+#iubenda-cs-preferences-link-floating {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
+
+/* Legacy fallback for older Iubenda implementations */
 .iubenda-cs-floating-button {
   display: none !important;
 }
