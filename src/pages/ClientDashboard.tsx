@@ -65,6 +65,7 @@ const ClientDashboard = () => {
   const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Phase 69: Soft Paywall — block premium actions when subscription is expired.
   // Coaches are never paywalled (defensive: their subscription_status is irrelevant).
