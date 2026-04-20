@@ -12,7 +12,7 @@ import { toLocalISODate } from "@/lib/weeklyBudget";
 import { calculateMicronutrients } from "@/lib/algorithms";
 
 const Log = () => {
-  const { user, profile, dailyLogs, targetCalories } = useAppStore();
+  const { user, profile, dailyLogs, targetCalories, targetMacros } = useAppStore();
   const todayStr = toLocalISODate(new Date());
 
   const [aiOpen, setAiOpen] = useState(false);
@@ -133,9 +133,9 @@ const Log = () => {
         open={mealPlanOpen}
         onOpenChange={setMealPlanOpen}
         targetCalories={targetCalories ?? 2200}
-        protein={0}
-        carbs={0}
-        fats={0}
+        protein={targetMacros?.protein ?? 0}
+        carbs={targetMacros?.carbs ?? 0}
+        fats={targetMacros?.fats ?? 0}
         dietType={profile?.diet_type ?? "balanced"}
         dietaryPreference={profile?.dietary_preference ?? "onnivoro"}
         allergies={profile?.allergies ?? ""}
