@@ -314,13 +314,24 @@ const CoachDashboard = () => {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">
-            Triage Clinico
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Sistema di priorità: i clienti critici sono in cima
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              Triage Clinico
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Sistema di priorità: i clienti critici sono in cima
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCoachLogout}
+            className="shrink-0 text-muted-foreground hover:text-destructive hover:border-destructive/40"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Esci</span>
+          </Button>
         </div>
 
         {/* Stats Overview */}
