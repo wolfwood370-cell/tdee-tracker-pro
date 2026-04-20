@@ -286,6 +286,10 @@ const ClientDashboard = () => {
   const needsConsent =
     !isCoach && profile != null && (!profile.terms_accepted || !profile.health_data_consent);
 
+  if (isLoading && dailyLogs.length === 0) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {needsConsent && <ConsentGate />}
