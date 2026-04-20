@@ -29,6 +29,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const ACTIVITY_LEVELS = [
   { value: "1.2", label: "Sedentario (ufficio, poco movimento)" },
@@ -192,12 +198,20 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* Profile Card */}
-      <Card className="glass-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-display">Profilo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Accordion
+        type="multiple"
+        defaultValue={["biometrics"]}
+        className="space-y-3"
+      >
+        {/* ============ GROUP 1: BIOMETRICS ============ */}
+        <AccordionItem
+          value="biometrics"
+          className="glass-card border border-border rounded-lg px-4"
+        >
+          <AccordionTrigger className="text-base font-display font-semibold hover:no-underline">
+            Impostazioni Biometriche
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Nome completo</Label>
             <Input
