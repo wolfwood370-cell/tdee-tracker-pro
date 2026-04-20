@@ -66,12 +66,16 @@ function AppRoutes() {
         try {
           const { supabase } = await import("@/integrations/supabase/client");
           await supabase.auth.signOut({ scope: "local" }).catch(() => {});
-        } catch {}
+        } catch {
+          // Best-effort: ignore signOut/import failures during forced cleanup.
+        }
         try {
           Object.keys(localStorage)
             .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
             .forEach((k) => localStorage.removeItem(k));
-        } catch {}
+        } catch {
+          // localStorage may be unavailable (private mode); safe to ignore.
+        }
         useAppStore.getState().logout();
         useAppStore.getState().setLoading(false);
         if (window.location.pathname !== "/" && window.location.pathname !== "/login") {

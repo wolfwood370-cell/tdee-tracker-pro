@@ -595,7 +595,9 @@ export default function Settings() {
                         Object.keys(localStorage)
                           .filter((k) => k.startsWith('sb-') || k.startsWith('nc-') || k === 'app-storage')
                           .forEach((k) => localStorage.removeItem(k));
-                      } catch {}
+                      } catch {
+                        // localStorage may be unavailable (private mode); safe to ignore.
+                      }
 
                       toast({ title: "Account eliminato", description: "Il tuo account è stato eliminato con successo." });
                       navigate("/", { replace: true });

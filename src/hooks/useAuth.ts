@@ -66,7 +66,9 @@ export function useAuth() {
             Object.keys(localStorage)
               .filter((k) => k.startsWith("sb-") || k.startsWith("nc-") || k === "app-storage")
               .forEach((k) => localStorage.removeItem(k));
-          } catch {}
+          } catch {
+            // localStorage may be unavailable (private mode); safe to ignore.
+          }
           useAppStore.getState().logout();
           return;
         }
