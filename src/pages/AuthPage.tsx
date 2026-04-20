@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, ArrowRight, Lock, Mail, User } from "lucide-react";
+import { Activity, ArrowRight, Lock, Mail, User, MailCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type AuthView = "login" | "register" | "recovery";
 
@@ -26,6 +27,7 @@ const AuthPage = () => {
   const [fullName, setFullName] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verifyEmailSent, setVerifyEmailSent] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -73,10 +75,25 @@ const AuthPage = () => {
           .update({ terms_accepted: true })
           .eq("id", data.user.id);
       }
-      toast({ title: "Account creato!", description: "Controlla la tua email (anche nello spam) per la verifica." });
+      setVerifyEmailSent(email);
+      toast({ title: "Account creato!", description: "Controlla la tua email per la verifica." });
       setView("login");
     }
     setIsSubmitting(false);
+  };
+
+  const handleResendVerification = async () => {
+    if (!verifyEmailSent) return;
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: verifyEmailSent,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    if (error) {
+      toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email reinviata", description: "Controlla la tua casella (anche nello spam)." });
+    }
   };
 
   const handleRecovery = async (e: React.FormEvent) => {

@@ -724,12 +724,21 @@ export default function Onboarding() {
                   </Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     min="1"
                     max="7"
                     value={trainingDays}
                     onChange={(e) => {
-                      const v = Math.min(7, Math.max(1, parseInt(e.target.value) || 1));
-                      setTrainingDays(String(v));
+                      // Preserve raw input (including empty) while typing — no premature clamp.
+                      const raw = e.target.value;
+                      if (raw === "") { setTrainingDays(""); return; }
+                      // Accept only digits 1..7; ignore anything else to avoid auto-jumping.
+                      if (/^[1-7]$/.test(raw)) setTrainingDays(raw);
+                    }}
+                    onBlur={() => {
+                      const n = parseInt(trainingDays);
+                      if (!Number.isFinite(n) || n < 1) setTrainingDays("1");
+                      else if (n > 7) setTrainingDays("7");
                     }}
                     className="border-border"
                   />
