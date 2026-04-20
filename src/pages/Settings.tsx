@@ -513,7 +513,7 @@ export default function Settings() {
             {/* Push Notifications */}
             <PushNotificationManager />
 
-            {/* Cookie preferences — Iubenda hooks into the className below */}
+{/* Cookie preferences — Iubenda triggers via Window API */}
             <div className="rounded-lg border border-border p-4 space-y-2">
               <p className="text-sm font-display font-semibold text-foreground">
                 Preferenze Cookie
@@ -521,12 +521,19 @@ export default function Settings() {
               <p className="text-xs text-muted-foreground">
                 Rivedi o aggiorna le tue scelte di tracciamento e cookie in qualsiasi momento.
               </p>
-              <button
-                type="button"
-                className="iubenda-cs-preferences-link inline-flex items-center text-sm font-medium text-primary hover:underline"
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  if (window._iub && window._iub.cs && window._iub.cs.api) {
+                    window._iub.cs.api.openPreferences();
+                  } else {
+                    alert("Pannello cookie non ancora caricato. Riprova tra un istante.");
+                  }
+                }}
               >
                 Gestisci preferenze Cookie
-              </button>
+              </Button>
             </div>
 
             {/* Delete Account */}
