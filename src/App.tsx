@@ -17,6 +17,7 @@ import Progress from "./pages/Progress";
 import Log from "./pages/Log";
 import Messages from "./pages/Messages";
 import Privacy from "./pages/Privacy";
+import Cookies from "./pages/Cookies";
 import Terms from "./pages/Terms";
 import AuthLayout from "./components/AuthLayout";
 import NotFound from "./pages/NotFound";
@@ -84,6 +85,7 @@ function AppRoutes() {
       />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/cookies" element={<Cookies />} />
       <Route path="/terms" element={<Terms />} />
       <Route
         path="/onboarding"
