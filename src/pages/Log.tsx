@@ -1,16 +1,36 @@
-import { useMemo } from "react";
-import { BookOpen, GlassWater, Droplets, Leaf } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BookOpen, GlassWater, Droplets, Leaf, Plus, ShoppingCart, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { TodayDiary } from "@/components/TodayDiary";
-import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { QuickWaterButton } from "@/components/QuickWaterButton";
+import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
+import { AIMealPlanModal } from "@/components/AIMealPlanModal";
+import { PaywallModal } from "@/components/PaywallModal";
 import { useAppStore } from "@/stores";
 import { toLocalISODate } from "@/lib/weeklyBudget";
 import { calculateMicronutrients } from "@/lib/algorithms";
 
 const Log = () => {
-  const { profile, dailyLogs, targetCalories } = useAppStore();
+  const { user, profile, dailyLogs, targetCalories, targetMacros } = useAppStore();
   const todayStr = toLocalISODate(new Date());
+
+  const [aiOpen, setAiOpen] = useState(false);
+  const [mealPlanOpen, setMealPlanOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  // Phase 89: Soft Paywall — block premium AI actions when subscription expired.
+  const isCoach = user?.role === "coach";
+  const isExpired =
+    !isCoach &&
+    (profile as { subscription_status?: string } | null)?.subscription_status === "expired";
+  const guardPremium = (action: () => void) => () => {
+    if (isExpired) {
+      setPaywallOpen(true);
+      return;
+    }
+    action();
+  };
 
   const latestLog = [...dailyLogs].sort(
     (a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime(),
@@ -44,9 +64,29 @@ const Log = () => {
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Diario Alimentare</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Registra pasti, peso e idratazione di oggi.
+            Registra pasti, idratazione e gestisci le idee per i tuoi prossimi pasti.
           </p>
         </div>
+      </div>
+
+      {/* Primary actions: AI Logger + Meal Plan */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <Button
+          onClick={guardPremium(() => setAiOpen(true))}
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          <Sparkles className="h-3.5 w-3.5 mr-1" />
+          Aggiungi Pasto
+        </Button>
+        <Button
+          onClick={guardPremium(() => setMealPlanOpen(true))}
+          variant="outline"
+          className="w-full border-primary/40 hover:bg-primary/10 hover:text-primary"
+        >
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          Idee Pasti e Spesa AI
+        </Button>
       </div>
 
       {/* Quick Hydration */}
@@ -84,11 +124,23 @@ const Log = () => {
         </div>
       </div>
 
-      {/* Today's diary entries (deletable) */}
+      {/* Today's diary entries (edit + delete) */}
       <TodayDiary logDate={todayStr} />
 
-      {/* Manual daily log widget */}
-      <DailyLogWidget />
+      {/* Modals */}
+      <AIFoodLoggerModal open={aiOpen} onOpenChange={setAiOpen} logDate={todayStr} />
+      <AIMealPlanModal
+        open={mealPlanOpen}
+        onOpenChange={setMealPlanOpen}
+        targetCalories={targetCalories ?? 2200}
+        protein={targetMacros?.protein ?? 0}
+        carbs={targetMacros?.carbs ?? 0}
+        fats={targetMacros?.fats ?? 0}
+        dietType={profile?.diet_type ?? "balanced"}
+        dietaryPreference={profile?.dietary_preference ?? "onnivoro"}
+        allergies={profile?.allergies ?? ""}
+      />
+      <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />
     </div>
   );
 };

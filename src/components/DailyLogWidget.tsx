@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Loader2, Scale, Flame, Footprints, FileText, Plus } from "lucide-react";
-import { AIFoodLoggerModal } from "@/components/AIFoodLoggerModal";
-import { PaywallModal } from "@/components/PaywallModal";
+import { CalendarIcon, Loader2, Scale, Footprints, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,10 +51,6 @@ interface DailyLogWidgetProps {
 
 export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetProps) {
   const { user, addLog, updateLog, dailyLogs, profile } = useAppStore();
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [paywallOpen, setPaywallOpen] = useState(false);
-  // Phase 69: Soft Paywall — block AI Food Logger when subscription expired
-  const isExpired = (profile as { subscription_status?: string } | null)?.subscription_status === "expired";
 
   const [date, setDate] = useState<Date>(new Date());
   const [weight, setWeight] = useState("");
@@ -146,8 +140,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   const handleSubmit = async () => {
     if (!user) return;
-    if (!weight && !calories && !steps) {
-      toast({ title: "Inserisci almeno un valore", description: "Peso, calorie o passi sono richiesti.", variant: "destructive" });
+    if (!weight && !steps) {
+      toast({ title: "Inserisci almeno un valore", description: "Peso o passi sono richiesti.", variant: "destructive" });
       return;
     }
 
@@ -155,11 +149,11 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
     setIsSubmitting(true);
 
     try {
+      // Body-only payload: nutrition (calories/macros) is owned by /log via meals_log.
       const upsertPayload: Record<string, unknown> = {
             user_id: user.id,
             log_date: submitDate,
             weight: weight ? parseFloat(weight) : null,
-            calories: calories ? parseInt(calories, 10) : null,
             steps: steps ? parseInt(steps, 10) : null,
             smm: smm ? parseFloat(smm) : null,
             bfm: bfm ? parseFloat(bfm) : null,
@@ -198,31 +192,19 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
 
   return (
     <div className="space-y-0">
-      <AIFoodLoggerModal open={aiModalOpen} onOpenChange={setAiModalOpen} logDate={logDate} />
-      <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />
-      {/* Two-column layout: Log form + InBody accordion */}
+      {/* Two-column layout: Body Log form + InBody accordion */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left: Daily Log Form */}
+        {/* Left: Body Log Form (Peso, Passi, BIA) — calorie/nutrition stays in /log */}
         <Card className="glass-card border-border">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <Scale className="h-4 w-4 text-primary" />
-                {isEditing ? "Modifica Log" : "Registra Dati Giornalieri"}
-              </CardTitle>
-              <Button
-                size="sm"
-                onClick={() => (isExpired ? setPaywallOpen(true) : setAiModalOpen(true))}
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Aggiungi Pasto
-              </Button>
-            </div>
+            <CardTitle className="text-lg font-display flex items-center gap-2">
+              <Scale className="h-4 w-4 text-primary" />
+              {isEditing ? "Modifica Misure Corporee" : "Registra Misure Corporee"}
+            </CardTitle>
             <p className="text-xs text-muted-foreground">
               {isEditing
-                ? "Stai modificando un log esistente per questa data"
-                : "Inserisci peso e calorie per la giornata selezionata"}
+                ? "Stai modificando peso, passi e dati InBody per questa data"
+                : "Inserisci peso, passi e dati InBody per la giornata selezionata"}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -255,7 +237,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
               </Popover>
             </div>
 
-            {/* Weight, Calories & Steps */}
+            {/* Weight & Steps (calories live in /log) */}
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2 space-y-1.5">
                 {showPostRefeedWarning && (
@@ -283,23 +265,8 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="calories" className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Flame className="h-3 w-3" /> Calorie (kcal)
-                </Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  step="1"
-                  min="0"
-                  placeholder="es. 2200"
-                  value={calories}
-                  onChange={(e) => setCalories(e.target.value)}
-                  className="border-border"
-                />
-              </div>
-              <div className="col-span-2 space-y-1.5">
                 <Label htmlFor="steps" className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Footprints className="h-3 w-3" /> Passi Giornalieri
+                  <Footprints className="h-3 w-3" /> Passi
                 </Label>
                 <Input
                   id="steps"
@@ -336,7 +303,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
             {/* Submit */}
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || (!weight && !calories && !steps)}
+              disabled={isSubmitting || (!weight && !steps)}
               className="w-full"
             >
               {isSubmitting ? (
@@ -345,7 +312,7 @@ export function DailyLogWidget({ editTrigger, onEditConsumed }: DailyLogWidgetPr
                   Salvataggio...
                 </>
               ) : (
-                isEditing ? "Aggiorna Log" : "Salva Log"
+                isEditing ? "Aggiorna Misure" : "Salva Misure"
               )}
             </Button>
           </CardContent>

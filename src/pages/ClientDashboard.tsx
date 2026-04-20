@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, ShoppingCart, Sparkles, ClipboardCheck } from "lucide-react";
+import { Activity, Flame, Target, Utensils, TrendingUp, MessageSquare, Microscope, Leaf, Droplets, GlassWater, Hourglass, ShieldAlert, Sparkles, ClipboardCheck } from "lucide-react";
 import { WeeklyCheckinModal } from "@/components/WeeklyCheckinModal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,8 +26,8 @@ import {
   type ProteinPref,
   type DietType,
 } from "@/lib/algorithms";
-import { AIMealPlanModal } from "@/components/AIMealPlanModal";
 import { PaywallModal } from "@/components/PaywallModal";
+import { DailyLogWidget } from "@/components/DailyLogWidget";
 import { WeeklyPlan } from "@/components/WeeklyPlan";
 import { parseWeeklySchedule, getDayKey, toLocalISODate, type DayType } from "@/lib/weeklyBudget";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -57,7 +57,6 @@ const ClientDashboard = () => {
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
-  const [mealPlanOpen, setMealPlanOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -502,15 +501,7 @@ const ClientDashboard = () => {
                 })()}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-border grid sm:grid-cols-2 gap-2">
-                <Button
-                  onClick={guardPremium(() => setMealPlanOpen(true))}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  <Sparkles className="h-3.5 w-3.5 mr-1" />
-                  Idee Pasti e Spesa AI
-                </Button>
+              <div className="mt-4 pt-3 border-t border-border">
                 <Button
                   onClick={guardPremium(() => setCheckinOpen(true))}
                   variant="outline"
@@ -522,6 +513,9 @@ const ClientDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Body & InBody logging — nutrition stays in /log */}
+          <DailyLogWidget />
 
           {/* Metabolic Engine Insight */}
           <MetabolicEngineWidget />
@@ -608,17 +602,6 @@ const ClientDashboard = () => {
         </TabsContent>
       </Tabs>
 
-      <AIMealPlanModal
-        open={mealPlanOpen}
-        onOpenChange={setMealPlanOpen}
-        targetCalories={activeTargets.calories}
-        protein={activeTargets.macros.protein}
-        carbs={activeTargets.macros.carbs}
-        fats={activeTargets.macros.fats}
-        dietType={profile?.diet_type ?? "balanced"}
-        dietaryPreference={profile?.dietary_preference ?? "onnivoro"}
-        allergies={profile?.allergies ?? ""}
-      />
       {user && (
         <WeeklyCheckinModal
           open={checkinOpen}

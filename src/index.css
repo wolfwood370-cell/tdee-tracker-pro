@@ -190,10 +190,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Iubenda widget — lift above MobileBottomNav on mobile to avoid overlap */
+/* Iubenda widget — keep cookie banner clear of MobileBottomNav on mobile */
 @media (max-width: 768px) {
-  #iubenda-cs-banner,
-  .iubenda-cs-floating-button {
+  #iubenda-cs-banner {
     bottom: 85px !important;
   }
+}
+
+/* Hide the intrusive Iubenda floating shield globally.
+   Users can reopen the banner via the link in Settings → Sicurezza e Privacy
+   (className "iubenda-cs-preferences-link" is hooked by the Iubenda script). */
+.iubenda-cs-floating-button {
+  display: none !important;
 }

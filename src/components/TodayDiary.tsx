@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, UtensilsCrossed, Sparkles, Heart, PencilLine, Loader2 } from "lucide-react";
+import { Trash2, UtensilsCrossed, Sparkles, Heart, PencilLine, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { parseMealsLog, aggregatesFromMeals, type MealEntry, type MealSource } from "@/lib/mealsLog";
+import { EditMealModal } from "@/components/EditMealModal";
 
 const sourceMeta: Record<MealSource, { label: string; Icon: typeof Sparkles }> = {
   ai: { label: "AI", Icon: Sparkles },
@@ -47,6 +48,7 @@ interface TodayDiaryProps {
 export function TodayDiary({ logDate }: TodayDiaryProps) {
   const { user, dailyLogs, updateLog } = useAppStore();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingMeal, setEditingMeal] = useState<MealEntry | null>(null);
 
   const todayLog = dailyLogs.find((l) => l.log_date === logDate && l.user_id === user?.id);
   const meals = parseMealsLog((todayLog as { meals_log?: unknown } | undefined)?.meals_log);
@@ -154,41 +156,52 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
                         {Math.round(m.carbs)}g C · {Math.round(m.fats)}g G
                       </p>
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={deletingId === m.id}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          aria-label="Elimina pasto"
-                        >
-                          {deletingId === m.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Eliminare questo pasto?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Stai per rimuovere <strong>{m.name}</strong> ({Math.round(m.calories)} kcal)
-                            dal diario di oggi. I totali si aggiorneranno automaticamente.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annulla</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(m.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingMeal(m)}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        aria-label="Modifica pasto"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={deletingId === m.id}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Elimina pasto"
                           >
-                            Elimina
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            {deletingId === m.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Eliminare questo pasto?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Stai per rimuovere <strong>{m.name}</strong> ({Math.round(m.calories)} kcal)
+                              dal diario di oggi. I totali si aggiorneranno automaticamente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annulla</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(m.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Elimina
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </li>
                 );
               })}
@@ -198,6 +211,12 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
           </Accordion>
         )}
       </CardContent>
+      <EditMealModal
+        open={editingMeal !== null}
+        onOpenChange={(o) => !o && setEditingMeal(null)}
+        meal={editingMeal}
+        logDate={logDate}
+      />
     </Card>
   );
 }
