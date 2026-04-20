@@ -534,32 +534,6 @@ const ClientDashboard = () => {
           {/* Metabolic Engine Insight */}
           <MetabolicEngineWidget />
 
-          {/* Quick Hydration */}
-          <Card className="glass-card border-border">
-            <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <GlassWater className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="text-sm font-display font-semibold text-foreground">Idratazione Rapida</p>
-                  <p className="text-xs text-muted-foreground">
-                    Target: {microTargets.waterL} L · Tocca per registrare un sorso
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <QuickWaterButton logDate={todayStr} incrementL={0.25} />
-                <QuickWaterButton logDate={todayStr} incrementL={0.5} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Today's Diary (deletable meal entries) */}
-          <TodayDiary logDate={todayStr} />
-
-          {/* Daily Log */}
-          <div ref={logWidgetRef}>
-            <DailyLogWidget editTrigger={editTrigger} onEditConsumed={() => setEditTrigger(null)} />
-          </div>
         </TabsContent>
 
         {/* ============ STRATEGY TAB ============ */}
