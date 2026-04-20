@@ -646,6 +646,12 @@ const CoachDashboard = () => {
           <TabsContent value="recipes" className="mt-4">
             <CoachRecipeManager />
           </TabsContent>
+
+          <TabsContent value="comms" className="mt-4">
+            <div className="grid gap-4 md:max-w-2xl">
+              <AdminBroadcastCard />
+            </div>
+          </TabsContent>
         </Tabs>
 
         <ClientDetailSheet
