@@ -25,8 +25,6 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [acceptHealth, setAcceptHealth] = useState(false);
-  const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -44,10 +42,10 @@ const AuthPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acceptTerms || !acceptHealth) {
+    if (!acceptTerms) {
       toast({
-        title: "Consensi obbligatori",
-        description: "Devi accettare i Termini e il consenso al trattamento dei dati sanitari.",
+        title: "Termini obbligatori",
+        description: "Devi accettare i Termini e Condizioni per registrarti.",
         variant: "destructive",
       });
       return;
@@ -67,15 +65,12 @@ const AuthPage = () => {
         : error.message;
       toast({ title: "Errore di registrazione", description: msg, variant: "destructive" });
     } else {
-      // Persist consents on the freshly-created profile (handle_new_user trigger has just inserted it)
+      // Persist Terms acceptance only. Health & marketing consents are collected
+      // by the ConsentGate immediately after first login (Phase 97).
       if (data.user?.id) {
         await supabase
           .from("profiles")
-          .update({
-            terms_accepted: true,
-            health_data_consent: true,
-            marketing_consent: acceptMarketing,
-          })
+          .update({ terms_accepted: true })
           .eq("id", data.user.id);
       }
       toast({ title: "Account creato!", description: "Controlla la tua email (anche nello spam) per la verifica." });
@@ -311,35 +306,11 @@ const AuthPage = () => {
                             . <span className="text-destructive">*</span>
                           </Label>
                         </div>
-                        <div className="flex items-start gap-2.5">
-                          <Checkbox
-                            id="reg-health"
-                            checked={acceptHealth}
-                            onCheckedChange={(v) => setAcceptHealth(v === true)}
-                            className="mt-0.5"
-                          />
-                          <Label htmlFor="reg-health" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
-                            Consento al trattamento dei miei dati sanitari e biometrici
-                            (peso, macro, biofeedback) per le finalità del servizio.{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                        </div>
-                        <div className="flex items-start gap-2.5">
-                          <Checkbox
-                            id="reg-marketing"
-                            checked={acceptMarketing}
-                            onCheckedChange={(v) => setAcceptMarketing(v === true)}
-                            className="mt-0.5"
-                          />
-                          <Label htmlFor="reg-marketing" className="text-xs leading-relaxed cursor-pointer text-muted-foreground">
-                            Voglio ricevere aggiornamenti e consigli via email (opzionale).
-                          </Label>
-                        </div>
                       </div>
                       <Button
                         type="submit"
                         className="w-full"
-                        disabled={isSubmitting || !acceptTerms || !acceptHealth}
+                        disabled={isSubmitting || !acceptTerms}
                       >
                         {isSubmitting ? "Creazione account..." : "Crea Account"}
                       </Button>
