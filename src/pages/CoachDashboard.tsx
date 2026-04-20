@@ -26,7 +26,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientDetailSheet } from "@/components/ClientDetailSheet";
 import { CoachRecipeManager } from "@/components/CoachRecipeManager";
-import { ChefHat } from "lucide-react";
+import { AdminBroadcastCard } from "@/components/AdminBroadcastCard";
+import { ChefHat, Megaphone } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInYears, parseISO } from "date-fns";
 import {
@@ -382,6 +383,10 @@ const CoachDashboard = () => {
               <ChefHat className="h-3.5 w-3.5" />
               <span>🍳 Ricettario Globale</span>
             </TabsTrigger>
+            <TabsTrigger value="comms" className="gap-1.5">
+              <Megaphone className="h-3.5 w-3.5" />
+              <span>Comunicazioni</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-4">
@@ -640,6 +645,12 @@ const CoachDashboard = () => {
 
           <TabsContent value="recipes" className="mt-4">
             <CoachRecipeManager />
+          </TabsContent>
+
+          <TabsContent value="comms" className="mt-4">
+            <div className="grid gap-4 md:max-w-2xl">
+              <AdminBroadcastCard />
+            </div>
           </TabsContent>
         </Tabs>
 
