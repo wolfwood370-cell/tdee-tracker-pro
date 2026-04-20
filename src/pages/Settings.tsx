@@ -510,40 +510,7 @@ export default function Settings() {
             Sicurezza e Privacy
           </AccordionTrigger>
           <AccordionContent className="pt-2 space-y-4">
-            {/* Logout */}
-            <div className="rounded-lg border border-border p-4 space-y-3">
-              <div className="flex items-center gap-2 text-foreground">
-                <LogOut className="h-5 w-5 text-primary" />
-                <span className="font-display font-semibold">Esci dall'account</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Termina la sessione corrente su questo dispositivo. I tuoi dati rimangono al sicuro.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={async () => {
-                  try {
-                    await supabase.auth.signOut();
-                  } catch (e) {
-                    console.warn("signOut warning:", e);
-                  }
-                  logout();
-                  try {
-                    Object.keys(localStorage)
-                      .filter((k) => k.startsWith('sb-') || k.startsWith('nc-') || k === 'app-storage')
-                      .forEach((k) => localStorage.removeItem(k));
-                  } catch {
-                    // localStorage may be unavailable (private mode); safe to ignore.
-                  }
-                  toast({ title: "Disconnesso", description: "A presto!" });
-                  navigate("/auth", { replace: true });
-                }}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
+            {/* Logout removed: only top-right header button is used */}
 
             {/* Push Notifications */}
             <PushNotificationManager />
