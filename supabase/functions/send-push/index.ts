@@ -68,9 +68,87 @@ Deno.serve(async (req) => {
 
     // ---- Validate body ----
     const body = (await req.json()) as Partial<Payload>;
-    if (!body.user_id || !body.title || !body.body) {
+    if (!body.title || !body.body) {
       return new Response(
-        JSON.stringify({ error: "Missing user_id, title or body" }),
+        JSON.stringify({ error: "Missing title or body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ---- Service-role admin client ----
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+    const notificationPayload = JSON.stringify({
+      title: body.title,
+      body: body.body,
+      url: body.url ?? "/",
+      icon: body.icon ?? "/placeholder.svg",
+    });
+
+    // ===== BROADCAST MODE: coach-only, sends to every subscribed user =====
+    if (body.broadcast) {
+      const { data: roleRow } = await supabaseUser
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerId)
+        .maybeSingle();
+      if (roleRow?.role !== "coach") {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: subscribers, error: subErr } = await supabaseAdmin
+        .from("profiles")
+        .select("id, push_subscription")
+        .not("push_subscription", "is", null);
+      if (subErr) throw subErr;
+
+      let sent = 0;
+      let failed = 0;
+      const expiredIds: string[] = [];
+
+      await Promise.all(
+        (subscribers ?? []).map(async (s) => {
+          try {
+            await webpush.sendNotification(
+              s.push_subscription as never,
+              notificationPayload
+            );
+            sent++;
+          } catch (err) {
+            const status = (err as { statusCode?: number }).statusCode;
+            if (status === 404 || status === 410) {
+              expiredIds.push(s.id);
+            }
+            failed++;
+          }
+        })
+      );
+
+      if (expiredIds.length > 0) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ push_subscription: null })
+          .in("id", expiredIds);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, broadcast: true, sent, failed, total: subscribers?.length ?? 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ===== TARGETED MODE: requires user_id =====
+    if (!body.user_id) {
+      return new Response(
+        JSON.stringify({ error: "Missing user_id" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -90,12 +168,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- Fetch subscription with service role ----
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
       .select("push_subscription")
@@ -109,15 +181,6 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-
-    const notificationPayload = JSON.stringify({
-      title: body.title,
-      body: body.body,
-      url: body.url ?? "/",
-      icon: body.icon ?? "/placeholder.svg",
-    });
 
     try {
       await webpush.sendNotification(
