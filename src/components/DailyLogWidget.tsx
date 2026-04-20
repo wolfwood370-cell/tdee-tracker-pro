@@ -39,8 +39,15 @@ import {
 
 interface EditTriggerData {
   logDate: string;
-  weight: number | null;
-  calories: number | null;
+  weight?: number | null;
+  calories?: number | null;
+  steps?: number | null;
+  smm?: number | null;
+  bfm?: number | null;
+  pbf?: number | null;
+  vfa?: number | null;
+  bmr_inbody?: number | null;
+  menstrual_phase?: string | null;
   [key: string]: string | number | null | undefined;
 }
 

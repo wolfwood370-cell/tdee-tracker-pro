@@ -168,19 +168,21 @@ export function TodayDiary({ logDate }: TodayDiaryProps) {
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={deletingId === m.id}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            aria-label="Elimina pasto"
-                          >
-                            {deletingId === m.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
+                          <span className="inline-block">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={deletingId === m.id}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              aria-label="Elimina pasto"
+                            >
+                              {deletingId === m.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </span>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
