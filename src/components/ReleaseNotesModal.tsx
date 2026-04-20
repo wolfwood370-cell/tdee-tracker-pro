@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 
-const CURRENT_RELEASE_VERSION = "1.1.0";
-const STORAGE_KEY = "nc_nutrition_last_seen_release";
+const CURRENT_VERSION = "1.1.0";
+const STORAGE_KEY = "nc_nutrition_seen_version";
 
 export const ReleaseNotesModal = () => {
   const [open, setOpen] = useState(false);
@@ -20,7 +20,9 @@ export const ReleaseNotesModal = () => {
   useEffect(() => {
     try {
       const seen = localStorage.getItem(STORAGE_KEY);
-      if (seen !== CURRENT_RELEASE_VERSION) {
+      if (seen === CURRENT_VERSION) {
+        setOpen(false);
+      } else {
         setOpen(true);
       }
     } catch {
@@ -30,7 +32,7 @@ export const ReleaseNotesModal = () => {
 
   const handleClose = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, CURRENT_RELEASE_VERSION);
+      localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
     } catch {
       // safe to ignore
     }
@@ -46,7 +48,7 @@ export const ReleaseNotesModal = () => {
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 font-mono text-xs">
-              Versione {CURRENT_RELEASE_VERSION}
+              Versione {CURRENT_VERSION}
             </Badge>
           </div>
           <DialogTitle className="text-2xl font-semibold tracking-tight">
