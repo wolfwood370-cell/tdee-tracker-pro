@@ -24,7 +24,7 @@ import {
   type WeeklySchedule,
 } from "@/lib/weeklyBudget";
 
-export type ComplianceStatus = "critical" | "warning" | "healthy";
+export type ComplianceStatus = "critical" | "warning" | "healthy" | "onboarding";
 
 export interface ComplianceReasons {
   adherence: string;
@@ -212,7 +212,7 @@ function calcBiofeedback(
  */
 export function calculateComplianceScore(
   dailyMetrics: DailyMetric[],
-  profile: Pick<Profile, "weekly_schedule"> | null,
+  profile: (Pick<Profile, "weekly_schedule"> & { created_at?: string | null }) | null,
   targets: DailyTargets,
   biofeedback: BiofeedbackEntry[] = [],
   now: Date = new Date(),
@@ -231,6 +231,37 @@ export function calculateComplianceScore(
     adherence.score * 0.4 + consistency.score * 0.4 + bio.score * 0.2,
   );
 
+  // --- Onboarding Grace Period (Phase 95) ---
+  // New clients (registered < 3 days ago) with zero logs are not yet evaluable.
+  // Show a neutral "Nuovo / Onboarding" badge instead of a red critical alert.
+  const allLoggedDates = dailyMetrics
+    .filter((l) => (l.calories ?? 0) > 0 || l.weight != null)
+    .map((l) => l.log_date)
+    .sort()
+    .reverse();
+
+  const createdAtRaw = profile && "created_at" in profile ? profile.created_at : null;
+  const createdAt = createdAtRaw ? new Date(createdAtRaw) : null;
+  const daysSinceRegistration = createdAt
+    ? Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+    : Infinity;
+
+  if (allLoggedDates.length === 0 && daysSinceRegistration < 3) {
+    return {
+      score: 0,
+      status: "onboarding",
+      adherencePct: 0,
+      loggedDays: 0,
+      plannedDays: consistency.plannedDays,
+      reasons: {
+        adherence: "In attesa dei primi log",
+        consistency: "In attesa dei primi log",
+        biofeedback: bio.reason,
+      },
+      primaryReason: "Cliente nuovo · onboarding in corso",
+    };
+  }
+
   // --- Critical Overrides (Phase 66 Triage Rules) ---
   // Hard-flag as critical regardless of weighted score when:
   //  a) No log (weight or meals) in the last 3 days
@@ -239,16 +270,11 @@ export function calculateComplianceScore(
   let overrideReason: string | null = null;
 
   // Rule (a): inactivity ≥ 3 days
-  const allLogged = dailyMetrics
-    .filter((l) => (l.calories ?? 0) > 0 || l.weight != null)
-    .map((l) => l.log_date)
-    .sort()
-    .reverse();
-  if (allLogged.length === 0) {
+  if (allLoggedDates.length === 0) {
     status = "critical";
     overrideReason = "Nessun log registrato";
   } else {
-    const last = new Date(allLogged[0] + "T00:00:00");
+    const last = new Date(allLoggedDates[0] + "T00:00:00");
     const daysSince = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
     if (daysSince >= 3) {
       status = "critical";
@@ -311,6 +337,12 @@ export function statusBadgeMeta(status: ComplianceStatus): {
         label: "In Target",
         emoji: "🟢",
         className: "bg-primary text-primary-foreground border-0",
+      };
+    case "onboarding":
+      return {
+        label: "Nuovo / Onboarding",
+        emoji: "🆕",
+        className: "bg-muted text-muted-foreground border-0",
       };
   }
 }
