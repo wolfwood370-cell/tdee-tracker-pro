@@ -24,7 +24,7 @@ import {
   type WeeklySchedule,
 } from "@/lib/weeklyBudget";
 
-export type ComplianceStatus = "critical" | "warning" | "healthy";
+export type ComplianceStatus = "critical" | "warning" | "healthy" | "onboarding";
 
 export interface ComplianceReasons {
   adherence: string;
