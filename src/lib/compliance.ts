@@ -232,8 +232,10 @@ export function calculateComplianceScore(
   );
 
   // --- Onboarding Grace Period (Phase 95) ---
-  // New clients (registered < 3 days ago) with zero logs are not yet evaluable.
-  // Show a neutral "Nuovo / Onboarding" badge instead of a red critical alert.
+  // Clients registered less than 3 days ago are not yet evaluable, regardless
+  // of how many logs they have submitted: the dataset is too small to compute
+  // meaningful adherence/consistency. Show a neutral "Nuovo / Onboarding" badge
+  // instead of a red critical alert.
   const allLoggedDates = dailyMetrics
     .filter((l) => (l.calories ?? 0) > 0 || l.weight != null)
     .map((l) => l.log_date)
@@ -246,19 +248,19 @@ export function calculateComplianceScore(
     ? Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
     : Infinity;
 
-  if (allLoggedDates.length === 0 && daysSinceRegistration < 3) {
+  if (daysSinceRegistration < 3) {
     return {
       score: 0,
       status: "onboarding",
       adherencePct: 0,
-      loggedDays: 0,
+      loggedDays: allLoggedDates.length,
       plannedDays: consistency.plannedDays,
       reasons: {
-        adherence: "In attesa dei primi log",
-        consistency: "In attesa dei primi log",
+        adherence: "Periodo di onboarding",
+        consistency: "Periodo di onboarding",
         biofeedback: bio.reason,
       },
-      primaryReason: "Cliente nuovo · onboarding in corso",
+      primaryReason: `Cliente nuovo · iscritto da ${daysSinceRegistration} ${daysSinceRegistration === 1 ? "giorno" : "giorni"}`,
     };
   }
 
