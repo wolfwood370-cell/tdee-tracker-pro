@@ -212,7 +212,7 @@ function calcBiofeedback(
  */
 export function calculateComplianceScore(
   dailyMetrics: DailyMetric[],
-  profile: Pick<Profile, "weekly_schedule"> | null,
+  profile: (Pick<Profile, "weekly_schedule"> & { created_at?: string | null }) | null,
   targets: DailyTargets,
   biofeedback: BiofeedbackEntry[] = [],
   now: Date = new Date(),
