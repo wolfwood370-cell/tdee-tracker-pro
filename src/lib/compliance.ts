@@ -338,5 +338,11 @@ export function statusBadgeMeta(status: ComplianceStatus): {
         emoji: "🟢",
         className: "bg-primary text-primary-foreground border-0",
       };
+    case "onboarding":
+      return {
+        label: "Nuovo / Onboarding",
+        emoji: "🆕",
+        className: "bg-muted text-muted-foreground border-0",
+      };
   }
 }
