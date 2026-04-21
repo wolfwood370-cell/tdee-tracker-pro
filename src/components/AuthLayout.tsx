@@ -36,7 +36,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
       // localStorage may be unavailable
     }
     toast.success("Sessione terminata. A presto!");
-    navigate("/auth", { replace: true });
+    window.location.href = "/login";
   };
 
   return (
