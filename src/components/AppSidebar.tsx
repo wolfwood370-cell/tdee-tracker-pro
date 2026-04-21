@@ -66,7 +66,7 @@ export function AppSidebar() {
       // localStorage may be unavailable; safe to ignore.
     }
     toast.success("Sessione terminata. A presto!");
-    navigate("/auth", { replace: true });
+    window.location.href = "/login";
   };
 
   return (
