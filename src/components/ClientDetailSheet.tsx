@@ -1506,8 +1506,9 @@ function ClientWeightChart({
   const weights = data.flatMap((d) =>
     [d.scaleWeight, d.trendWeight].filter((v): v is number => v != null)
   );
-  const minW = Math.floor(Math.min(...weights) - 1);
-  const maxW = Math.ceil(Math.max(...weights) + 1);
+  const hasWeights = weights.length > 0;
+  const minW = hasWeights ? Math.floor(Math.min(...weights) - 1) : 0;
+  const maxW = hasWeights ? Math.ceil(Math.max(...weights) + 1) : 100;
 
   return (
     <Card className="glass-card border-border">
