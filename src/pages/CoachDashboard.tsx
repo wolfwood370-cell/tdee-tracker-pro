@@ -271,6 +271,7 @@ const CoachDashboard = () => {
         critical: 0,
         warning: 1,
         healthy: 2,
+        onboarding: 3,
       };
       rows.sort((a, b) => {
         const rs = statusRank[a.compliance.status] - statusRank[b.compliance.status];
