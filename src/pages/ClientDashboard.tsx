@@ -486,23 +486,27 @@ const ClientDashboard = () => {
                 ))}
               </div>
 
-              {/* Micronutrient Targets */}
+              {/* Micronutrient Targets — hidden during calibration phase */}
               <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-border">
-                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-                  <GlassWater className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">Acqua:</span>
-                  <span className="text-xs font-semibold text-foreground">{microTargets.waterL} L</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-                  <Droplets className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">Elettroliti:</span>
-                  <span className="text-xs font-semibold text-foreground">{microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-                  <Leaf className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">Fibre:</span>
-                  <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
-                 </div>
+                {!isCalibrating && (
+                  <>
+                    <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                      <GlassWater className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs text-muted-foreground">Acqua:</span>
+                      <span className="text-xs font-semibold text-foreground">{microTargets.waterL} L</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                      <Droplets className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs text-muted-foreground">Elettroliti:</span>
+                      <span className="text-xs font-semibold text-foreground">{microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+                      <Leaf className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs text-muted-foreground">Fibre:</span>
+                      <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG}g</span>
+                    </div>
+                  </>
+                )}
                 {(() => {
                   const quality = todayLog?.average_food_quality;
                   if (quality == null) return null;
