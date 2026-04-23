@@ -501,6 +501,51 @@ export default function Settings() {
             </div>
           )}
 
+          {/* Phase 99: Manual TDEE override (advanced users) */}
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-foreground">Conosco già il mio TDEE</p>
+                <p className="text-xs text-muted-foreground">
+                  Salta la calibrazione di 28 giorni e usa i tuoi valori. Per utenti esperti.
+                </p>
+              </div>
+              <Switch
+                checked={manualOverrideActive}
+                onCheckedChange={(v) => {
+                  setManualOverrideActive(v);
+                  if (!v) void handleSaveManualOverride(false);
+                }}
+                disabled={savingManual}
+              />
+            </div>
+            {manualOverrideActive && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Calorie/giorno</Label>
+                    <Input type="number" inputMode="numeric" value={manualCalories} onChange={(e) => setManualCalories(e.target.value)} placeholder="es. 2200" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Proteine (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualProtein} onChange={(e) => setManualProtein(e.target.value)} placeholder="es. 165" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Carboidrati (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualCarbs} onChange={(e) => setManualCarbs(e.target.value)} placeholder="es. 240" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Grassi (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualFats} onChange={(e) => setManualFats(e.target.value)} placeholder="es. 70" className="border-border" />
+                  </div>
+                </div>
+                <Button type="button" size="sm" className="w-full" disabled={savingManual || !manualCalories} onClick={() => handleSaveManualOverride(true)}>
+                  {savingManual ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvataggio...</> : "Salva TDEE manuale"}
+                </Button>
+              </div>
+            )}
+          </div>
+
           {/* Weekly checkpoint info + manual recalculate */}
           <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
             <div className="space-y-0.5">
