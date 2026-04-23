@@ -642,14 +642,16 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
                     )}
                   </ToggleGroup>
                 </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground font-mono leading-tight">
-                  Cal <span className="text-foreground font-semibold">{targets.calories}</span> {" | "}
-                  P <span className="text-foreground font-semibold">{targets.macros.protein}g</span> {" | "}
-                  G <span className="text-foreground font-semibold">{targets.macros.fats}g</span> {" | "}
-                  C <span className="text-foreground font-semibold">{targets.macros.carbs}g</span> {" | "}
-                  A <span className="text-foreground font-semibold">{micro.waterL}L</span> {" | "}
-                  Na <span className="text-foreground font-semibold">{micro.sodiumMg}mg</span>
-                </p>
+                {!isCalibrating && (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground font-mono leading-tight">
+                    Cal <span className="text-foreground font-semibold">{targets.calories}</span> {" | "}
+                    P <span className="text-foreground font-semibold">{targets.macros.protein}g</span> {" | "}
+                    G <span className="text-foreground font-semibold">{targets.macros.fats}g</span> {" | "}
+                    C <span className="text-foreground font-semibold">{targets.macros.carbs}g</span> {" | "}
+                    A <span className="text-foreground font-semibold">{micro.waterL}L</span> {" | "}
+                    Na <span className="text-foreground font-semibold">{micro.sodiumMg}mg</span>
+                  </p>
+                )}
               </div>
             );
           })}
