@@ -773,3 +773,92 @@ export function computeDayTargets(opts: {
     macros: calculateTargetMacros(restCal, bodyWeightKg, proteinPref, dietType, lbmKg, age).macros,
   };
 }
+
+// ─── Weekly Checkpoint Snapshot ──────────────────────────────
+/**
+ * Pure helper: produces the data needed to "freeze" weekly targets
+ * (TDEE + calories + macros) for an ISO week. Returns null when there
+ * is not enough data to compute reliable targets yet.
+ *
+ * Polarized distribution and the non-linear WeeklyPlan are intentionally
+ * NOT frozen here — they are recomputed on top of the frozen baseline so
+ * day-of-week assignments stay flexible.
+ */
+export interface WeeklyTargetSnapshot {
+  frozen_tdee: number;
+  target_calories: number;
+  target_protein: number;
+  target_carbs: number;
+  target_fats: number;
+  goal_rate: number;
+  goal_type: GoalType;
+  diet_strategy: DietStrategy;
+  calorie_distribution: CalorieDistribution;
+}
+
+export function computeWeeklyTargetSnapshot(args: {
+  smoothedLogs: SmoothedLog[];
+  bia: BIAData | null;
+  profile: {
+    activity_level: number | null;
+    sex: string | null;
+    height_cm: number | null;
+    age: number | null;
+    goal_type: GoalType;
+    goal_rate: number | null;
+    diet_strategy: DietStrategy;
+    diet_type: DietType;
+    protein_pref: ProteinPref;
+    calorie_distribution: CalorieDistribution;
+    created_at: string | null;
+    menstrualPhase: MenstrualPhase | null;
+  };
+}): WeeklyTargetSnapshot | null {
+  const { smoothedLogs, bia, profile } = args;
+
+  const lbm = bia ? calculateLBM(bia) : null;
+  const adaptiveTDEE = calculateAdaptiveTDEE(smoothedLogs, 14, profile.created_at);
+  const latestWeight = [...smoothedLogs].reverse().find((l) => l.trendWeight != null)?.trendWeight;
+  const baselineTDEE = calculateBaselineTDEE(
+    bia,
+    profile.activity_level ?? 1.2,
+    latestWeight ?? undefined,
+    profile.sex,
+    profile.height_cm,
+    profile.age,
+  );
+  const tdee = adaptiveTDEE ?? baselineTDEE;
+  if (tdee == null || latestWeight == null) return null;
+
+  const bfmKg = bia?.bfm ?? (bia?.pbf != null ? latestWeight * bia.pbf / 100 : null);
+  const dynamicRate = calculateDynamicGoalRate(
+    profile.goal_type,
+    latestWeight,
+    bfmKg,
+    lbm,
+    profile.sex,
+  );
+
+  const targetCal = calculateTargetCalories(tdee, dynamicRate, profile.menstrualPhase);
+  const useBIA = lbm != null && lbm > 0;
+  const macros = calculateTargetMacros(
+    targetCal,
+    latestWeight,
+    profile.protein_pref,
+    profile.diet_type,
+    useBIA ? lbm : undefined,
+    profile.age,
+  ).macros;
+
+  return {
+    frozen_tdee: Math.round(tdee),
+    target_calories: targetCal,
+    target_protein: macros.protein,
+    target_carbs: macros.carbs,
+    target_fats: macros.fats,
+    goal_rate: dynamicRate,
+    goal_type: profile.goal_type,
+    diet_strategy: profile.diet_strategy,
+    calorie_distribution: profile.calorie_distribution,
+  };
+}
