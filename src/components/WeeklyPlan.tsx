@@ -76,7 +76,9 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
     currentTDEE,
     targetCalories,
     setProfile,
+    calibration,
   } = useAppStore();
+  const isCalibrating = calibration.isCalibrating;
 
   const dietStrategy = (profile?.diet_strategy as DietStrategy) ?? "linear";
   const allowRefeed = dietStrategy === "refeed_1_day" || dietStrategy === "refeed_2_days";
@@ -484,7 +486,16 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
           );
         })()}
 
-        {/* Weekly Budget Bar */}
+        {/* Weekly Budget Bar — hidden during calibration phase */}
+        {isCalibrating ? (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 leading-relaxed">
+            <p className="font-semibold text-primary mb-0.5">Budget settimanale in calibrazione</p>
+            <p>
+              L'app sta osservando le tue abitudini per i primi 28 giorni. Nessun target settimanale, calorico o di macro verrà mostrato finché la calibrazione non sarà completata.
+            </p>
+          </div>
+        ) : (
+          <>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <TooltipProvider delayDuration={200}>
@@ -565,6 +576,8 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
                 <SlotCounter icon={RefreshCw} label="Refeed" used={usage.refeedUsed} allowed={slots.refeedAllowed} tone="accent" />
               )}
             </div>
+          </>
+        )}
           </>
         )}
 
