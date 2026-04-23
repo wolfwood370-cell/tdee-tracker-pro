@@ -259,9 +259,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   ensureCurrentWeekTarget: async () => {
-    const { user, profile, currentWeekTarget } = get();
+    const { user, profile, currentWeekTarget, dailyLogs } = get();
     if (!user || !profile || profile.manual_override_active) return null;
     if (currentWeekTarget) return currentWeekTarget;
+    // Calibration phase: do NOT freeze targets; the algorithm purely observes.
+    const cal = getCalibrationStatus(profile, dailyLogs);
+    if (cal.isCalibrating) return null;
     return await get().forceRecalculateWeeklyTarget('weekly');
   },
 
@@ -271,6 +274,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Manual override: do not freeze automatic targets.
     if (profile.manual_override_active) return null;
+
+    // Calibration phase blocks ALL automatic snapshots. A 'manual' or
+    // 'strategy_change' reason is allowed to break out only if the user has
+    // already exited calibration (e.g. by enabling manual_override).
+    const cal = getCalibrationStatus(profile, dailyLogs);
+    if (cal.isCalibrating) return null;
 
     const smoothed = calculateSmoothedWeight(dailyLogs);
     const bia = extractLatestBIA(dailyLogs);
