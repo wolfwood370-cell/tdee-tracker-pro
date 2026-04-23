@@ -28,6 +28,7 @@ import {
   type WeeklyTargetSnapshot,
 } from '@/lib/algorithms';
 import { toLocalISODate, getWeekStartISO } from '@/lib/weeklyBudget';
+import { getCalibrationStatus, type CalibrationStatus } from '@/lib/calibration';
 
 // Re-export useful types
 export type Profile = Tables<'profiles'>;
@@ -101,6 +102,8 @@ interface CalculationSlice {
   userAge: number | null;
   activeMenstrualPhase: MenstrualPhase | null;
   goalETA: string | null;
+  /** Phase 99: metabolic calibration phase (first 28 days / 21 valid logs). */
+  calibration: CalibrationStatus;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -137,6 +140,13 @@ const initialState = {
   userAge: null,
   activeMenstrualPhase: null,
   goalETA: null,
+  calibration: {
+    isCalibrating: true,
+    validLogDays: 0,
+    daysSinceStart: 0,
+    daysRemaining: 28,
+    reason: "too_few_logs" as const,
+  } satisfies CalibrationStatus,
 };
 
 // Helper: compute age in years from ISO birth date.
@@ -249,9 +259,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   ensureCurrentWeekTarget: async () => {
-    const { user, profile, currentWeekTarget } = get();
+    const { user, profile, currentWeekTarget, dailyLogs } = get();
     if (!user || !profile || profile.manual_override_active) return null;
     if (currentWeekTarget) return currentWeekTarget;
+    // Calibration phase: do NOT freeze targets; the algorithm purely observes.
+    const cal = getCalibrationStatus(profile, dailyLogs);
+    if (cal.isCalibrating) return null;
     return await get().forceRecalculateWeeklyTarget('weekly');
   },
 
@@ -261,6 +274,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Manual override: do not freeze automatic targets.
     if (profile.manual_override_active) return null;
+
+    // Calibration phase blocks ALL automatic snapshots. A 'manual' or
+    // 'strategy_change' reason is allowed to break out only if the user has
+    // already exited calibration (e.g. by enabling manual_override).
+    const cal = getCalibrationStatus(profile, dailyLogs);
+    if (cal.isCalibrating) return null;
 
     const smoothed = calculateSmoothedWeight(dailyLogs);
     const bia = extractLatestBIA(dailyLogs);
@@ -343,6 +362,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   recalculateMetrics: () => {
     const { dailyLogs, profile, currentWeekTarget } = get();
+
+    // Phase 99: compute calibration status (drives UI gating across the app).
+    const calibration = getCalibrationStatus(profile, dailyLogs);
+    set({ calibration });
 
     // --- Manual Override: bypass macro calculations but keep other fields ---
     if (profile?.manual_override_active) {

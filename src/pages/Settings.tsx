@@ -87,6 +87,13 @@ export default function Settings() {
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
+  // Phase 99: Manual TDEE override (advanced users) — bypasses calibration.
+  const [manualOverrideActive, setManualOverrideActive] = useState(false);
+  const [manualCalories, setManualCalories] = useState("");
+  const [manualProtein, setManualProtein] = useState("");
+  const [manualCarbs, setManualCarbs] = useState("");
+  const [manualFats, setManualFats] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -103,8 +110,48 @@ export default function Settings() {
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
       setDietaryPreference(profile.dietary_preference ?? "onnivoro");
       setAllergies(profile.allergies ?? "");
+      setManualOverrideActive(profile.manual_override_active === true);
+      setManualCalories(profile.manual_calories?.toString() ?? "");
+      setManualProtein(profile.manual_protein?.toString() ?? "");
+      setManualCarbs(profile.manual_carbs?.toString() ?? "");
+      setManualFats(profile.manual_fats?.toString() ?? "");
     }
   }, [profile]);
+
+  // Phase 99: save manual TDEE override — bypasses calibration immediately.
+  const handleSaveManualOverride = async (enable: boolean) => {
+    if (!user) return;
+    setSavingManual(true);
+    try {
+      const payload: Record<string, unknown> = enable
+        ? {
+            manual_override_active: true,
+            manual_calories: manualCalories ? parseInt(manualCalories) : null,
+            manual_protein: manualProtein ? parseInt(manualProtein) : null,
+            manual_carbs: manualCarbs ? parseInt(manualCarbs) : null,
+            manual_fats: manualFats ? parseInt(manualFats) : null,
+          }
+        : { manual_override_active: false };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any).eq("id", user.id).select().single();
+      if (error) throw error;
+      setProfile(data);
+      toast({
+        title: enable ? "TDEE manuale attivato" : "TDEE manuale disattivato",
+        description: enable
+          ? "I tuoi target sono basati sui valori inseriti."
+          : "L'algoritmo riprenderà ad apprendere il tuo metabolismo.",
+      });
+    } catch (e) {
+      console.error("Manual override error:", e);
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
 
   const handleSave = async () => {
     if (!user) return;
@@ -453,6 +500,51 @@ export default function Settings() {
               </Select>
             </div>
           )}
+
+          {/* Phase 99: Manual TDEE override (advanced users) */}
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-foreground">Conosco già il mio TDEE</p>
+                <p className="text-xs text-muted-foreground">
+                  Salta la calibrazione di 28 giorni e usa i tuoi valori. Per utenti esperti.
+                </p>
+              </div>
+              <Switch
+                checked={manualOverrideActive}
+                onCheckedChange={(v) => {
+                  setManualOverrideActive(v);
+                  if (!v) void handleSaveManualOverride(false);
+                }}
+                disabled={savingManual}
+              />
+            </div>
+            {manualOverrideActive && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Calorie/giorno</Label>
+                    <Input type="number" inputMode="numeric" value={manualCalories} onChange={(e) => setManualCalories(e.target.value)} placeholder="es. 2200" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Proteine (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualProtein} onChange={(e) => setManualProtein(e.target.value)} placeholder="es. 165" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Carboidrati (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualCarbs} onChange={(e) => setManualCarbs(e.target.value)} placeholder="es. 240" className="border-border" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Grassi (g)</Label>
+                    <Input type="number" inputMode="numeric" value={manualFats} onChange={(e) => setManualFats(e.target.value)} placeholder="es. 70" className="border-border" />
+                  </div>
+                </div>
+                <Button type="button" size="sm" className="w-full" disabled={savingManual || !manualCalories} onClick={() => handleSaveManualOverride(true)}>
+                  {savingManual ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvataggio...</> : "Salva TDEE manuale"}
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Weekly checkpoint info + manual recalculate */}
           <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">

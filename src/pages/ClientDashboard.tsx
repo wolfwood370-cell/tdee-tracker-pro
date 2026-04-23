@@ -52,8 +52,10 @@ const ClientDashboard = () => {
     userAge,
     activeMenstrualPhase,
     goalETA,
+    calibration,
     setLogs,
   } = useAppStore();
+  const isCalibrating = calibration.isCalibrating;
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
@@ -370,9 +372,15 @@ const ClientDashboard = () => {
                     </Tooltip>
                   </TooltipProvider>
                 )}
-                {tefDelta > 0 && (
+                {tefDelta > 0 && !isCalibrating && (
                   <Badge variant="secondary" className="text-xs bg-warning/10 text-warning border-warning/30">
                     TEF: +{tefDelta} kcal
+                  </Badge>
+                )}
+                {isCalibrating && (
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/30">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Calibrazione metabolica · {calibration.daysRemaining > 0 ? `${calibration.daysRemaining}g rimasti` : `${Math.max(0, 21 - calibration.validLogDays)} log mancanti`}
                   </Badge>
                 )}
                 {userAge != null && userAge >= 45 && (
@@ -385,7 +393,7 @@ const ClientDashboard = () => {
                     Fase Luteale: +150 kcal
                   </Badge>
                 )}
-                {goalETA && (
+                {goalETA && !isCalibrating && (
                   <Badge
                     variant={goalETA.startsWith("Blocco Clinico") ? "destructive" : "secondary"}
                     className={goalETA.startsWith("Blocco Clinico")
@@ -416,15 +424,22 @@ const ClientDashboard = () => {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
                 {currentTDEE && (
                   <p className="text-xs text-muted-foreground">
-                    TDEE adattivo: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
+                    TDEE {isCalibrating ? "(in apprendimento)" : "adattivo"}: <span className="text-primary font-semibold">{currentTDEE.toLocaleString("it-IT")} kcal</span>
                   </p>
                 )}
-                {dynamicGoalRate != null && (
+                {dynamicGoalRate != null && !isCalibrating && (
                   <p className="text-xs text-muted-foreground">
                     Variazione target: <span className="text-primary font-semibold">{dynamicGoalRate > 0 ? "+" : ""}{dynamicGoalRate.toFixed(2)} kg/sett</span>
                   </p>
                 )}
               </div>
+              {isCalibrating && (
+                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 leading-relaxed">
+                  <p className="font-semibold text-primary mb-0.5">Stiamo imparando il tuo metabolismo</p>
+                  Per i primi 28 giorni l'app osserva le tue abitudini reali invece di prescrivere target rigidi.
+                  Continua a registrare peso e pasti: i tuoi obiettivi personalizzati partiranno il prossimo lunedì utile dopo {Math.max(0, 21 - calibration.validLogDays)} log validi mancanti.
+                </div>
+              )}
 
               {/* Macro Rings */}
               <div className="flex flex-col items-center justify-center py-2 gap-2">
@@ -435,10 +450,13 @@ const ClientDashboard = () => {
                   calories={{ current: todayCalories, target: activeTargets.calories }}
                   onPerfect={handlePerfectMacros}
                   isPerfectDay={todayPerfect}
+                  hideTargets={isCalibrating}
                 />
-                <Badge variant="secondary" className="text-xs">
-                  Target di Oggi: {activeTargets.label}
-                </Badge>
+                {!isCalibrating && (
+                  <Badge variant="secondary" className="text-xs">
+                    Target di Oggi: {activeTargets.label}
+                  </Badge>
+                )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -455,11 +473,15 @@ const ClientDashboard = () => {
                     </div>
                     <div>
                       <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                      <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                      {!isCalibrating && (
+                        <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                      )}
                     </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
-                    </div>
+                    {!isCalibrating && (
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -358,6 +358,7 @@ export type Database = {
           target_weight: number | null
           terms_accepted: boolean
           track_menstrual_cycle: boolean
+          tracking_start_date: string | null
           training_days_per_week: number
           training_schedule: Json
           trial_ends_at: string
@@ -397,6 +398,7 @@ export type Database = {
           target_weight?: number | null
           terms_accepted?: boolean
           track_menstrual_cycle?: boolean
+          tracking_start_date?: string | null
           training_days_per_week?: number
           training_schedule?: Json
           trial_ends_at?: string
@@ -436,6 +438,7 @@ export type Database = {
           target_weight?: number | null
           terms_accepted?: boolean
           track_menstrual_cycle?: boolean
+          tracking_start_date?: string | null
           training_days_per_week?: number
           training_schedule?: Json
           trial_ends_at?: string
