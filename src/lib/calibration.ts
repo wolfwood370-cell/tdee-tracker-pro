@@ -39,24 +39,42 @@ function countValidLogs(logs: DailyMetric[]): number {
   return n;
 }
 
-function daysBetween(from: Date, to: Date): number {
-  const ms = to.getTime() - from.getTime();
-  return Math.floor(ms / (1000 * 60 * 60 * 24));
+/**
+ * Days between two ISO calendar dates (YYYY-MM-DD), inclusive of timezone-safe
+ * day boundaries. We deliberately ignore the time-of-day component to avoid
+ * off-by-one bugs when a `tracking_start_date` stored in UTC is compared to a
+ * local "now" (e.g. Europe/Rome user logging at 00:30 local).
+ */
+function daysBetweenISO(fromISO: string, toISO: string): number {
+  const [fy, fm, fd] = fromISO.split("-").map(Number);
+  const [ty, tm, td] = toISO.split("-").map(Number);
+  const fromUTC = Date.UTC(fy, (fm ?? 1) - 1, fd ?? 1);
+  const toUTC = Date.UTC(ty, (tm ?? 1) - 1, td ?? 1);
+  return Math.floor((toUTC - fromUTC) / (1000 * 60 * 60 * 24));
+}
+
+/** Returns today's date as YYYY-MM-DD using the user's local timezone. */
+function todayLocalISO(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 /**
- * Finds the FIRST log_date where the user recorded BOTH weight AND meaningful
- * calories (≥ 500 kcal). Days with only calories or only weight don't anchor
- * the calibration clock — the user must have a complete day to start tracking.
+ * Finds the FIRST log_date (YYYY-MM-DD) where the user recorded BOTH weight AND
+ * meaningful calories (≥ 500 kcal). Days with only calories or only weight don't
+ * anchor the calibration clock — the user must have a complete day to start.
  */
-function findFirstValidLogDate(logs: DailyMetric[]): Date | null {
+function findFirstValidLogDateISO(logs: DailyMetric[]): string | null {
   let earliest: string | null = null;
   for (const l of logs) {
     if (l.weight != null && l.calories != null && l.calories >= 500) {
       if (earliest == null || l.log_date < earliest) earliest = l.log_date;
     }
   }
-  return earliest ? new Date(earliest) : null;
+  return earliest;
 }
 
 export function getCalibrationStatus(
@@ -76,20 +94,20 @@ export function getCalibrationStatus(
 
   const validLogDays = countValidLogs(dailyLogs);
 
-  // Anchor: first day the user logged BOTH weight AND calories (≥ 500). This is
-  // derived from the actual logs — `tracking_start_date` on profile is just a
-  // server-side cache. Falls back to profile.tracking_start_date, then created_at,
-  // then today (= still calibrating) when no valid day exists yet.
-  const firstValid = findFirstValidLogDate(dailyLogs);
-  const startStr =
-    firstValid?.toISOString() ??
+  // Anchor: first YYYY-MM-DD the user logged BOTH weight AND calories (≥ 500).
+  // Derived from actual logs; `tracking_start_date` on profile is a server-side
+  // cache. Fall back to profile.tracking_start_date, then created_at, then today.
+  const firstValidISO = findFirstValidLogDateISO(dailyLogs);
+  const profileStart =
     (profile as { tracking_start_date?: string | null } | null)?.tracking_start_date ??
     profile?.created_at ??
     null;
+  const startISO =
+    firstValidISO ?? (profileStart ? profileStart.slice(0, 10) : null);
 
-  // No valid log yet → calibration clock hasn't started: stay calibrating with
-  // a full 28-day window remaining.
-  if (!firstValid && !startStr) {
+  // No valid log yet AND no profile anchor → calibration clock hasn't started:
+  // stay calibrating with a full 28-day window remaining.
+  if (!startISO) {
     return {
       isCalibrating: true,
       validLogDays,
@@ -99,8 +117,7 @@ export function getCalibrationStatus(
     };
   }
 
-  const start = startStr ? new Date(startStr) : new Date();
-  const daysSinceStart = daysBetween(start, new Date());
+  const daysSinceStart = Math.max(0, daysBetweenISO(startISO, todayLocalISO()));
 
   const enoughLogs = validLogDays >= CALIBRATION_MIN_VALID_LOGS;
   const enoughTime = daysSinceStart >= CALIBRATION_MIN_DAYS;
