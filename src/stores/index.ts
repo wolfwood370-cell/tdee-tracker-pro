@@ -506,6 +506,12 @@ export const useAppStore = create<AppState>((set, get) => ({
           targetCal, latestWeight, proteinPref, dietType,
           useBIA ? lbm : undefined, age,
         );
+        // Sync displayed calories with the actual macro sum when the safety
+        // floors forced macros to exceed the requested target. The user must
+        // never see "1450 kcal" with macros that equal 1600 kcal.
+        if (targetMacrosResult.effectiveTargetCalories > targetCal) {
+          targetCal = targetMacrosResult.effectiveTargetCalories;
+        }
       }
 
       updates.currentTDEE = displayedTDEE;
