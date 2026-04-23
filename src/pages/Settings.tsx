@@ -110,8 +110,48 @@ export default function Settings() {
       setTrackMenstrualCycle(profile.track_menstrual_cycle === true);
       setDietaryPreference(profile.dietary_preference ?? "onnivoro");
       setAllergies(profile.allergies ?? "");
+      setManualOverrideActive(profile.manual_override_active === true);
+      setManualCalories(profile.manual_calories?.toString() ?? "");
+      setManualProtein(profile.manual_protein?.toString() ?? "");
+      setManualCarbs(profile.manual_carbs?.toString() ?? "");
+      setManualFats(profile.manual_fats?.toString() ?? "");
     }
   }, [profile]);
+
+  // Phase 99: save manual TDEE override — bypasses calibration immediately.
+  const handleSaveManualOverride = async (enable: boolean) => {
+    if (!user) return;
+    setSavingManual(true);
+    try {
+      const payload: Record<string, unknown> = enable
+        ? {
+            manual_override_active: true,
+            manual_calories: manualCalories ? parseInt(manualCalories) : null,
+            manual_protein: manualProtein ? parseInt(manualProtein) : null,
+            manual_carbs: manualCarbs ? parseInt(manualCarbs) : null,
+            manual_fats: manualFats ? parseInt(manualFats) : null,
+          }
+        : { manual_override_active: false };
+      const { data, error } = await supabase
+        .from("profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(payload as any).eq("id", user.id).select().single();
+      if (error) throw error;
+      setProfile(data);
+      toast({
+        title: enable ? "TDEE manuale attivato" : "TDEE manuale disattivato",
+        description: enable
+          ? "I tuoi target sono basati sui valori inseriti."
+          : "L'algoritmo riprenderà ad apprendere il tuo metabolismo.",
+      });
+    } catch (e) {
+      console.error("Manual override error:", e);
+      toast({ title: "Errore", description: e instanceof Error ? e.message : "Riprova.", variant: "destructive" });
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
 
   const handleSave = async () => {
     if (!user) return;
