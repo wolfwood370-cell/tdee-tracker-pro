@@ -135,6 +135,8 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
   const dietType = (profile?.diet_type as DietType) ?? "balanced";
 
   // Per-day on-the-fly target calculation
+  const calorieDistribution = ((profile?.calorie_distribution as "stable" | "polarized") ?? "stable");
+
   const computeRowTargets = useCallback(
     (dayType: DayType) =>
       computeDayTargets({
@@ -147,8 +149,9 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
         lbmKg: latestLbm,
         age: userAge,
         polarized: polarizedTargets,
+        calorieDistribution,
       }),
-    [baselineDailyCal, tdee, bodyWeight, proteinPref, dietType, latestLbm, userAge, polarizedTargets],
+    [baselineDailyCal, tdee, bodyWeight, proteinPref, dietType, latestLbm, userAge, polarizedTargets, calorieDistribution],
   );
 
   // Per-day micronutrients (water/sodium) — depends on activity level + day type
@@ -548,6 +551,7 @@ export function WeeklyPlan({ plan, todayTarget }: WeeklyPlanProps) {
                 lbmKg: latestLbm,
                 age: userAge,
                 polarized: null,
+                calorieDistribution,
               }).macros;
             })()}
           />

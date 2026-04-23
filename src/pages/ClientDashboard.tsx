@@ -188,9 +188,10 @@ const ClientDashboard = () => {
       lbmKg: latestLbm,
       age: userAge,
       polarized: polarizedTargets,
+      calorieDistribution: ((profile?.calorie_distribution as "stable" | "polarized") ?? "stable"),
     });
     return { calories: t.calories, macros: t.macros, label: labels[todayDayType] };
-  }, [todayDayType, currentTDEE, latestWeight, calories, profile?.protein_pref, profile?.diet_type, latestLbm, userAge, polarizedTargets]);
+  }, [todayDayType, currentTDEE, latestWeight, calories, profile?.protein_pref, profile?.diet_type, profile?.calorie_distribution, latestLbm, userAge, polarizedTargets]);
 
   const calPct = todayCalories > 0 ? Math.min(100, Math.round((todayCalories / activeTargets.calories) * 100)) : 0;
 

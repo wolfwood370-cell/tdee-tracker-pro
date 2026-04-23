@@ -731,8 +731,11 @@ export function calculateGoalETA(
  *
  * Logic:
  * - "training": uses polarized training-day target if polarized, else baseline.
- * - "rest": uses polarized rest-day target if polarized, else baseline * 0.9
- *   (lightly reduced to mirror real-world non-polarized rest behaviour).
+ * - "rest":
+ *     • polarized strategy → uses polarized rest-day target if provided,
+ *       otherwise falls back to baseline * 0.9 (mild non-polarized cycling).
+ *     • stable/linear strategy → equals baseline (NO penalty). The user
+ *       explicitly chose an even distribution; training vs rest is irrelevant.
  * - "refeed": maintenance calories with extra cals routed to carbs.
  */
 export function computeDayTargets(opts: {
@@ -745,8 +748,9 @@ export function computeDayTargets(opts: {
   lbmKg?: number | null;
   age?: number | null;
   polarized?: PolarizedTargets | null;
+  calorieDistribution?: CalorieDistribution;
 }): { calories: number; macros: TargetMacros } {
-  const { dayType, baselineDailyCal, tdee, bodyWeightKg, proteinPref, dietType, lbmKg, age, polarized } = opts;
+  const { dayType, baselineDailyCal, tdee, bodyWeightKg, proteinPref, dietType, lbmKg, age, polarized, calorieDistribution = 'stable' } = opts;
 
   if (dayType === 'refeed') {
     const refeedCal = Math.round(tdee);
@@ -766,7 +770,18 @@ export function computeDayTargets(opts: {
     };
   }
 
-  // Non-polarized "rest": apply mild ~10% reduction so rest days visibly differ.
+  // dayType === 'rest'
+  // Stable/linear distributions must spread calories evenly across the week:
+  // training vs rest is irrelevant. Only "polarized" cycling triggers the
+  // ~10% rest-day reduction as a fallback when no precomputed polarized
+  // target is available.
+  if (calorieDistribution !== 'polarized') {
+    return {
+      calories: baselineDailyCal,
+      macros: calculateTargetMacros(baselineDailyCal, bodyWeightKg, proteinPref, dietType, lbmKg, age).macros,
+    };
+  }
+
   const restCal = Math.round(baselineDailyCal * 0.9);
   return {
     calories: restCal,
