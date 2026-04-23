@@ -44,6 +44,21 @@ function daysBetween(from: Date, to: Date): number {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Finds the FIRST log_date where the user recorded BOTH weight AND meaningful
+ * calories (≥ 500 kcal). Days with only calories or only weight don't anchor
+ * the calibration clock — the user must have a complete day to start tracking.
+ */
+function findFirstValidLogDate(logs: DailyMetric[]): Date | null {
+  let earliest: string | null = null;
+  for (const l of logs) {
+    if (l.weight != null && l.calories != null && l.calories >= 500) {
+      if (earliest == null || l.log_date < earliest) earliest = l.log_date;
+    }
+  }
+  return earliest ? new Date(earliest) : null;
+}
+
 export function getCalibrationStatus(
   profile: Profile | null,
   dailyLogs: DailyMetric[],
@@ -61,12 +76,28 @@ export function getCalibrationStatus(
 
   const validLogDays = countValidLogs(dailyLogs);
 
-  // Tracking anchor: tracking_start_date (set on first weight log or onboarding)
-  // → fall back to created_at → fall back to today (= calibrating).
+  // Anchor: first day the user logged BOTH weight AND calories (≥ 500). This is
+  // derived from the actual logs — `tracking_start_date` on profile is just a
+  // server-side cache. Falls back to profile.tracking_start_date, then created_at,
+  // then today (= still calibrating) when no valid day exists yet.
+  const firstValid = findFirstValidLogDate(dailyLogs);
   const startStr =
+    firstValid?.toISOString() ??
     (profile as { tracking_start_date?: string | null } | null)?.tracking_start_date ??
     profile?.created_at ??
     null;
+
+  // No valid log yet → calibration clock hasn't started: stay calibrating with
+  // a full 28-day window remaining.
+  if (!firstValid && !startStr) {
+    return {
+      isCalibrating: true,
+      validLogDays,
+      daysSinceStart: 0,
+      daysRemaining: CALIBRATION_MIN_DAYS,
+      reason: "too_few_logs",
+    };
+  }
 
   const start = startStr ? new Date(startStr) : new Date();
   const daysSinceStart = daysBetween(start, new Date());
@@ -78,8 +109,7 @@ export function getCalibrationStatus(
 
   let reason: CalibrationStatus["reason"] = "complete";
   if (isCalibrating) {
-    if (!enoughLogs && !enoughTime) reason = "too_few_logs";
-    else if (!enoughLogs) reason = "too_few_logs";
+    if (!enoughLogs) reason = "too_few_logs";
     else reason = "too_recent";
   }
 
