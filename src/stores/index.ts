@@ -28,6 +28,7 @@ import {
   type WeeklyTargetSnapshot,
 } from '@/lib/algorithms';
 import { toLocalISODate, getWeekStartISO } from '@/lib/weeklyBudget';
+import { getCalibrationStatus, type CalibrationStatus } from '@/lib/calibration';
 
 // Re-export useful types
 export type Profile = Tables<'profiles'>;
@@ -101,6 +102,8 @@ interface CalculationSlice {
   userAge: number | null;
   activeMenstrualPhase: MenstrualPhase | null;
   goalETA: string | null;
+  /** Phase 99: metabolic calibration phase (first 28 days / 21 valid logs). */
+  calibration: CalibrationStatus;
   setCalculations: (tdee: number, calories: number, macros: TargetMacros) => void;
   setWeeklyAnalytics: (analytics: WeeklyAnalytic[]) => void;
   recalculateMetrics: () => void;
@@ -137,6 +140,13 @@ const initialState = {
   userAge: null,
   activeMenstrualPhase: null,
   goalETA: null,
+  calibration: {
+    isCalibrating: true,
+    validLogDays: 0,
+    daysSinceStart: 0,
+    daysRemaining: 28,
+    reason: "too_few_logs" as const,
+  } satisfies CalibrationStatus,
 };
 
 // Helper: compute age in years from ISO birth date.
