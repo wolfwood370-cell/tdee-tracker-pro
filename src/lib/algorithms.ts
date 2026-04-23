@@ -419,6 +419,13 @@ export function calculateMicronutrients(
 export interface MacroResult {
   macros: TargetMacros;
   tefDelta: number;
+  /**
+   * The actual caloric total represented by the returned macros.
+   * Will equal `targetCalories` in normal cases, but may exceed it when
+   * the absolute protein/fat floors force a higher minimum (anti-catabolic
+   * preservation outranks the caloric target).
+   */
+  effectiveTargetCalories: number;
 }
 
 // ─── Macro Split ─────────────────────────────────────────────
