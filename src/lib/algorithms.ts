@@ -419,6 +419,13 @@ export function calculateMicronutrients(
 export interface MacroResult {
   macros: TargetMacros;
   tefDelta: number;
+  /**
+   * The actual caloric total represented by the returned macros.
+   * Will equal `targetCalories` in normal cases, but may exceed it when
+   * the absolute protein/fat floors force a higher minimum (anti-catabolic
+   * preservation outranks the caloric target).
+   */
+  effectiveTargetCalories: number;
 }
 
 // ─── Macro Split ─────────────────────────────────────────────
@@ -488,14 +495,16 @@ export function calculateTargetMacros(
   //   • Protein: 1.8 g/kg of bodyweight (anti-catabolic minimum).
   //     If the user's preference produced a higher value, we keep that
   //     higher value as the floor — preference can only RAISE the floor.
-  //   • Fats: 0.6 g/kg standard, 1.0 g/kg for keto.
+  //   • Fats: 0.6 g/kg for ALL diets (including keto). The 1.0 g/kg keto
+  //     value is only an initial *starting* target — when calories are
+  //     squeezed, fats are allowed to trim down to the universal 0.6 floor.
   //   • Carbs: diet-specific absolute minimum (keto=20g, low_carb=50g,
   //     others=0g).
   //
   // If the floor sum exceeds target calories, we accept the higher caloric
   // total — protein preservation outranks the caloric target.
   const proteinFloorAbsolute = Math.round(bodyWeightKg * 1.8);
-  const fatFloor = dietType === 'keto' ? fatFloorKeto : fatFloorStd;
+  const fatFloor = Math.round(bodyWeightKg * 0.6); // universal — keto included
   const carbsMin =
     dietType === 'keto' ? 20 :
     dietType === 'low_carb' ? 50 :
@@ -518,17 +527,25 @@ export function calculateTargetMacros(
     carbs -= carbReduction;
     excessCal -= carbReduction * 4;
 
-    // 3b. Trim Fats second, down to the fat floor (0.6 g/kg, or 1.0 g/kg keto).
+    // 3b. Trim Fats second, down to the universal 0.6 g/kg fat floor.
     if (excessCal > 5 && fats > fatFloor) {
       const fatReduction = Math.min(fats - fatFloor, Math.ceil(excessCal / 9));
       fats -= fatReduction;
       excessCal -= fatReduction * 9;
     }
 
-    // 3c. Protein is NEVER trimmed below its floor. If excess calories remain
-    // after trimming carbs and fats to their floors, the resulting macro sum
-    // will sit slightly above targetCalories — this is intentional: the
-    // unbreakable protein floor wins over the caloric target.
+    // 3c. Trim Protein last, but ONLY down to the 1.8 g/kg anti-catabolic
+    // floor. If the user's preference produced a value above 1.8 g/kg, we
+    // can sacrifice that surplus to honour the caloric target. Below the
+    // 1.8 g/kg floor protein is sacred — we accept exceeding the target.
+    if (excessCal > 5 && protein > proteinFloorAbsolute) {
+      const proteinReduction = Math.min(
+        protein - proteinFloorAbsolute,
+        Math.ceil(excessCal / 4),
+      );
+      protein -= proteinReduction;
+      excessCal -= proteinReduction * 4;
+    }
 
     generatedCal = protein * 4 + fats * 9 + carbs * 4;
   }
@@ -546,17 +563,41 @@ export function calculateTargetMacros(
     }
   }
 
-  // Step 4: Dynamic TEF Reward
-  const standardTef = targetCalories * 0.10;
-  const dynamicTef = (protein * 4 * 0.25) + (carbs * 4 * 0.08) + (fats * 9 * 0.02);
-  const tefDelta = Math.round(dynamicTef - standardTef);
-
-  // If TEF delta is positive, add bonus calories to carbs
-  if (tefDelta > 0) {
-    carbs += Math.round(tefDelta / 4);
+  // Step 4: Conditional TEF Reward.
+  // The TEF bonus may only be applied when the generated macros are at or
+  // below the requested caloric target. If safety floors forced the macros
+  // to exceed targetCalories, adding more carbs would compound the breach
+  // (and, for keto, blow past the carb cap entirely) — so we skip it.
+  generatedCal = protein * 4 + fats * 9 + carbs * 4;
+  let tefDelta = 0;
+  if (generatedCal <= targetCalories) {
+    const standardTef = targetCalories * 0.10;
+    const dynamicTef = (protein * 4 * 0.25) + (carbs * 4 * 0.08) + (fats * 9 * 0.02);
+    const rawTefDelta = Math.round(dynamicTef - standardTef);
+    if (rawTefDelta > 0) {
+      // Honour the carb cap for keto / low_carb diets so we never exceed it.
+      const carbCeiling =
+        dietType === 'keto' ? 30 :
+        dietType === 'low_carb' ? Math.round(bodyWeightKg * 1.0) :
+        Number.POSITIVE_INFINITY;
+      const carbHeadroom = Math.max(0, carbCeiling - carbs);
+      const desiredCarbBonus = Math.round(rawTefDelta / 4);
+      const actualCarbBonus = Math.min(desiredCarbBonus, carbHeadroom);
+      carbs += actualCarbBonus;
+      tefDelta = actualCarbBonus * 4;
+    }
   }
 
-  return { macros: { protein, carbs, fats }, tefDelta: Math.max(0, tefDelta) };
+  // Step 5: Compute the effective caloric total represented by the macros.
+  // The UI should always display this value — never the original
+  // `targetCalories` argument when the floors forced a higher minimum.
+  const effectiveTargetCalories = protein * 4 + fats * 9 + carbs * 4;
+
+  return {
+    macros: { protein, carbs, fats },
+    tefDelta,
+    effectiveTargetCalories,
+  };
 }
 
 // ─── Refeed Day Macros ───────────────────────────────────────
