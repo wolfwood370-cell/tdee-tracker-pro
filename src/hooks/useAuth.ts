@@ -75,6 +75,11 @@ export function useAuth() {
 
         store.setUser({ id: userId, email, role });
         store.setProfile(profileData);
+
+        // Load frozen weekly target snapshots (clients only — coach has no targets).
+        if (role === "client") {
+          void useAppStore.getState().loadWeeklyTargets();
+        }
       } catch (e) {
         console.error("Error loading session data:", e);
       } finally {
