@@ -495,7 +495,6 @@ export function calculateTargetMacros(
   // If the floor sum exceeds target calories, we accept the higher caloric
   // total — protein preservation outranks the caloric target.
   const proteinFloorAbsolute = Math.round(bodyWeightKg * 1.8);
-  const minProtein = Math.max(proteinFloorAbsolute, protein);
   const fatFloor = dietType === 'keto' ? fatFloorKeto : fatFloorStd;
   const carbsMin =
     dietType === 'keto' ? 20 :
