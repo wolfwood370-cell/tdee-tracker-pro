@@ -363,6 +363,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   recalculateMetrics: () => {
     const { dailyLogs, profile, currentWeekTarget } = get();
 
+    // Phase 99: compute calibration status (drives UI gating across the app).
+    const calibration = getCalibrationStatus(profile, dailyLogs);
+    set({ calibration });
+
     // --- Manual Override: bypass macro calculations but keep other fields ---
     if (profile?.manual_override_active) {
       const manualCal = profile.manual_calories;
