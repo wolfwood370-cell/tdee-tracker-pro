@@ -87,6 +87,13 @@ export default function Settings() {
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
+  // Phase 99: Manual TDEE override (advanced users) — bypasses calibration.
+  const [manualOverrideActive, setManualOverrideActive] = useState(false);
+  const [manualCalories, setManualCalories] = useState("");
+  const [manualProtein, setManualProtein] = useState("");
+  const [manualCarbs, setManualCarbs] = useState("");
+  const [manualFats, setManualFats] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
 
   useEffect(() => {
     if (profile) {
