@@ -52,8 +52,10 @@ const ClientDashboard = () => {
     userAge,
     activeMenstrualPhase,
     goalETA,
+    calibration,
     setLogs,
   } = useAppStore();
+  const isCalibrating = calibration.isCalibrating;
 
   const [needsCheckin, setNeedsCheckin] = useState(false);
   const [checkinDismissed, setCheckinDismissed] = useState(false);
