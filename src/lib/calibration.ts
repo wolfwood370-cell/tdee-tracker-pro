@@ -94,20 +94,20 @@ export function getCalibrationStatus(
 
   const validLogDays = countValidLogs(dailyLogs);
 
-  // Anchor: first day the user logged BOTH weight AND calories (≥ 500). This is
-  // derived from the actual logs — `tracking_start_date` on profile is just a
-  // server-side cache. Falls back to profile.tracking_start_date, then created_at,
-  // then today (= still calibrating) when no valid day exists yet.
-  const firstValid = findFirstValidLogDate(dailyLogs);
-  const startStr =
-    firstValid?.toISOString() ??
+  // Anchor: first YYYY-MM-DD the user logged BOTH weight AND calories (≥ 500).
+  // Derived from actual logs; `tracking_start_date` on profile is a server-side
+  // cache. Fall back to profile.tracking_start_date, then created_at, then today.
+  const firstValidISO = findFirstValidLogDateISO(dailyLogs);
+  const profileStart =
     (profile as { tracking_start_date?: string | null } | null)?.tracking_start_date ??
     profile?.created_at ??
     null;
+  const startISO =
+    firstValidISO ?? (profileStart ? profileStart.slice(0, 10) : null);
 
-  // No valid log yet → calibration clock hasn't started: stay calibrating with
-  // a full 28-day window remaining.
-  if (!firstValid && !startStr) {
+  // No valid log yet AND no profile anchor → calibration clock hasn't started:
+  // stay calibrating with a full 28-day window remaining.
+  if (!startISO) {
     return {
       isCalibrating: true,
       validLogDays,
@@ -117,8 +117,7 @@ export function getCalibrationStatus(
     };
   }
 
-  const start = startStr ? new Date(startStr) : new Date();
-  const daysSinceStart = daysBetween(start, new Date());
+  const daysSinceStart = Math.max(0, daysBetweenISO(startISO, todayLocalISO()));
 
   const enoughLogs = validLogDays >= CALIBRATION_MIN_VALID_LOGS;
   const enoughTime = daysSinceStart >= CALIBRATION_MIN_DAYS;
