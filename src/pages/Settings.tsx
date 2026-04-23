@@ -68,7 +68,7 @@ const PROTEIN_PREFS = [
 ];
 
 export default function Settings() {
-  const { user, profile, setProfile, logout } = useAppStore();
+  const { user, profile, setProfile, logout, forceRecalculateWeeklyTarget, currentWeekTarget } = useAppStore();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -83,6 +83,7 @@ export default function Settings() {
   const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
