@@ -65,24 +65,23 @@ function Ring({
   );
 }
 
-export function MacroRings({ protein, carbs, fats, calories, className, onPerfect, isPerfectDay }: MacroRingsProps) {
-  const proteinPct = protein.target > 0 ? protein.current / protein.target : 0;
-  const carbsPct = carbs.target > 0 ? carbs.current / carbs.target : 0;
-  const fatsPct = fats.target > 0 ? fats.current / fats.target : 0;
+export function MacroRings({ protein, carbs, fats, calories, className, onPerfect, isPerfectDay, hideTargets }: MacroRingsProps) {
+  const proteinPct = !hideTargets && protein.target > 0 ? protein.current / protein.target : 0;
+  const carbsPct = !hideTargets && carbs.target > 0 ? carbs.current / carbs.target : 0;
+  const fatsPct = !hideTargets && fats.target > 0 ? fats.current / fats.target : 0;
 
   const remaining = calories.target - calories.current;
 
-  // Check if all macros are within range (90-110%)
-  // Note: we intentionally depend on `calories.current` (a primitive) rather than
-  // the `calories` object to avoid re-running on every render due to new prop refs.
+  // Check if all macros are within range (90-110%) — disabled in calibration.
   const caloriesCurrent = calories.current;
   const isPerfect = useMemo(() => {
+    if (hideTargets) return false;
     const allInRange =
       proteinPct >= 0.9 && proteinPct <= 1.1 &&
       carbsPct >= 0.9 && carbsPct <= 1.1 &&
       fatsPct >= 0.9 && fatsPct <= 1.1;
     return allInRange && caloriesCurrent > 0;
-  }, [proteinPct, carbsPct, fatsPct, caloriesCurrent]);
+  }, [proteinPct, carbsPct, fatsPct, caloriesCurrent, hideTargets]);
 
   // Fire onPerfect only on transitions from false → true to avoid repeated triggers.
   const wasPerfectRef = useRef(false);
@@ -97,7 +96,7 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
 
   return (
     <div className={cn("flex flex-col items-center", className)}>
-      {isPerfectDay && (
+      {isPerfectDay && !hideTargets && (
         <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-warning/15 border border-warning/40 px-3 py-1 text-xs font-semibold text-warning animate-fade-in">
           🏆 Giornata Perfetta!
         </div>
@@ -105,9 +104,9 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
       <div
         className={cn(
           "relative w-48 h-48 md:w-56 md:h-56 transition-all duration-500 rounded-full",
-          isPerfectDay && "ring-2 ring-warning/40",
+          isPerfectDay && !hideTargets && "ring-2 ring-warning/40",
         )}
-        style={isPerfectDay ? { boxShadow: "0 0 32px hsl(var(--warning) / 0.45)" } : undefined}
+        style={isPerfectDay && !hideTargets ? { boxShadow: "0 0 32px hsl(var(--warning) / 0.45)" } : undefined}
       >
         <svg viewBox="0 0 200 200" className="w-full h-full">
           {/* Outer: Protein (Red-Orange) */}
@@ -138,25 +137,51 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
             label="Grassi"
           />
           {/* Center text */}
-          <text
-            x="100"
-            y="92"
-            textAnchor="middle"
-            className="fill-foreground font-display"
-            fontSize="28"
-            fontWeight="700"
-          >
-            {remaining >= 0 ? remaining.toLocaleString("it-IT") : `+${Math.abs(remaining).toLocaleString("it-IT")}`}
-          </text>
-          <text
-            x="100"
-            y="112"
-            textAnchor="middle"
-            className="fill-muted-foreground"
-            fontSize="11"
-          >
-            kcal {remaining >= 0 ? "rimaste" : "in eccesso"}
-          </text>
+          {hideTargets ? (
+            <>
+              <text
+                x="100"
+                y="92"
+                textAnchor="middle"
+                className="fill-foreground font-display"
+                fontSize="26"
+                fontWeight="700"
+              >
+                {Math.round(calories.current).toLocaleString("it-IT")}
+              </text>
+              <text
+                x="100"
+                y="112"
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                fontSize="11"
+              >
+                kcal oggi
+              </text>
+            </>
+          ) : (
+            <>
+              <text
+                x="100"
+                y="92"
+                textAnchor="middle"
+                className="fill-foreground font-display"
+                fontSize="28"
+                fontWeight="700"
+              >
+                {remaining >= 0 ? remaining.toLocaleString("it-IT") : `+${Math.abs(remaining).toLocaleString("it-IT")}`}
+              </text>
+              <text
+                x="100"
+                y="112"
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                fontSize="11"
+              >
+                kcal {remaining >= 0 ? "rimaste" : "in eccesso"}
+              </text>
+            </>
+          )}
         </svg>
 
         {/* Sparkle on perfect */}
@@ -167,7 +192,7 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
         )}
       </div>
 
-      {/* Detailed legend: consumed / target per macro */}
+      {/* Detailed legend: consumed (and target when not in calibration) per macro */}
       <div className="grid grid-cols-3 gap-2 mt-4 w-full max-w-sm">
         {[
           { label: "Proteine", color: "hsl(12, 82%, 52%)", current: protein.current, target: protein.target, pct: proteinPct },
@@ -179,10 +204,18 @@ export function MacroRings({ protein, carbs, fats, calories, className, onPerfec
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{m.label}</span>
             </div>
-            <p className="text-sm font-bold text-foreground tabular-nums">
-              {Math.round(m.current)}<span className="text-muted-foreground font-normal">/{Math.round(m.target)}g</span>
-            </p>
-            <p className="text-[10px] text-muted-foreground">{Math.round(m.pct * 100)}%</p>
+            {hideTargets ? (
+              <p className="text-sm font-bold text-foreground tabular-nums">
+                {Math.round(m.current)}<span className="text-muted-foreground font-normal">g</span>
+              </p>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-foreground tabular-nums">
+                  {Math.round(m.current)}<span className="text-muted-foreground font-normal">/{Math.round(m.target)}g</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">{Math.round(m.pct * 100)}%</p>
+              </>
+            )}
           </div>
         ))}
       </div>
