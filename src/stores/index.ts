@@ -468,7 +468,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       // ensureCurrentWeekTarget() persist them asynchronously.
       let displayedTDEE = liveTDEE;
       let targetCal: number;
-      let targetMacrosResult: { macros: TargetMacros; tefDelta: number };
+      let targetMacrosResult: { macros: TargetMacros; tefDelta: number; effectiveTargetCalories?: number };
       let frozenDynamicRate = liveDynamicRate;
 
       if (currentWeekTarget) {
