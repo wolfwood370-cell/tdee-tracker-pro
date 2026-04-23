@@ -637,6 +637,60 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_targets: {
+        Row: {
+          calorie_distribution: string | null
+          created_at: string
+          diet_strategy: string | null
+          frozen_tdee: number
+          goal_rate: number | null
+          goal_type: string | null
+          id: string
+          snapshot_reason: string
+          target_calories: number
+          target_carbs: number
+          target_fats: number
+          target_protein: number
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          calorie_distribution?: string | null
+          created_at?: string
+          diet_strategy?: string | null
+          frozen_tdee: number
+          goal_rate?: number | null
+          goal_type?: string | null
+          id?: string
+          snapshot_reason?: string
+          target_calories: number
+          target_carbs: number
+          target_fats: number
+          target_protein: number
+          updated_at?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          calorie_distribution?: string | null
+          created_at?: string
+          diet_strategy?: string | null
+          frozen_tdee?: number
+          goal_rate?: number | null
+          goal_type?: string | null
+          id?: string
+          snapshot_reason?: string
+          target_calories?: number
+          target_carbs?: number
+          target_fats?: number
+          target_protein?: number
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

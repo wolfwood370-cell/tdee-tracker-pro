@@ -68,7 +68,7 @@ const PROTEIN_PREFS = [
 ];
 
 export default function Settings() {
-  const { user, profile, setProfile, logout } = useAppStore();
+  const { user, profile, setProfile, logout, forceRecalculateWeeklyTarget, currentWeekTarget } = useAppStore();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -83,6 +83,7 @@ export default function Settings() {
   const [dietStrategy, setDietStrategy] = useState("linear");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
   const [trackMenstrualCycle, setTrackMenstrualCycle] = useState(false);
   const [dietaryPreference, setDietaryPreference] = useState("onnivoro");
   const [allergies, setAllergies] = useState("");
@@ -452,6 +453,51 @@ export default function Settings() {
               </Select>
             </div>
           )}
+
+          {/* Weekly checkpoint info + manual recalculate */}
+          <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold text-foreground">Target settimanali</p>
+              <p className="text-xs text-muted-foreground">
+                {currentWeekTarget
+                  ? `Congelati il ${new Date(currentWeekTarget.created_at).toLocaleDateString("it-IT")} — ${currentWeekTarget.target_calories} kcal/giorno`
+                  : "Verranno calcolati automaticamente al primo accesso della settimana."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={recalculating || profile?.manual_override_active}
+              onClick={async () => {
+                setRecalculating(true);
+                try {
+                  const result = await forceRecalculateWeeklyTarget("manual");
+                  toast({
+                    title: result ? "Target ricalcolati" : "Dati insufficienti",
+                    description: result
+                      ? `Nuovo budget: ${result.target_calories} kcal/giorno per questa settimana.`
+                      : "Servono almeno 14 giorni di dati per ricalcolare.",
+                    variant: result ? "default" : "destructive",
+                  });
+                } finally {
+                  setRecalculating(false);
+                }
+              }}
+            >
+              {recalculating ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Ricalcolo in corso...</>
+              ) : (
+                "Ricalcola target settimanali ora"
+              )}
+            </Button>
+            {profile?.manual_override_active && (
+              <p className="text-xs text-muted-foreground italic">
+                Override manuale attivo — il ricalcolo automatico è disattivato.
+              </p>
+            )}
+          </div>
 
           <Button onClick={handleSave} disabled={submitting} className="w-full">
             {submitting ? (
