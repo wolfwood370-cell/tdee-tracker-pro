@@ -12,7 +12,8 @@ import { toLocalISODate } from "@/lib/weeklyBudget";
 import { calculateMicronutrients } from "@/lib/algorithms";
 
 const Log = () => {
-  const { user, profile, dailyLogs, targetCalories, targetMacros } = useAppStore();
+  const { user, profile, dailyLogs, targetCalories, targetMacros, calibration } = useAppStore();
+  const isCalibrating = calibration.isCalibrating;
   const todayStr = toLocalISODate(new Date());
 
   const [aiOpen, setAiOpen] = useState(false);
@@ -97,7 +98,9 @@ const Log = () => {
             <div>
               <p className="text-sm font-display font-semibold text-foreground">Idratazione Rapida</p>
               <p className="text-xs text-muted-foreground">
-                Target: {microTargets.waterL} L · Tocca per registrare un sorso
+                {isCalibrating
+                  ? "Tocca per registrare un sorso · target in calibrazione"
+                  : `Target: ${microTargets.waterL} L · Tocca per registrare un sorso`}
               </p>
             </div>
           </div>
@@ -108,21 +111,23 @@ const Log = () => {
         </CardContent>
       </Card>
 
-      {/* Micronutrient targets summary */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-          <Droplets className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs text-muted-foreground">Elettroliti:</span>
-          <span className="text-xs font-semibold text-foreground">
-            {microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K
-          </span>
+      {/* Micronutrient targets summary — hidden during calibration */}
+      {!isCalibrating && (
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+            <Droplets className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs text-muted-foreground">Elettroliti:</span>
+            <span className="text-xs font-semibold text-foreground">
+              {microTargets.sodiumMg} mg Na / {microTargets.potassiumMg} mg K
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
+            <Leaf className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs text-muted-foreground">Fibre:</span>
+            <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG} g</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-3 py-2">
-          <Leaf className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs text-muted-foreground">Fibre:</span>
-          <span className="text-xs font-semibold text-foreground">~{microTargets.fiberG} g</span>
-        </div>
-      </div>
+      )}
 
       {/* Today's diary entries (edit + delete) */}
       <TodayDiary logDate={todayStr} />
