@@ -10,6 +10,12 @@ interface MacroRingsProps {
   onPerfect?: () => void;
   /** Phase 70: when true, renders a golden glow + "Giornata Perfetta" badge. */
   isPerfectDay?: boolean;
+  /**
+   * Phase 99: Calibration mode. When true the rings act as PURE ACCUMULATORS:
+   *  - no target progress arcs, no "remaining kcal" math, no /target divisor
+   * Used during the 28-day metabolic calibration phase.
+   */
+  hideTargets?: boolean;
 }
 
 function Ring({
