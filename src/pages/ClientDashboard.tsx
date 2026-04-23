@@ -473,11 +473,15 @@ const ClientDashboard = () => {
                     </div>
                     <div>
                       <p className="text-xl md:text-2xl font-display font-bold text-foreground">{metric.value}</p>
-                      <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                      {!isCalibrating && (
+                        <p className="text-xs text-muted-foreground">di {metric.target}</p>
+                      )}
                     </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
-                    </div>
+                    {!isCalibrating && (
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${metric.pct}%` }} />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
