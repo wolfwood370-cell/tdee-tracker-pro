@@ -83,7 +83,7 @@ interface WeeklyTargetsSlice {
   /** Ensures a snapshot exists for the current ISO week. Creates one if missing. */
   ensureCurrentWeekTarget: () => Promise<WeeklyTarget | null>;
   /** Forces a fresh snapshot for the current week (deletes & recreates). */
-  forceRecalculateWeeklyTarget: (reason?: 'manual' | 'strategy_change') => Promise<WeeklyTarget | null>;
+  forceRecalculateWeeklyTarget: (reason?: 'manual' | 'strategy_change' | 'weekly') => Promise<WeeklyTarget | null>;
 }
 
 // --- Calculations Slice ---
