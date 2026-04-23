@@ -481,33 +481,59 @@ export function calculateTargetMacros(
     }
   }
 
-  // Step 3: Safety clamp — trim hierarchy: Carbs → Fats → Protein (last resort).
-  // Protein is preserved to honor user's "High Protein" choice during deficits.
-  const minProtein = Math.round(bodyWeightKg * 1.2);
+  // Step 3: Safety clamp — strict muscle-preservation hierarchy.
+  // Trimming order: Carbs → Fats → (NEVER protein).
+  //
+  // Floors:
+  //   • Protein: 1.8 g/kg of bodyweight (anti-catabolic minimum).
+  //     If the user's preference produced a higher value, we keep that
+  //     higher value as the floor — preference can only RAISE the floor.
+  //   • Fats: 0.6 g/kg standard, 1.0 g/kg for keto.
+  //   • Carbs: diet-specific absolute minimum (keto=20g, low_carb=50g,
+  //     others=0g).
+  //
+  // If the floor sum exceeds target calories, we accept the higher caloric
+  // total — protein preservation outranks the caloric target.
+  const proteinFloorAbsolute = Math.round(bodyWeightKg * 1.8);
+  const minProtein = Math.max(proteinFloorAbsolute, protein);
+  const fatFloor = dietType === 'keto' ? fatFloorKeto : fatFloorStd;
+  const carbsMin =
+    dietType === 'keto' ? 20 :
+    dietType === 'low_carb' ? 50 :
+    0;
+
+  // Make sure protein never starts below the absolute floor (e.g. low body
+  // weight + 'low' protein preference scenarios).
+  if (protein < proteinFloorAbsolute) {
+    protein = proteinFloorAbsolute;
+  }
+
   let generatedCal = protein * 4 + fats * 9 + carbs * 4;
 
   if (generatedCal > targetCalories + 5) {
-    // 3a. Trim Carbs first (down to 0)
     let excessCal = generatedCal - targetCalories;
-    const carbReduction = Math.min(carbs, Math.ceil(excessCal / 4));
+
+    // 3a. Trim Carbs first, down to diet-specific absolute minimum.
+    const carbTrimmable = Math.max(0, carbs - carbsMin);
+    const carbReduction = Math.min(carbTrimmable, Math.ceil(excessCal / 4));
     carbs -= carbReduction;
     excessCal -= carbReduction * 4;
 
-    // 3b. Trim Fats second (down to fatFloorStd)
-    if (excessCal > 5 && fats > fatFloorStd) {
-      const fatReduction = Math.min(fats - fatFloorStd, Math.ceil(excessCal / 9));
+    // 3b. Trim Fats second, down to the fat floor (0.6 g/kg, or 1.0 g/kg keto).
+    if (excessCal > 5 && fats > fatFloor) {
+      const fatReduction = Math.min(fats - fatFloor, Math.ceil(excessCal / 9));
       fats -= fatReduction;
       excessCal -= fatReduction * 9;
     }
 
-    // 3c. Trim Protein last (down to minProtein) — only if carbs=0 and fats at floor
-    if (excessCal > 5 && carbs === 0 && fats <= fatFloorStd && protein > minProtein) {
-      const proteinReduction = Math.min(protein - minProtein, Math.ceil(excessCal / 4));
-      protein -= proteinReduction;
-    }
+    // 3c. Protein is NEVER trimmed below its floor. If excess calories remain
+    // after trimming carbs and fats to their floors, the resulting macro sum
+    // will sit slightly above targetCalories — this is intentional: the
+    // unbreakable protein floor wins over the caloric target.
 
     generatedCal = protein * 4 + fats * 9 + carbs * 4;
   }
+
 
   // Step 3.5: Physiological fat ceiling — cap fats at 1.5 g/kg of bodyweight
   // (except keto, which is fat-driven by definition). Any residual calories
