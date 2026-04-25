@@ -218,9 +218,11 @@ export function ProgressPhotoUpload({ onUploaded }: ProgressPhotoUploadProps) {
                 ref={inputRefs[slot]}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
-                onChange={(e) => handleFile(slot, e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  handleFile(slot, e.target.files?.[0] ?? null);
+                  e.target.value = "";
+                }}
               />
             </div>
           ))}
